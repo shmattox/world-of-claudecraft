@@ -8237,6 +8237,9 @@ export class Sim {
     items.discardItem(this.ctx, itemId, count, pid, named, a);
   }
 
+  /** PlaceSchema carry is online-only (server/placeschema_sidecar.ts): offline has no sidecar. */
+  carryItem(_slotIndex: number): void {}
+
   setItemLocked(
     itemId: string,
     locked: boolean,

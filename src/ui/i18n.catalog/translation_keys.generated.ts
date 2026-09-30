@@ -11425,6 +11425,7 @@ export type TranslationKeyFlat =
   | 'hudChrome.itemHeroicTag'
   | 'hudChrome.itemMasterwrought'
   | 'hudChrome.itemMenu.applyEnchant'
+  | 'hudChrome.itemMenu.carry'
   | 'hudChrome.itemMenu.combine'
   | 'hudChrome.itemMenu.disenchant'
   | 'hudChrome.itemMenu.equip'

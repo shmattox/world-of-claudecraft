@@ -5628,6 +5628,7 @@ export const nl_NL: EnTranslations = {
       "viewSources": "Bronnen bekijken",
       "separateByGatherer": "Per verzamelaar scheiden",
       "takeChosenQuantity": "Gekozen aantal uitnemen",
+      "carry": "Meenemen naar een andere wereld",
       "combine": "Materiaalstapels combineren"
     },
     "enchanting": {

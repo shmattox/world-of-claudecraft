@@ -5628,6 +5628,7 @@ export const en_XA: EnTranslations = {
       "viewSources": "[Ʋíéŵ šóúŕçéš]",
       "separateByGatherer": "[Šéþáŕáţé ƀý ĝáţĥéŕéŕ]",
       "takeChosenQuantity": "[Ţáķé óúţ çĥóšéñ ɋúáñţíţý]",
+      "carry": "[Çáŕŕý ţó áñóţĥéŕ ŵóŕļð]",
       "combine": "[Çóɱƀíñé ɱáţéŕíáļ šţáçķš]"
     },
     "enchanting": {

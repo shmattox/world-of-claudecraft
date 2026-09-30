@@ -18675,6 +18675,7 @@ export const sv_SE: Partial<Record<TranslationKey, string>> = {
   'hudChrome.itemMenu.separateByGatherer': 'Dela upp efter samlare',
   'hudChrome.itemMenu.sunder': 'Söndra',
   'hudChrome.itemMenu.takeChosenQuantity': 'Ta ut valt antal',
+  'hudChrome.itemMenu.carry': 'Ta med till en annan värld',
   'hudChrome.itemMenu.viewSources': 'Visa källor',
   'hudChrome.itemTooltip.materialSourceGatherer': '{count} × samlad av {name}',
   'hudChrome.itemTooltip.materialSourceGathererSigned':

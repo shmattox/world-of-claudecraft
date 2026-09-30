@@ -5628,6 +5628,7 @@ export const sv_SE: EnTranslations = {
       "viewSources": "Visa källor",
       "separateByGatherer": "Dela upp efter samlare",
       "takeChosenQuantity": "Ta ut valt antal",
+      "carry": "Ta med till en annan värld",
       "combine": "Slå ihop materialbuntar"
     },
     "enchanting": {

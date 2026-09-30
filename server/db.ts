@@ -517,6 +517,9 @@ ALTER TABLE accounts ADD COLUMN IF NOT EXISTS cosmetics JSONB NOT NULL DEFAULT '
 -- let a rolling deploy or rollback erase entitlements. The one-time backfill reads
 -- the legacy keys for accounts that received them before this table existed; once a
 -- row exists here it is authoritative and old binaries cannot mutate it.
+-- PLACE-276: the retired PlaceSchema adapter's tables. mc_player_identity held per-player
+-- private keys; the shared sidecar keeps no player keys, so every copy is dropped, never read.
+DROP TABLE IF EXISTS mc_player_identity, mc_last_export, placeschema_identity, placeschema_provenance;
 CREATE TABLE IF NOT EXISTS account_weapon_cosmetics (
   account_id INT PRIMARY KEY REFERENCES accounts(id) ON DELETE CASCADE,
   skin_ids JSONB NOT NULL DEFAULT '[]'::jsonb,

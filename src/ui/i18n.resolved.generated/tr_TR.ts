@@ -5628,6 +5628,7 @@ export const tr_TR: EnTranslations = {
       "viewSources": "Kaynakları görüntüle",
       "separateByGatherer": "Toplayıcıya göre ayır",
       "takeChosenQuantity": "Seçilen miktarı çıkar",
+      "carry": "Başka bir dünyaya taşı",
       "combine": "Malzeme yığınlarını birleştir"
     },
     "enchanting": {

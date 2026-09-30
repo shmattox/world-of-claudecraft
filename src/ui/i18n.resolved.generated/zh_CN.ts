@@ -5628,6 +5628,7 @@ export const zh_CN: EnTranslations = {
       "viewSources": "查看来源",
       "separateByGatherer": "按采集者拆分",
       "takeChosenQuantity": "取出指定数量",
+      "carry": "带往另一个世界",
       "combine": "合并素材堆叠"
     },
     "enchanting": {

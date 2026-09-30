@@ -18917,6 +18917,7 @@ export const id_ID: Partial<Record<TranslationKey, string>> = {
   'hudChrome.itemMenu.separateByGatherer': 'Pisahkan berdasarkan pengumpul',
   'hudChrome.itemMenu.sunder': 'Belah',
   'hudChrome.itemMenu.takeChosenQuantity': 'Keluarkan jumlah yang dipilih',
+  'hudChrome.itemMenu.carry': 'Bawa ke dunia lain',
   'hudChrome.itemMenu.viewSources': 'Lihat sumber',
   'hudChrome.itemTooltip.materialSourceGatherer': '{count} × Dikumpulkan oleh {name}',
   'hudChrome.itemTooltip.materialSourceGathererSigned':

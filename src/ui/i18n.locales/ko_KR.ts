@@ -18311,6 +18311,7 @@ export const ko_KR: Partial<Record<TranslationKey, string>> = {
   'hudChrome.itemMenu.viewSources': '출처 보기',
   'hudChrome.itemMenu.separateByGatherer': '채집자별 분리',
   'hudChrome.itemMenu.takeChosenQuantity': '지정 수량 꺼내기',
+  'hudChrome.itemMenu.carry': '다른 세계로 가져가기',
   'hudChrome.itemMenu.combine': '재료 묶음 합치기',
   'hudChrome.realmBuilder.title': '이달의 왕국 건설자',
   'hudChrome.realmBuilder.currentLabel': '이달의 수상자',

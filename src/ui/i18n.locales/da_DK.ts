@@ -18633,6 +18633,7 @@ export const da_DK: Partial<Record<TranslationKey, string>> = {
   'hudChrome.itemMenu.separateByGatherer': 'Adskil efter samler',
   'hudChrome.itemMenu.sunder': 'Sønderdel',
   'hudChrome.itemMenu.takeChosenQuantity': 'Tag valgt antal ud',
+  'hudChrome.itemMenu.carry': 'Bær til en anden verden',
   'hudChrome.itemMenu.viewSources': 'Vis kilder',
   'hudChrome.itemTooltip.materialSourceGatherer': '{count} × samlet af {name}',
   'hudChrome.itemTooltip.materialSourceGathererSigned':

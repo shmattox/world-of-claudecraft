@@ -16839,6 +16839,7 @@ export const it_IT: Partial<Record<TranslationKey, string>> = {
   'hudChrome.itemMenu.separateByGatherer': 'Separa per raccoglitore',
   'hudChrome.itemMenu.sunder': 'Frantuma',
   'hudChrome.itemMenu.takeChosenQuantity': 'Preleva la quantità scelta',
+  'hudChrome.itemMenu.carry': 'Porta in un altro mondo',
   'hudChrome.itemMenu.viewSources': 'Vedi fonti',
   'hudChrome.itemTooltip.materialSourceGatherer': '{count} × Raccolto da {name}',
   'hudChrome.itemTooltip.materialSourceGathererSigned':

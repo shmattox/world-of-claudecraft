@@ -5628,6 +5628,7 @@ export const ja_JP: EnTranslations = {
       "viewSources": "入手元を見る",
       "separateByGatherer": "採集者別に分ける",
       "takeChosenQuantity": "指定数を取り出す",
+      "carry": "別の世界へ持ち出す",
       "combine": "素材スタックを結合"
     },
     "enchanting": {

@@ -18759,6 +18759,7 @@ export const vi_VN: Partial<Record<TranslationKey, string>> = {
   'hudChrome.itemMenu.separateByGatherer': 'Tách theo người thu thập',
   'hudChrome.itemMenu.sunder': 'Phân rã',
   'hudChrome.itemMenu.takeChosenQuantity': 'Lấy số lượng đã chọn',
+  'hudChrome.itemMenu.carry': 'Mang sang thế giới khác',
   'hudChrome.itemMenu.viewSources': 'Xem nguồn',
   'hudChrome.itemTooltip.materialSourceGatherer': '{count} × Được {name} thu thập',
   'hudChrome.itemTooltip.materialSourceGathererSigned':

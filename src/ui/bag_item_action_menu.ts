@@ -260,7 +260,10 @@ export class BagItemActionMenu {
       // Lock/unlock (issue 3042): a plain in-place toggle, never destructive,
       // so it skips the confirm-dialog family every disenchant/salvage row
       // routes through and applies immediately like the classic default row.
-      else if (id === 'lock') this.setLocked(itemId, target, true);
+      else if (id === 'carry' && target.index >= 0) {
+        this.deps.world().carryItem?.(target.index);
+        this.deps.afterAction();
+      } else if (id === 'lock') this.setLocked(itemId, target, true);
       else if (id === 'unlock') this.setLocked(itemId, target, false);
     });
   }

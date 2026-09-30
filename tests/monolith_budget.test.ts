@@ -1696,7 +1696,10 @@ const MONOLITHS: MonolithRow[] = [
     // (Reuben's call): both parent pins for the record, the release 9827 and the
     // branch 9965; the two sides' additions compose to 9840 by wc -l on the merged
     // tree (after biome). Exact count, zero slack.
-    ceiling: 9840,
+    // RECORDED RAISE +11 (PLACE-276, PlaceSchema carry): the logic lives in
+    // server/placeschema_sidecar.ts; game.ts gains only its construction, the
+    // event-drain call and the ps_carry command arm, which have no other seam.
+    ceiling: 9851,
     seam: 'a sibling server module; see the hot-path seams in server/CLAUDE.md',
   },
   {
@@ -1875,7 +1878,9 @@ const MONOLITHS: MonolithRow[] = [
     // (Reuben's call): both parent pins for the record, the release 5354 and the
     // branch 5426; the two sides' additions compose to 5356 by wc -l on the merged
     // tree (after biome). Exact count, zero slack.
-    ceiling: 5356,
+    // RECORDED RAISE +5 (PLACE-276): the carryItem command and the one-line
+    // placeschema frame route; the handling lives in src/net/placeschema_frame.ts.
+    ceiling: 5361,
     seam: 'a src/net sibling module (the refactor/net-online split is the template)',
   },
   {
