@@ -575,3 +575,98 @@ describe('placeschema sidecar game side (PLACE-276)', () => {
     expect(w.inventory).toHaveLength(0);
   });
 });
+
+describe("B1': one serialisation point per account (round 6)", () => {
+  /** Two characters of one account online at once (a GM session, a linkdead overlap), one sidecar. */
+  function twoOnline(opts: { conflictOn?: number; noDbGuard?: boolean } = {}) {
+    const bags = new Map<number, InvSlot[]>([
+      [1, []],
+      [2, []],
+    ]);
+    const sets = new Map<number, Set<string>>([
+      [1, new Set()],
+      [2, new Set()],
+    ]);
+    const accountSet = new Map<string, number>();
+    const offered = new Map([[G1, { grant: grant(G1), label: 'Ember Blade', acked: false }]]);
+    const calls: string[] = [];
+    const clients = new Map([
+      [1, { accountId: 7, characterId: 70, pid: 1, selfHeavyDirty: false }],
+      [2, { accountId: 7, characterId: 71, pid: 2, selfHeavyDirty: false }],
+    ]);
+    const carry = new PlaceSchemaCarry(cfg, {
+      sim: {
+        meta: (pid: number) => ({
+          inventory: bags.get(pid),
+          placeschemaAccepted: sets.get(pid),
+          cls: 'warrior',
+        }),
+        addItemInstance: (itemId: string, instance: never, pid: number) => {
+          bags.get(pid)?.push({ itemId, count: 1, instance });
+        },
+      },
+      clients,
+      send: () => {},
+      notice: () => {},
+      save: async (s: { characterId: number; pid: number }) => {
+        calls.push(`save:${s.characterId}`);
+        await flush(); // a real save takes time: the other character could interleave here
+        for (const g of sets.get(s.pid)!) {
+          const owner = accountSet.get(g);
+          // the database refuses a claim another character holds (placeschema_accepted_db.ts)
+          const refused = !opts.noDbGuard && owner !== undefined && owner !== s.characterId;
+          if (refused || opts.conflictOn === s.characterId)
+            throw new Error('PlaceschemaClaimConflict');
+          accountSet.set(g, s.characterId);
+        }
+        return true;
+      },
+      store: {
+        accepted: async () => new Set(accountSet.keys()),
+        cancels: async () => [],
+        putCancel: async () => {},
+        dropCancel: async () => {},
+      },
+      fetch: (async (url: string, init: RequestInit) => {
+        const path = new URL(url).pathname;
+        calls.push(path);
+        const b = JSON.parse(String(init.body));
+        if (path === '/mod/join')
+          return new Response(
+            JSON.stringify({ holder: 'h', add: [...offered.values()].filter((o) => !o.acked) }),
+          );
+        if (path === '/mod/ack') for (const g of b.grants) offered.get(g)!.acked = true;
+        return new Response('{}');
+      }) as typeof fetch,
+    } as never);
+    const copies = () => [...bags.values()].reduce((n, bag) => n + has(bag, G1), 0);
+    return { carry, clients, bags, sets, accountSet, calls, copies };
+  }
+
+  it('two characters of one account joining at once add the grant exactly once', async () => {
+    const w = twoOnline();
+    await Promise.all([
+      w.carry.join(w.clients.get(1)! as never),
+      w.carry.join(w.clients.get(2)! as never),
+    ]);
+    expect(w.copies()).toBe(1);
+    expect(w.accountSet.size).toBe(1);
+  });
+
+  it('the account lock alone (no database guard) keeps it to one copy', async () => {
+    const w = twoOnline({ noDbGuard: true });
+    await Promise.all([
+      w.carry.join(w.clients.get(1)! as never),
+      w.carry.join(w.clients.get(2)! as never),
+    ]);
+    expect(w.copies()).toBe(1);
+  });
+
+  it('a save the database refuses (claim conflict) is undone in memory and nothing is acked', async () => {
+    const w = twoOnline({ conflictOn: 70 });
+    await w.carry.join(w.clients.get(1)! as never);
+    expect(w.bags.get(1)).toHaveLength(0); // the add was undone with the rolled-back save
+    expect(w.sets.get(1)?.size).toBe(0);
+    expect(w.calls).not.toContain('/mod/ack');
+  });
+});

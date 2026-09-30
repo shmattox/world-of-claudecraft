@@ -45,6 +45,8 @@ export async function syncPlaceschemaAccepted(
   characterId: number,
   state: { placeschemaAccepted?: unknown },
 ): Promise<void> {
+  // A character that never used PlaceSchema carries no key: its saves run no extra statement.
+  if (!Array.isArray(state.placeschemaAccepted)) return;
   const ids = (Array.isArray(state.placeschemaAccepted) ? state.placeschemaAccepted : []).filter(
     (g): g is string => typeof g === 'string' && GRANT_ID.test(g),
   );
@@ -53,12 +55,39 @@ export async function syncPlaceschemaAccepted(
     [characterId, ids],
   );
   if (!ids.length) return;
+  // Claims never move silently: an id another character on the account holds stays theirs. (A real
+  // move, A carries it out and B receives it back, deletes A's row in A's removal save first.) A
+  // concurrent insert of the same id waits on the unique key here and then sees the winner's row.
   await tx.query(
     `INSERT INTO placeschema_accepted (account_id, grant_id, character_id)
      SELECT c.account_id, g, c.id FROM characters c, unnest($2::text[]) AS g WHERE c.id = $1
-     ON CONFLICT (account_id, grant_id) DO UPDATE SET character_id = excluded.character_id`,
+     ON CONFLICT (account_id, grant_id) DO NOTHING`,
     [characterId, ids],
   );
+  const taken = (await tx.query(
+    `SELECT a.grant_id FROM placeschema_accepted a JOIN characters c ON c.account_id = a.account_id
+     WHERE c.id = $1 AND a.grant_id = ANY($2::text[]) AND a.character_id <> $1`,
+    [characterId, ids],
+  )) as { rows?: { grant_id: string }[] };
+  if (taken.rows?.length)
+    throw new PlaceschemaClaimConflict(
+      characterId,
+      taken.rows.map((r) => r.grant_id),
+    );
+}
+
+/** Thrown inside a character save so the WHOLE save rolls back: another character on the account has
+ *  already accepted one of these grants, so this character's copy must not be committed. */
+export class PlaceschemaClaimConflict extends Error {
+  constructor(
+    readonly characterId: number,
+    readonly grants: string[],
+  ) {
+    super(
+      `placeschema: grant already accepted by another character on the account (${grants.length})`,
+    );
+    this.name = 'PlaceschemaClaimConflict';
+  }
 }
 
 /** The account-level store the carry module reads (and a test replaces). */

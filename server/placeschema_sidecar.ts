@@ -10,6 +10,7 @@
 
 import { randomBytes } from 'node:crypto';
 import { ITEMS, QUESTS, questRewardItemId } from '../src/sim/data';
+import { touchPlaceschemaAccepted } from '../src/sim/placeschema_accepted';
 import type { Sim } from '../src/sim/sim';
 import type { InvSlot, ItemInstancePayload } from '../src/sim/types';
 import { type AcceptedStore, pgAcceptedStore } from './placeschema_accepted_db';
@@ -130,7 +131,21 @@ export function grantOfSlot(slot: InvSlot | undefined): string | undefined {
 
 export class PlaceSchemaCarry<S extends CarrySession> {
   private readonly linked = new Map<number, string | null>(); // accountId -> holder
-  private readonly busy = new Set<number>();
+  /** One serialisation point per ACCOUNT (the unit the sidecar offers and acks to): every join, carry
+   *  and quest conversion for any character or session on the account runs one at a time. */
+  private readonly chains = new Map<number, Promise<unknown>>();
+  /** accounts with a poll join already queued: the 5 s poll never stacks behind itself */
+  private readonly polling = new Set<number>();
+
+  private locked<T>(accountId: number, job: () => Promise<T>): Promise<T> {
+    const run = (this.chains.get(accountId) ?? Promise.resolve()).then(job, job);
+    const tail = run.catch(() => undefined);
+    this.chains.set(accountId, tail);
+    void tail.then(() => {
+      if (this.chains.get(accountId) === tail) this.chains.delete(accountId);
+    });
+    return run;
+  }
 
   constructor(
     private readonly cfg: SidecarConfig,
@@ -152,14 +167,21 @@ export class PlaceSchemaCarry<S extends CarrySession> {
 
   /** Deliver pending arrivals to every online player (and learn who is linked). */
   async pollAll(): Promise<void> {
-    for (const s of this.d.clients.values())
-      if (!s.linkdead) await this.join(s).catch(() => undefined);
+    for (const s of this.d.clients.values()) {
+      if (s.linkdead || this.polling.has(s.accountId)) continue;
+      this.polling.add(s.accountId);
+      await this.join(s)
+        .catch(() => undefined)
+        .finally(() => this.polling.delete(s.accountId));
+    }
   }
 
-  async join(s: S): Promise<void> {
-    if (this.busy.has(s.pid)) return;
-    this.busy.add(s.pid);
-    try {
+  join(s: S): Promise<void> {
+    return this.locked(s.accountId, () => this.joinLocked(s));
+  }
+
+  private async joinLocked(s: S): Promise<void> {
+    {
       // The account's unconfirmed cancels (persisted, so they survive a restart) go first, so the
       // item a cancel re-offers arrives in this join. While any is unconfirmed, add nothing.
       for (const c of await this.d.store.cancels(s.accountId))
@@ -177,6 +199,7 @@ export class PlaceSchemaCarry<S extends CarrySession> {
       // this account has accepted, plus this character's unsaved adds.
       const accountAccepted = await this.d.store.accepted(s.accountId);
       const added: string[] = [];
+      const undo: (() => void)[] = [];
       for (const a of (r.body.add ?? []) as Added[]) {
         if (!a?.grant || !HEX64.test(a.grant.id)) continue;
         const itemId = itemIdForGrant(a.grant);
@@ -186,13 +209,24 @@ export class PlaceSchemaCarry<S extends CarrySession> {
         if (!accountAccepted.has(a.grant.id) && !meta.placeschemaAccepted.has(a.grant.id)) {
           // Saved with the item; the save mirrors it to the account set in the same transaction.
           meta.placeschemaAccepted.add(a.grant.id);
+          touchPlaceschemaAccepted(meta.placeschemaAccepted);
+          const g = a.grant.id;
+          undo.push(() => meta.placeschemaAccepted.delete(g));
           const pending = meta.inventory.find((x) => pendingOf(x) === itemId);
           if (pending) {
             // Our own quest reward, tagged before the mint: that exact copy becomes the signed one.
+            const tag = pending.instance;
             pending.instance = signedInstance(a);
+            undo.push(() => {
+              pending.instance = tag;
+            });
             this.d.notice(s, `${a.label ?? 'Your item'} is now yours to carry to other worlds.`);
           } else {
             this.d.sim.addItemInstance(itemId, signedInstance(a), s.pid);
+            undo.push(() => {
+              const at = slotOfGrant(meta.inventory, g);
+              if (at >= 0) meta.inventory.splice(at, 1);
+            });
             this.d.notice(
               s,
               itemId !== FOREIGN_WEAPON_ID
@@ -205,16 +239,27 @@ export class PlaceSchemaCarry<S extends CarrySession> {
       }
       if (!added.length) return;
       s.selfHeavyDirty = true;
-      // Add, SAVE, then ack: a crash before the ack re-delivers, and the grant id dedupes it.
-      if (!(await this.d.save(s))) return;
+      // Add, SAVE, then ack: a crash before the ack re-delivers, and the grant id dedupes it. A save
+      // the database refused (another character on the account holds one of these grants: the
+      // claim conflict rolls the whole save back) is undone in memory too, and nothing is acked.
+      const saved = await this.d.save(s).catch((e) => {
+        console.error('placeschema: arrival save refused', e);
+        return false;
+      });
+      if (!saved) {
+        for (const u of undo.reverse()) u();
+        return;
+      }
       await this.call('/mod/ack', { platformId: platformId(this.cfg, s.accountId), grants: added });
-    } finally {
-      this.busy.delete(s.pid);
     }
   }
 
   /** A quest turn-in: the reward becomes a signed grant held by the player's did (if linked). */
-  async questDone(s: S, questId: string): Promise<void> {
+  questDone(s: S, questId: string): Promise<void> {
+    return this.locked(s.accountId, () => this.questDoneLocked(s, questId));
+  }
+
+  private async questDoneLocked(s: S, questId: string): Promise<void> {
     const quest = QUESTS[questId];
     const meta = this.d.sim.meta(s.pid);
     if (!quest || !meta) return;
@@ -246,7 +291,7 @@ export class PlaceSchemaCarry<S extends CarrySession> {
     // No answer: the mint may have landed, so the tag stays and a later join settles it.
     if (!r || r.status >= 500) return;
     if (!r.ok || !grant || !HEX64.test(grant.id)) return this.untag(s, itemId);
-    await this.join(s); // the sidecar queued the grant: this converts the tagged copy and saves
+    await this.joinLocked(s); // the sidecar queued the grant: this converts the tagged copy and saves
   }
 
   /** The mint did not happen: the tagged copy goes back to plain. */
@@ -258,7 +303,11 @@ export class PlaceSchemaCarry<S extends CarrySession> {
   }
 
   /** One Carry click: remove the copy, then escrow it out and send the player home with a ticket. */
-  async carry(s: S, grantId: string): Promise<void> {
+  carry(s: S, grantId: string): Promise<void> {
+    return this.locked(s.accountId, () => this.carryLocked(s, grantId));
+  }
+
+  private async carryLocked(s: S, grantId: string): Promise<void> {
     const pid = platformId(this.cfg, s.accountId);
     if (!this.linked.get(s.accountId)) {
       const r = await this.call('/mod/link', { platformId: pid });
@@ -315,7 +364,7 @@ export class PlaceSchemaCarry<S extends CarrySession> {
     await this.cancel(s, grantId, attempt);
     if (this.d.clients.get(s.pid) !== s) return; // offline: their next login's join delivers it
     this.refused(s, reason);
-    await this.join(s).catch(() => undefined); // unreachable: the 5 s poll tries again
+    await this.joinLocked(s).catch(() => undefined); // unreachable: the 5 s poll tries again
   }
 
   private async cancel(s: S, grantId: string, attempt: string): Promise<void> {
