@@ -5628,6 +5628,7 @@ export const ru_RU: EnTranslations = {
       "viewSources": "Показать источники",
       "separateByGatherer": "Разделить по сборщикам",
       "takeChosenQuantity": "Взять выбранное количество",
+      "carry": "Перенести в другой мир",
       "combine": "Объединить стопки материалов"
     },
     "enchanting": {

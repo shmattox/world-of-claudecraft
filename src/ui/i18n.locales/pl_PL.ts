@@ -18830,6 +18830,7 @@ export const pl_PL: Partial<Record<TranslationKey, string>> = {
   'hudChrome.itemMenu.separateByGatherer': 'Rozdziel według zbierającego',
   'hudChrome.itemMenu.sunder': 'Rozedrzyj',
   'hudChrome.itemMenu.takeChosenQuantity': 'Wyjmij wybraną liczbę',
+  'hudChrome.itemMenu.carry': 'Zabierz do innego świata',
   'hudChrome.itemMenu.viewSources': 'Pokaż źródła',
   'hudChrome.itemTooltip.materialSourceGatherer': '{count} × zebrane przez {name}',
   'hudChrome.itemTooltip.materialSourceGathererSigned':

@@ -18986,6 +18986,7 @@ export const fr_FR: Partial<Record<TranslationKey, string>> = {
   'hudChrome.itemMenu.separateByGatherer': 'Séparer par récolteur',
   'hudChrome.itemMenu.sunder': 'Briser',
   'hudChrome.itemMenu.takeChosenQuantity': 'Retirer la quantité choisie',
+  'hudChrome.itemMenu.carry': 'Emporter dans un autre monde',
   'hudChrome.itemMenu.viewSources': 'Voir les sources',
   'hudChrome.itemTooltip.materialSourceGatherer': '{count} × Récolté par {name}',
   'hudChrome.itemTooltip.materialSourceGathererSigned':

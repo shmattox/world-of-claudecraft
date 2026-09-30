@@ -8174,6 +8174,7 @@ export const hudChromeStrings = {
     viewSources: 'View sources',
     separateByGatherer: 'Separate by gatherer',
     takeChosenQuantity: 'Take out chosen quantity',
+    carry: 'Carry to another world',
     combine: 'Combine material stacks',
   },
   // Enchanting actions (Professions 2.0): the result toasts for the

@@ -5628,6 +5628,7 @@ export const cs_CZ: EnTranslations = {
       "viewSources": "Zobrazit zdroje",
       "separateByGatherer": "Oddělit podle sběrače",
       "takeChosenQuantity": "Vyjmout zvolené množství",
+      "carry": "Přenést do jiného světa",
       "combine": "Sloučit hromádky materiálu"
     },
     "enchanting": {

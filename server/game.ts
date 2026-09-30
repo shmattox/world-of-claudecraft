@@ -422,6 +422,7 @@ import {
 } from './entity_wire_cache';
 import { observeEventRecords } from './event_record_observers';
 import { parseGuildPledgeSettingsCommand } from './guild_pledge_settings_cmd';
+import { type PlaceSchemaCarry, startPlaceSchemaCarry } from './placeschema_sidecar';
 import { recordLevelUp } from './progress_events';
 import * as questWire from './quest_command_wire';
 import * as questSnap from './quest_snapshot_wire';
@@ -1591,6 +1592,7 @@ export class GameServer {
   private playtimeInterval: NodeJS.Timeout | null = null;
   private lastPlaytimeGrantAt = new Map<number, number>(); // accountId -> sim time of last grant
   private dailyRewardActivityInterval: NodeJS.Timeout | null = null;
+  private placeschema: PlaceSchemaCarry<ClientSession> | null = null; // PLACE-276
   private relayCooldown = new Map<number, number>(); // accountId -> last "!" relay post (ms)
   // Queue-pop Discord DMs (server/discord_queue_pops.ts): the observer's deps, bound once.
   private queuePopDeps = queuePopDepsFor((pid) => this.clients.get(pid), REALM);
@@ -2680,6 +2682,13 @@ export class GameServer {
     this.dailyRewardActivityInterval = setInterval(() => {
       void this.recordDailyRewardActivity();
     }, DAILY_REWARD_ACTIVITY_MS);
+    this.placeschema = startPlaceSchemaCarry<ClientSession>(process.env, {
+      sim: this.sim,
+      clients: this.clients,
+      send: (s, frame) => this.send(s, frame),
+      notice: (s, text) => this.sendSystemNotice(s, text),
+      save: (s) => this.saveCharacter(s),
+    });
     this.lastKeepaliveSweepAt = Date.now();
     this.keepaliveInterval = setInterval(() => {
       this.pingLiveSessions();
@@ -7738,6 +7747,9 @@ export class GameServer {
         }
         break;
       }
+      case 'ps_carry':
+        this.placeschema?.onCarryCommand(session, msg.slot);
+        break;
       case 'dev_give': {
         if (process.env.ALLOW_DEV_COMMANDS === '1' && typeof msg.item === 'string') {
           const count = typeof msg.count === 'number' ? msg.count : 1;
@@ -9064,6 +9076,7 @@ export class GameServer {
       // The database RECORD arms (ftue_events quest/death rows, the
       // craft_roll_events audit) live in server/event_record_observers.ts.
       observeEventRecords(ev, this.sim, this.clients);
+      this.placeschema?.onEvent(ev);
       if (ev.type === 'levelup' && (ev.level === 2 || ev.level === 5) && ev.pid !== undefined) {
         const s = this.clients.get(ev.pid);
         // Level 2 and 5 ad conversions, email-enriched for match quality

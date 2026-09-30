@@ -18687,6 +18687,7 @@ export const tr_TR: Partial<Record<TranslationKey, string>> = {
   'hudChrome.itemMenu.separateByGatherer': 'Toplayıcıya göre ayır',
   'hudChrome.itemMenu.sunder': 'Parçala',
   'hudChrome.itemMenu.takeChosenQuantity': 'Seçilen miktarı çıkar',
+  'hudChrome.itemMenu.carry': 'Başka bir dünyaya taşı',
   'hudChrome.itemMenu.viewSources': 'Kaynakları görüntüle',
   'hudChrome.itemTooltip.materialSourceGatherer': '{count} × {name} tarafından toplandı',
   'hudChrome.itemTooltip.materialSourceGathererSigned':

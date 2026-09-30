@@ -45,6 +45,7 @@ import { restoreCharacterStorage, savedCharacterStorage } from './character_stor
 import type { TreasureMapProgress } from './content/treasure_maps';
 import type { FactionId } from './factions';
 import type { ItemCopyAnchor } from './item_copy_anchor';
+import { loadPlaceschemaAccepted, savedPlaceschemaAccepted } from './placeschema_accepted';
 import * as treasureVaultMod from './treasure_vault';
 import type { CannonActionId, CannonPoint, VehicleSession } from './types';
 import * as vehicleMod from './vehicles';
@@ -1441,6 +1442,7 @@ export interface PlayerMeta extends worldQuestState.WorldQuestPlayerState {
   worldPvp?: worldPvpMod.WorldPvpMetaState;
   prestigeRank: number;
   unlockedMilestones: Set<string>;
+  placeschemaAccepted: Set<string>; // PlaceSchema grants accepted (placeschema_accepted.ts)
   // Classic Rested XP pool (copper-less XP units). Accrues while resting in an
   // inn, spent to double kill XP. Persisted in CharacterState.
   restedXp: number;
@@ -2805,6 +2807,7 @@ export class Sim {
       lifetimeHonor: 0,
       prestigeRank: 0,
       unlockedMilestones: new Set(),
+      placeschemaAccepted: new Set(),
       restedXp: 0,
       gatheringProficiency: emptyGatheringProficiency(),
       pendingGatherGrants: [],
@@ -2954,6 +2957,7 @@ export class Sim {
       honorMod.loadHonorState(meta, s);
       worldPvpMod.loadWorldPvpState(this.ctx, meta, player, s.worldPvp);
       meta.prestigeRank = s.prestigeRank ?? 0;
+      meta.placeschemaAccepted = loadPlaceschemaAccepted(s);
       meta.restedXp = Math.max(0, s.restedXp ?? 0);
       // `s.professions` is the legacy pre-rename field (#1119); `s.gatheringProficiency`
       // is the current one. Prefer the current field, fall back to the legacy one so
@@ -3855,6 +3859,7 @@ export class Sim {
       ...savedWorldPvpFields(meta, this.time),
       prestigeRank: meta.prestigeRank,
       unlockedMilestones: [...meta.unlockedMilestones],
+      ...savedPlaceschemaAccepted(meta.placeschemaAccepted),
       restedXp: meta.restedXp,
       // Fold this session's elapsed time into the persisted baseline (see
       // PlayerMeta.totalPlayedSeconds); /playtime and the playtimeSeconds
@@ -8237,6 +8242,7 @@ export class Sim {
     items.discardItem(this.ctx, itemId, count, pid, named, a);
   }
 
+  carryItem(_slotIndex: number): void {} // PlaceSchema carry is online-only (no sidecar offline)
   setItemLocked(
     itemId: string,
     locked: boolean,

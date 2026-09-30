@@ -71,6 +71,8 @@ export interface IWorldInventory {
    *  specific slot (mutate-in-place, item_copy_ref.ts selectedInventorySlot),
    *  never an id-only bulk toggle. */
   setItemLocked(itemId: string, locked: boolean, target: NamedSlotTarget): void;
+  /** Online only (PLACE-276): carry the PlaceSchema-signed copy in this bag slot out. */
+  carryItem?(slotIndex: number): void;
   // The request rides an options bag (VendorBuyOptions, phase 21): `bulk`
   // requests as many units as the buyer can currently afford in one purchase,
   // capped at the item's bag stack size (VendorGoodsRow.bulkQuantity previews

@@ -5628,6 +5628,7 @@ export const de_DE: EnTranslations = {
       "viewSources": "Quellen anzeigen",
       "separateByGatherer": "Nach Sammler trennen",
       "takeChosenQuantity": "Gewählte Menge herausnehmen",
+      "carry": "In eine andere Welt mitnehmen",
       "combine": "Materialstapel zusammenlegen"
     },
     "enchanting": {

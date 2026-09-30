@@ -125,6 +125,7 @@ import { materialSourceConnection } from './material_source_connection';
 import { applyMaterialSourceSchema, applyMaterialSourceWriterGuard } from './material_source_host';
 import { OAUTH_SCHEMA } from './oauth_db';
 import { runOfflineCharacterSave } from './offline_character_save_db';
+import { PLACESCHEMA_ACCEPTED_SCHEMA, syncPlaceschemaAccepted } from './placeschema_accepted_db';
 import { PLAY_SESSION_RETENTION_SCHEMA } from './play_session_retention_db';
 import {
   closeOrphanPlayerSessions,
@@ -517,6 +518,9 @@ ALTER TABLE accounts ADD COLUMN IF NOT EXISTS cosmetics JSONB NOT NULL DEFAULT '
 -- let a rolling deploy or rollback erase entitlements. The one-time backfill reads
 -- the legacy keys for accounts that received them before this table existed; once a
 -- row exists here it is authoritative and old binaries cannot mutate it.
+-- PLACE-276: the retired PlaceSchema adapter's tables. mc_player_identity held per-player
+-- private keys; the shared sidecar keeps no player keys, so every copy is dropped, never read.
+DROP TABLE IF EXISTS mc_player_identity, mc_last_export, placeschema_identity, placeschema_provenance;
 CREATE TABLE IF NOT EXISTS account_weapon_cosmetics (
   account_id INT PRIMARY KEY REFERENCES accounts(id) ON DELETE CASCADE,
   skin_ids JSONB NOT NULL DEFAULT '[]'::jsonb,
@@ -1261,6 +1265,7 @@ export async function ensureSchema(): Promise<void> {
     await client.query('SET LOCAL statement_timeout = 0');
     await client.query('SELECT pg_advisory_xact_lock($1)', [SCHEMA_ADVISORY_LOCK_KEY]);
     await client.query(SCHEMA);
+    await client.query(PLACESCHEMA_ACCEPTED_SCHEMA); // PLACE-276: account-level accepted grants
     // The material source audit's anchor + journal pair: after SCHEMA (it
     // FK-references characters), before the growth budget that must count it.
     await applyMaterialSourceSchema(client);
@@ -3316,6 +3321,7 @@ export async function saveCharacterState(
       return false;
     }
     await journalCharacterSaveSources(transaction, characterId, before, res, cleanState);
+    await syncPlaceschemaAccepted(transaction, characterId, cleanState);
     ledgerWrite = await writeBankLedgerSaveEffectsOnClient(transaction, ledger);
     await writeStorageAppliedEffectsOnClient(transaction, storageEffects);
     await transaction.commit();
@@ -3406,6 +3412,7 @@ export async function saveCharacterAndMarketState(
       return false;
     }
     await journalCharacterSaveSources(transaction, characterId, before, charRes, cleanState);
+    await syncPlaceschemaAccepted(transaction, characterId, cleanState);
     // Every statement in this function goes through `transaction`, never the
     // raw client: the wrapper owns the SET LOCAL statement/lock timeouts and
     // the abort-driven pg_cancel_backend, so a raw client.query would run
@@ -3498,6 +3505,7 @@ export async function saveCharacterAndGuildBankState(
       return false;
     }
     await journalCharacterSaveSources(transaction, characterId, before, charRes, cleanState);
+    await syncPlaceschemaAccepted(transaction, characterId, cleanState);
     ledgerWrite = await writeBankLedgerSaveEffectsOnClient(transaction, ledger);
     await writeClaimedGuildBankEffectsOnClient(transaction, guildReplay, ledgerWrite, results);
     await writeStorageAppliedEffectsOnClient(transaction, storageEffects);
@@ -3637,6 +3645,7 @@ export async function saveCharacterStateOnClient(
   let ledgerWrite: BankLedgerBatchWriteResult | undefined;
   try {
     await journalCharacterSaveSources(client, characterId, before, res, cleanState);
+    await syncPlaceschemaAccepted(client, characterId, cleanState);
     ledgerWrite = await writeBankLedgerSaveEffectsOnClient(client, ledger);
     await writeStorageAppliedEffectsOnClient(client, storageEffects);
     return true;

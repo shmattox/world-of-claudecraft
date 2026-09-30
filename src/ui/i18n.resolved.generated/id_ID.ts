@@ -5628,6 +5628,7 @@ export const id_ID: EnTranslations = {
       "viewSources": "Lihat sumber",
       "separateByGatherer": "Pisahkan berdasarkan pengumpul",
       "takeChosenQuantity": "Keluarkan jumlah yang dipilih",
+      "carry": "Bawa ke dunia lain",
       "combine": "Gabungkan tumpukan material"
     },
     "enchanting": {

@@ -5628,6 +5628,7 @@ export const vi_VN: EnTranslations = {
       "viewSources": "Xem nguồn",
       "separateByGatherer": "Tách theo người thu thập",
       "takeChosenQuantity": "Lấy số lượng đã chọn",
+      "carry": "Mang sang thế giới khác",
       "combine": "Gộp các chồng nguyên liệu"
     },
     "enchanting": {

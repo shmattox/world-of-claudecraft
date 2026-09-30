@@ -2,6 +2,7 @@ import type { MaterialComposition } from '../sim/material_sources';
 import type { MaterialStackSelection } from '../sim/material_stack_selection';
 import { resolveInitialActionBarLayout } from './action_bar_restore';
 import { materialStorageTransferPayload } from './material_storage_command';
+import { applyPlaceSchemaFrame } from './placeschema_frame';
 import { decodeWeeklyRewardInfo, sendWeekly, type WeeklyRewardInfo } from './weekly_rewards_wire';
 
 // Online play: REST auth client + WebSocket world mirror.
@@ -2348,6 +2349,7 @@ export class ClientWorld extends ReconWireState implements IWorld {
       this.mouselookFacing = null;
       return;
     }
+    if (msg.t === 'placeschema') return void applyPlaceSchemaFrame(msg);
     if (msg.t === 'gbanklog') {
       // The one-shot answer to a `guild_bank_log` request. The mirror matches
       // it against the query it is waiting on and merges or drops it.
@@ -3670,6 +3672,9 @@ export class ClientWorld extends ReconWireState implements IWorld {
         slot: target.slotIndex,
         ...anchorFields(target),
       });
+  }
+  carryItem(slotIndex: number): void {
+    this.cmd({ cmd: 'ps_carry', slot: slotIndex });
   }
   setItemLocked(itemId: string, locked: boolean, target: NamedSlotTarget): void {
     this.cmd({

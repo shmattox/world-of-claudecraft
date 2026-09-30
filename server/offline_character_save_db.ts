@@ -90,6 +90,7 @@ import {
   characterUpdateStatement,
   readCharacterSavePreimage,
 } from './character_save_statement';
+import { syncPlaceschemaAccepted } from './placeschema_accepted_db';
 import { REALM } from './realm';
 
 /** One row's UPDATE, not the heavy multi-statement tier (see the header). This
@@ -203,6 +204,9 @@ export async function runOfflineCharacterSave(
       saved,
       cleanState,
     );
+    // PLACE-276: the account's accepted grants move with the landed blob, in this transaction.
+    if ((saved.rowCount ?? 0) > 0)
+      await syncPlaceschemaAccepted({ query }, characterId, cleanState);
     return saved;
   });
   return (res.rowCount ?? 0) > 0;

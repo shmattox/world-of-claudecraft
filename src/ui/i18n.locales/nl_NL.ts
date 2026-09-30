@@ -18898,6 +18898,7 @@ export const nl_NL: Partial<Record<TranslationKey, string>> = {
   'hudChrome.itemMenu.separateByGatherer': 'Per verzamelaar scheiden',
   'hudChrome.itemMenu.sunder': 'Splijten',
   'hudChrome.itemMenu.takeChosenQuantity': 'Gekozen aantal uitnemen',
+  'hudChrome.itemMenu.carry': 'Meenemen naar een andere wereld',
   'hudChrome.itemMenu.viewSources': 'Bronnen bekijken',
   'hudChrome.itemTooltip.materialSourceGatherer': '{count} × Verzameld door {name}',
   'hudChrome.itemTooltip.materialSourceGathererSigned':

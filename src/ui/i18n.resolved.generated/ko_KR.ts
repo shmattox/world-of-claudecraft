@@ -5628,6 +5628,7 @@ export const ko_KR: EnTranslations = {
       "viewSources": "출처 보기",
       "separateByGatherer": "채집자별 분리",
       "takeChosenQuantity": "지정 수량 꺼내기",
+      "carry": "다른 세계로 가져가기",
       "combine": "재료 묶음 합치기"
     },
     "enchanting": {

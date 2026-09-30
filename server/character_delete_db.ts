@@ -11,6 +11,7 @@ import {
   type DbTransactionDeadlineClient,
   DbTransactionDeadlineExceeded,
 } from './db_transaction_deadline';
+import { releasePendingClaimsOf } from './placeschema_accepted_db';
 
 // 65s wall over a 60s DELETE statement bound, the character-save shape: the
 // widened DELETE below is useless if this driver-side deadline destroys the
@@ -285,6 +286,8 @@ export async function deleteOwnedCharacterRow(
       'DELETE FROM characters WHERE id = $1 AND account_id = $2 AND realm = $3',
       [characterId, accountId, realm],
     );
+    // PLACE-276: this character's pending PlaceSchema claims (items it never saved) are released.
+    if ((deleted.rowCount ?? 0) > 0) await releasePendingClaimsOf(transaction, characterId);
     // Deliberately skipped when the DELETE throws: the catch below rolls the
     // whole transaction back, which clears every SET LOCAL with it.
     await transaction.query(`SET LOCAL statement_timeout = ${DELETE_RESTORE_STATEMENT_TIMEOUT_MS}`);

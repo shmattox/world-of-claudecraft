@@ -18565,6 +18565,7 @@ export const cs_CZ: Partial<Record<TranslationKey, string>> = {
   'hudChrome.itemMenu.separateByGatherer': 'Oddělit podle sběrače',
   'hudChrome.itemMenu.sunder': 'Rozebrat',
   'hudChrome.itemMenu.takeChosenQuantity': 'Vyjmout zvolené množství',
+  'hudChrome.itemMenu.carry': 'Přenést do jiného světa',
   'hudChrome.itemMenu.viewSources': 'Zobrazit zdroje',
   'hudChrome.itemTooltip.materialSourceGatherer': '{count} × sebral(a) {name}',
   'hudChrome.itemTooltip.materialSourceGathererSigned':

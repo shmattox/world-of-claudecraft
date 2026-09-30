@@ -17464,6 +17464,7 @@ export const zh_TW: Partial<Record<TranslationKey, string>> = {
   'hudChrome.itemMenu.viewSources': '查看來源',
   'hudChrome.itemMenu.separateByGatherer': '依採集者拆分',
   'hudChrome.itemMenu.takeChosenQuantity': '取出指定數量',
+  'hudChrome.itemMenu.carry': '帶往另一個世界',
   'hudChrome.itemMenu.combine': '合併素材堆疊',
   'hudChrome.realmBuilder.title': '本月王國建造者',
   'hudChrome.realmBuilder.currentLabel': '本月榮譽獲得者',

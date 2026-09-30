@@ -49,7 +49,8 @@ export type BagItemNewActionId =
   | 'viewSources'
   | 'separateByGatherer'
   | 'takeChosenQuantity'
-  | 'combine';
+  | 'combine'
+  | 'carry';
 export type BagItemContextActionId = 'default' | 'sellAll' | 'destroy' | BagItemNewActionId;
 
 export interface BagItemContextAction {
@@ -71,6 +72,7 @@ const NEW_ACTION_LABEL_KEY: Record<BagItemNewActionId, TranslationKey> = {
   separateByGatherer: 'hudChrome.itemMenu.separateByGatherer',
   takeChosenQuantity: 'hudChrome.itemMenu.takeChosenQuantity',
   combine: 'hudChrome.itemMenu.combine',
+  carry: 'hudChrome.itemMenu.carry',
 };
 
 /** The classic left-click verb for the default (first) menu row, so the menu's
@@ -114,6 +116,9 @@ export function bagItemNewActions(
     }
     out.push('combine');
   }
+  // A copy carrying a PlaceSchema grant can leave for another world (PLACE-276).
+  if (typeof (instance as { psGrant?: unknown } | undefined)?.psGrant === 'string')
+    out.push('carry');
   out.push(isItemLocked(instance) ? 'unlock' : 'lock');
   return out;
 }

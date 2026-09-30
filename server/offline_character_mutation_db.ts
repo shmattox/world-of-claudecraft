@@ -14,6 +14,7 @@ import {
   type BoundedTransactionRunner,
   OFFLINE_CHARACTER_SAVE_STATEMENT_TIMEOUT_MS,
 } from './offline_character_save_db';
+import { syncPlaceschemaAccepted } from './placeschema_accepted_db';
 import { REALM } from './realm';
 
 export type OfflineCharacterMutationOutcome =
@@ -64,6 +65,9 @@ export async function mutateOfflineCharacterState(
     // nothing, and a refused journal aborts the mutation with it. A sanctioned
     // signer rewrite is exactly the exact-decrement/exact-increment pair here.
     await journalCharacterSaveSources({ query }, characterId, preimage, saved, cleanState);
+    // PLACE-276: the account's accepted grants move with the landed blob, in this transaction.
+    if ((saved.rowCount ?? 0) > 0)
+      await syncPlaceschemaAccepted({ query }, characterId, cleanState);
     return (saved.rowCount ?? 0) > 0
       ? { ok: true, changed }
       : { ok: false, error: CHARACTER_SAVE_LEASED_LINE };

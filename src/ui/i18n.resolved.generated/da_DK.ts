@@ -5628,6 +5628,7 @@ export const da_DK: EnTranslations = {
       "viewSources": "Vis kilder",
       "separateByGatherer": "Adskil efter samler",
       "takeChosenQuantity": "Tag valgt antal ud",
+      "carry": "Bær til en anden verden",
       "combine": "Saml materialebunker"
     },
     "enchanting": {

@@ -18666,6 +18666,7 @@ export const ru_RU: Partial<Record<TranslationKey, string>> = {
   'hudChrome.itemMenu.viewSources': 'Показать источники',
   'hudChrome.itemMenu.separateByGatherer': 'Разделить по сборщикам',
   'hudChrome.itemMenu.takeChosenQuantity': 'Взять выбранное количество',
+  'hudChrome.itemMenu.carry': 'Перенести в другой мир',
   'hudChrome.itemMenu.combine': 'Объединить стопки материалов',
   'hudChrome.realmBuilder.title': 'Зодчий месяца',
   'hudChrome.realmBuilder.currentLabel': 'Отмечен в этом месяце',
