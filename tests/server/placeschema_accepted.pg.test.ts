@@ -66,22 +66,22 @@ d('the account-level claims against real PostgreSQL', () => {
         .rows[0].claim_id,
     );
 
-  it('the boot migration moves per-character ids up to their account, once, ignoring junk', async () => {
-    await pool.query('DELETE FROM characters');
+  it('N3: booting never turns blob ids into claims (a carried-out item stays carried out)', async () => {
     await pool.query(
-      `INSERT INTO characters (id, account_id, state) VALUES
-        (10, 1, jsonb_build_object('placeschemaAccepted', jsonb_build_array($1::text, 'not-a-grant'))),
-        (11, 1, '{"placeschemaAccepted": "oops"}'),
-        (20, 2, jsonb_build_object('placeschemaAccepted', jsonb_build_array($2::text))),
-        (21, 2, '{}')`,
-      [G('a'), G('b')],
+      `UPDATE characters SET state = jsonb_build_object('placeschemaAccepted', jsonb_build_array($1::text)) WHERE id = 10`,
+      [G('a')],
     );
     await pool.query(PLACESCHEMA_ACCEPTED_SCHEMA);
-    await pool.query(PLACESCHEMA_ACCEPTED_SCHEMA); // idempotent: a second boot adds nothing
-    expect(await rows()).toEqual([
-      { account_id: 1, g: 'a', character_id: 10, pending: false },
-      { account_id: 2, g: 'b', character_id: 20, pending: false },
-    ]);
+    await pool.query(PLACESCHEMA_ACCEPTED_SCHEMA);
+    expect(await rows()).toEqual([]);
+  });
+
+  it("N2: a busy character's stale id never confirms another character's pending claim", async () => {
+    await pool.query(PLACESCHEMA_ACCEPTED_SCHEMA);
+    expect(await claimGrant(pool, 1, G('5'), 10)).toBe('claimed');
+    expect(await claimGrant(pool, 1, G('5'), 11)).toBe('busy'); // 11 still has G in memory
+    await syncPlaceschemaAccepted(pool, 11, { placeschemaAccepted: [G('5')] }); // 11's save
+    expect(await rows()).toEqual([{ account_id: 1, g: '5', character_id: 10, pending: true }]);
   });
 
   it('claim first: claimed (pending), confirmed by the save, then held for every character', async () => {

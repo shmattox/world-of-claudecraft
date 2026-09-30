@@ -40,15 +40,6 @@ CREATE TABLE IF NOT EXISTS placeschema_cancels (
   attempt TEXT NOT NULL,
   PRIMARY KEY (account_id, grant_id)
 );
--- Characters saved before the account set existed: their accepted ids move up to their account.
-INSERT INTO placeschema_accepted (account_id, grant_id, character_id)
-SELECT c.account_id, g.id, c.id
-FROM characters c
-CROSS JOIN LATERAL jsonb_array_elements_text(
-  CASE WHEN jsonb_typeof(c.state->'placeschemaAccepted') = 'array' THEN c.state->'placeschemaAccepted' ELSE '[]'::jsonb END
-) AS g(id)
-WHERE g.id ~ '^[0-9a-f]{64}$'
-ON CONFLICT (account_id, grant_id) DO NOTHING;
 `;
 
 const rowsOf = <T>(r: unknown): T[] => ((r as { rows?: T[] }).rows ?? []) as T[];
