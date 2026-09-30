@@ -10,7 +10,11 @@
 
 import { randomBytes } from 'node:crypto';
 import { ITEMS, QUESTS, questRewardItemId } from '../src/sim/data';
-import { touchPlaceschemaAccepted } from '../src/sim/placeschema_accepted';
+import {
+  releasePlaceschemaClaim,
+  touchPlaceschemaAccepted,
+  unreleasePlaceschemaClaim,
+} from '../src/sim/placeschema_accepted';
 import type { Sim } from '../src/sim/sim';
 import type { InvSlot, ItemInstancePayload } from '../src/sim/types';
 import { type AcceptedStore, pgAcceptedStore } from './placeschema_accepted_db';
@@ -195,62 +199,51 @@ export class PlaceSchemaCarry<S extends CarrySession> {
       this.linked.set(s.accountId, r.body.holder ?? null);
       const meta = this.d.sim.meta(s.pid);
       if (!meta || this.d.clients.get(s.pid) !== s) return;
-      // Exactly once PER ACCOUNT (the unit the sidecar offers and acks to): what any character on
-      // this account has accepted, plus this character's unsaved adds.
-      const accountAccepted = await this.d.store.accepted(s.accountId);
-      const added: string[] = [];
-      const undo: (() => void)[] = [];
+      // Exactly once PER ACCOUNT, claim first: each offered grant is claimed for the account in its own
+      // committed statement BEFORE its item is added (placeschema_accepted_db.ts has the crash cases).
+      const online = [...this.d.clients.values()]
+        .filter((c) => c.accountId === s.accountId)
+        .map((c) => c.characterId);
+      const toAck: string[] = [];
+      const notices: string[] = [];
       for (const a of (r.body.add ?? []) as Added[]) {
         if (!a?.grant || !HEX64.test(a.grant.id)) continue;
         const itemId = itemIdForGrant(a.grant);
         if (!itemId) continue; // no body for this kind here yet: left pending, not acked
-        // A grant this account already accepted is acked, never added again, on any character and
-        // wherever the copy has gone since (equipment, trade, market, sold).
-        if (!accountAccepted.has(a.grant.id) && !meta.placeschemaAccepted.has(a.grant.id)) {
-          // Saved with the item; the save mirrors it to the account set in the same transaction.
-          meta.placeschemaAccepted.add(a.grant.id);
-          touchPlaceschemaAccepted(meta.placeschemaAccepted);
-          const g = a.grant.id;
-          undo.push(() => meta.placeschemaAccepted.delete(g));
-          const pending = meta.inventory.find((x) => pendingOf(x) === itemId);
-          if (pending) {
-            // Our own quest reward, tagged before the mint: that exact copy becomes the signed one.
-            const tag = pending.instance;
-            pending.instance = signedInstance(a);
-            undo.push(() => {
-              pending.instance = tag;
-            });
-            this.d.notice(s, `${a.label ?? 'Your item'} is now yours to carry to other worlds.`);
-          } else {
-            this.d.sim.addItemInstance(itemId, signedInstance(a), s.pid);
-            undo.push(() => {
-              const at = slotOfGrant(meta.inventory, g);
-              if (at >= 0) meta.inventory.splice(at, 1);
-            });
-            this.d.notice(
-              s,
-              itemId !== FOREIGN_WEAPON_ID
-                ? `${a.label ?? 'Your item'} is now yours to carry to other worlds.`
-                : `${a.label ?? 'An item'} arrived from another world.`,
-            );
-          }
+        const g = a.grant.id;
+        const outcome = await this.d.store.claim(s.accountId, g, s.characterId, online);
+        if (outcome === 'busy') continue; // another character's claim is still being saved
+        toAck.push(g);
+        // held: the account already has it, on some character, wherever it went: never added again.
+        // claimed but already in this character's unsaved adds: the save below confirms it.
+        if (outcome === 'held' || meta.placeschemaAccepted.has(g)) continue;
+        meta.placeschemaAccepted.add(g); // the save confirms (un-pends) the claim in its transaction
+        touchPlaceschemaAccepted(meta.placeschemaAccepted);
+        const pending = meta.inventory.find((x) => pendingOf(x) === itemId);
+        if (pending) {
+          // Our own quest reward, tagged before the mint: that exact copy becomes the signed one.
+          pending.instance = signedInstance(a);
+          notices.push(`${a.label ?? 'Your item'} is now yours to carry to other worlds.`);
+        } else {
+          this.d.sim.addItemInstance(itemId, signedInstance(a), s.pid);
+          notices.push(
+            itemId !== FOREIGN_WEAPON_ID
+              ? `${a.label ?? 'Your item'} is now yours to carry to other worlds.`
+              : `${a.label ?? 'An item'} arrived from another world.`,
+          );
         }
-        added.push(a.grant.id);
       }
-      if (!added.length) return;
+      if (!toAck.length) return;
       s.selfHeavyDirty = true;
-      // Add, SAVE, then ack: a crash before the ack re-delivers, and the grant id dedupes it. A save
-      // the database refused (another character on the account holds one of these grants: the
-      // claim conflict rolls the whole save back) is undone in memory too, and nothing is acked.
+      // Save, then tell the player and ack. A save that fails leaves the item and its pending claim
+      // in memory for the next save to land; nothing is acked or announced until one does.
       const saved = await this.d.save(s).catch((e) => {
-        console.error('placeschema: arrival save refused', e);
+        console.error('placeschema: arrival save failed', e);
         return false;
       });
-      if (!saved) {
-        for (const u of undo.reverse()) u();
-        return;
-      }
-      await this.call('/mod/ack', { platformId: platformId(this.cfg, s.accountId), grants: added });
+      if (!saved) return;
+      for (const n of notices) this.d.notice(s, n);
+      await this.call('/mod/ack', { platformId: platformId(this.cfg, s.accountId), grants: toAck });
     }
   }
 
@@ -323,20 +316,25 @@ export class PlaceSchemaCarry<S extends CarrySession> {
     if (at < 0) return;
     // Only a grant this account accepted is its own to carry: a copy traded in from someone else is
     // refused here, BEFORE anything is removed (N-b).
-    if (
-      !meta.placeschemaAccepted.has(grantId) &&
-      !(await this.d.store.accepted(s.accountId)).has(grantId)
-    )
-      return this.refused(s, 'not-yours');
+    const claim = (await this.d.store.claims(s.accountId)).get(grantId);
+    if (claim === undefined) return this.refused(s, 'not-yours');
     // Remove before release (contract section 3): the copy leaves the bag first.
     // And the removal is SAVED before the escrow is asked: a crash after carry-out must not reload
     // a bag that still holds the copy.
-    // The item and its accepted id leave in the SAME save, so a later re-offer is added once.
-    meta.inventory.splice(at, 1);
-    meta.placeschemaAccepted.delete(grantId);
+    // The item leaves and the ACCOUNT's claim is released (by claim id, whichever character claimed
+    // it) in the SAME save, so a later re-offer is claimed and added once (B2).
+    const [removed] = meta.inventory.splice(at, 1);
+    const wasAccepted = meta.placeschemaAccepted.delete(grantId);
+    releasePlaceschemaClaim(meta.placeschemaAccepted, claim);
     s.selfHeavyDirty = true;
     const attempt = randomBytes(16).toString('hex');
-    if (!(await this.d.save(s))) return this.giveUp(s, grantId, attempt, 'save-failed');
+    if (!(await this.d.save(s).catch(() => false))) {
+      // Nothing was saved and the sidecar was never asked: undo the unsaved removal.
+      meta.inventory.push(removed);
+      if (wasAccepted) meta.placeschemaAccepted.add(grantId);
+      unreleasePlaceschemaClaim(meta.placeschemaAccepted, claim);
+      return this.refused(s, 'save-failed');
+    }
     let r: { ok: boolean; status: number; body: any } | undefined;
     try {
       r = await this.call('/mod/carry-out', {

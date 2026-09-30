@@ -56,6 +56,8 @@ export interface CharacterState {
   prestigeRank?: number;
   // PlaceSchema grant ids this character has accepted (PLACE-276). Absent when none.
   placeschemaAccepted?: string[];
+  // PlaceSchema claim ids this character released by carrying out (PLACE-276). Absent when unused.
+  placeschemaReleased?: number[];
   unlockedMilestones?: string[];
   // Rested XP pool. Optional so pre-rested-XP saves load cleanly (defaults to 0).
   restedXp?: number;

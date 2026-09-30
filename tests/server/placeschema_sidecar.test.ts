@@ -9,6 +9,10 @@ import {
   sidecarConfig,
   slotOfGrant,
 } from '../../server/placeschema_sidecar';
+import {
+  loadPlaceschemaAccepted,
+  savedPlaceschemaAccepted,
+} from '../../src/sim/placeschema_accepted';
 import type { InvSlot } from '../../src/sim/types';
 
 const G1 = 'a'.repeat(64);
@@ -38,8 +42,10 @@ type Char = {
   inventory: InvSlot[];
   accepted: Set<string>;
   saved: InvSlot[];
-  savedAccepted: Set<string>;
+  savedState: Saved;
 };
+type Saved = ReturnType<typeof savedPlaceschemaAccepted>;
+type Claim = { claim: number; character: number; pending: boolean };
 const clone = <T>(v: T): T => structuredClone(v);
 const flush = () => new Promise((r) => setTimeout(r, 20));
 const has = (slots: InvSlot[], g: string) =>
@@ -58,12 +64,13 @@ function world() {
   let inventory: InvSlot[] = [];
   let accepted = new Set<string>();
   let saved: InvSlot[] = [];
-  let savedAccepted = new Set<string>();
+  let savedState: Saved = {};
   const equipment: InvSlot[] = [];
   const other: InvSlot[] = [];
   const escrow = new Map<string, Item>();
-  // the account-level store (placeschema_accepted / placeschema_cancels): grant -> owning character
-  const accountSet = new Map<string, number>();
+  // the account-level store (placeschema_accepted / placeschema_cancels): grant -> the account's claim
+  const claims = new Map<string, Claim>();
+  let nextClaim = 1;
   const cancelRows = new Map<string, string>();
   const parked = new Map<number, Char>(); // the account's other characters, as saved
   const attempts = new Map<string, { seq: number; state: string }>();
@@ -166,17 +173,36 @@ function world() {
     send: (_s: Session, f: unknown) => frames.push(f),
     notice: (_s: Session, text: string) => frames.push(text),
     save: async () => {
+      // the process dies before this save's transaction commits: nothing after runs
+      if (faults.save === 'crash-after') return new Promise<boolean>(() => {});
       calls.push('save');
       saved = clone(inventory);
-      savedAccepted = new Set(accepted);
-      // the same transaction mirrors this character's accepted ids into the account set
-      for (const [g, c] of [...accountSet])
-        if (c === session.characterId && !accepted.has(g)) accountSet.delete(g);
-      for (const g of accepted) accountSet.set(g, session.characterId);
+      savedState = savedPlaceschemaAccepted(accepted);
+      // the same transaction (syncPlaceschemaAccepted): released claims go, whoever claimed them;
+      // this character's added grants are confirmed
+      for (const [g, c] of [...claims])
+        if (savedState.placeschemaReleased?.includes(c.claim)) claims.delete(g);
+      for (const g of savedState.placeschemaAccepted ?? []) {
+        const c = claims.get(g);
+        if (c?.character === session.characterId) c.pending = false;
+      }
       return true;
     },
     store: {
-      accepted: async () => new Set(accountSet.keys()),
+      claims: async () => new Map([...claims].map(([g, c]) => [g, c.claim])),
+      // claimGrant, statement for statement
+      claim: async (_a: number, g: string, character: number, online: number[]) => {
+        const c = claims.get(g);
+        if (!c) {
+          claims.set(g, { claim: nextClaim++, character, pending: true });
+          return 'claimed';
+        }
+        if (!c.pending) return 'held';
+        if (c.character === character) return 'claimed';
+        if (online.includes(c.character)) return 'busy';
+        c.character = character;
+        return 'claimed';
+      },
       cancels: async () => [...cancelRows].map(([grant, attempt]) => ({ grant, attempt })),
       putCancel: async (_a: number, g: string, attempt: string) => void cancelRows.set(g, attempt),
       dropCancel: async (_a: number, g: string) => void cancelRows.delete(g),
@@ -217,33 +243,34 @@ function world() {
     },
     session: () => session,
     cancelRows,
-    accountSet,
+    claims,
+    save: () => deps.save(),
     /** log out, and log in on another character of the SAME account */
     switchCharacter(characterId: number) {
       parked.set(session.characterId, {
         inventory: clone(saved),
-        accepted: new Set(savedAccepted),
+        accepted: loadPlaceschemaAccepted(savedState),
         saved,
-        savedAccepted,
+        savedState,
       });
       const next = parked.get(characterId) ?? {
         inventory: [],
         accepted: new Set<string>(),
         saved: [],
-        savedAccepted: new Set<string>(),
+        savedState: {},
       };
       parked.delete(characterId);
       inventory = next.inventory;
       accepted = next.accepted;
       saved = next.saved;
-      savedAccepted = next.savedAccepted;
+      savedState = next.savedState;
       session = { ...session, characterId };
       clients.set(1, session);
     },
     /** log out and back in: the bag and accepted set load from the last save */
     relogin() {
       inventory = clone(saved);
-      accepted = new Set(savedAccepted);
+      accepted = loadPlaceschemaAccepted(savedState);
       clients.set(1, session);
     },
     /** the slow relay finally answers: the delayed carry-out reaches its commit */
@@ -254,7 +281,7 @@ function world() {
     /** the process dies: memory is gone, the bag and accepted set reload from the last save */
     crash() {
       inventory = clone(saved);
-      accepted = new Set(savedAccepted);
+      accepted = loadPlaceschemaAccepted(savedState);
       for (const k of Object.keys(faults)) delete faults[k];
       session = { ...session };
       clients.set(1, session);
@@ -270,7 +297,7 @@ function world() {
       const away = e && (e.state === 'in-transit' || e.state === 'landed') ? 1 : 0;
       // an offered grant the game has not accepted yet: the next join adds it
       const due =
-        e && e.state === 'held' && e.readd && !accepted.has(g) && !accountSet.has(g) && inGame === 0
+        e && e.state === 'held' && e.readd && !(claims.get(g)?.pending === false) && inGame === 0
           ? 1
           : 0;
       return inGame + away + due;
@@ -487,7 +514,7 @@ describe('placeschema sidecar game side (PLACE-276)', () => {
     w.faults['/mod/ack'] = 'down'; // A added and saved it; the ack never arrived
     await w.carry.join(w.session()).catch(() => undefined);
     delete w.faults['/mod/ack'];
-    expect(w.accountSet.get(G1)).toBe(70); // the save put it in the ACCOUNT set
+    expect(w.claims.get(G1)).toMatchObject({ character: 70, pending: false }); // the ACCOUNT's claim
     w.switchCharacter(71); // character B, same account
     await w.carry.join(w.session());
     expect(w.inventory).toHaveLength(0); // acked, not added again
@@ -536,6 +563,34 @@ describe('placeschema sidecar game side (PLACE-276)', () => {
     expect(slotOfGrant(w.inventory, G1)).toBe(0);
   });
 
+  it('B2 (reviewer): accepted on A, mailed to B, B carries, refused, join: exactly one copy', async () => {
+    const w = await holding(); // character A (70) claimed and holds G1
+    const [copy] = w.inventory.splice(0); // A mails it to B
+    await w.save(); // A's save (the claim is still A's)
+    w.switchCharacter(71); // B, same account, opens the mail
+    w.inventory.push(copy);
+    w.faults['/mod/carry-out'] = 'refuse'; // the carry fails; the sidecar re-offers it
+    await w.carry.carry(w.session(), G1);
+    expect(slotOfGrant(w.inventory, G1)).toBe(0); // B's release deleted A's claim, so B re-claimed it
+    expect(w.copies(G1)).toBe(1);
+  });
+
+  it('N1 claim first: a crash after the claim but before the item save re-adds it exactly once', async () => {
+    const w = world();
+    w.arrive();
+    w.faults.save = 'crash-after';
+    void w.carry.join(w.session());
+    await flush();
+    expect(w.claims.get(G1)).toMatchObject({ character: 70, pending: true }); // claimed, never saved
+    expect(w.frames).toEqual([]); // nothing announced before the save landed
+    const again = w.crash();
+    expect(slotOfGrant(w.inventory, G1)).toBe(-1);
+    await again.join(w.session()); // re-offered; the pending claim is ours: added once
+    expect(slotOfGrant(w.inventory, G1)).toBe(0);
+    expect(w.claims.get(G1)?.pending).toBe(false);
+    await again.join(w.session());
+    expect(w.copies(G1)).toBe(1);
+  });
   it('finding 4: a quest reward stays one copy when the mint answer is lost to a crash', async () => {
     const w = world();
     await w.carry.join(w.session()); // learns the player is linked
@@ -576,9 +631,9 @@ describe('placeschema sidecar game side (PLACE-276)', () => {
   });
 });
 
-describe("B1': one serialisation point per account (round 6)", () => {
+describe("B1': one serialisation point per account, claim first (rounds 6 and 7)", () => {
   /** Two characters of one account online at once (a GM session, a linkdead overlap), one sidecar. */
-  function twoOnline(opts: { conflictOn?: number; noDbGuard?: boolean } = {}) {
+  function twoOnline(opts: { failSaveOf?: number; noLock?: boolean } = {}) {
     const bags = new Map<number, InvSlot[]>([
       [1, []],
       [2, []],
@@ -587,9 +642,10 @@ describe("B1': one serialisation point per account (round 6)", () => {
       [1, new Set()],
       [2, new Set()],
     ]);
-    const accountSet = new Map<string, number>();
+    const claims = new Map<string, Claim>();
     const offered = new Map([[G1, { grant: grant(G1), label: 'Ember Blade', acked: false }]]);
     const calls: string[] = [];
+    const notices: string[] = [];
     const clients = new Map([
       [1, { accountId: 7, characterId: 70, pid: 1, selfHeavyDirty: false }],
       [2, { accountId: 7, characterId: 71, pid: 2, selfHeavyDirty: false }],
@@ -607,22 +663,30 @@ describe("B1': one serialisation point per account (round 6)", () => {
       },
       clients,
       send: () => {},
-      notice: () => {},
+      notice: (_s: unknown, n: string) => notices.push(n),
       save: async (s: { characterId: number; pid: number }) => {
         calls.push(`save:${s.characterId}`);
-        await flush(); // a real save takes time: the other character could interleave here
+        await flush(); // a real save takes time: another character could interleave here
+        if (opts.failSaveOf === s.characterId) return false;
         for (const g of sets.get(s.pid)!) {
-          const owner = accountSet.get(g);
-          // the database refuses a claim another character holds (placeschema_accepted_db.ts)
-          const refused = !opts.noDbGuard && owner !== undefined && owner !== s.characterId;
-          if (refused || opts.conflictOn === s.characterId)
-            throw new Error('PlaceschemaClaimConflict');
-          accountSet.set(g, s.characterId);
+          const c = claims.get(g);
+          if (c?.character === s.characterId) c.pending = false;
         }
         return true;
       },
       store: {
-        accepted: async () => new Set(accountSet.keys()),
+        claims: async () => new Map([...claims].map(([g, c]) => [g, c.claim])),
+        claim: async (_a: number, g: string, character: number, online: number[]) => {
+          await flush();
+          const c = claims.get(g);
+          if (!c) {
+            claims.set(g, { claim: 1, character, pending: true });
+            return 'claimed';
+          }
+          if (!c.pending) return 'held';
+          if (c.character === character) return 'claimed';
+          return online.includes(c.character) ? 'busy' : 'claimed';
+        },
         cancels: async () => [],
         putCancel: async () => {},
         dropCancel: async () => {},
@@ -639,8 +703,11 @@ describe("B1': one serialisation point per account (round 6)", () => {
         return new Response('{}');
       }) as typeof fetch,
     } as never);
+    if (opts.noLock)
+      (carry as unknown as { locked: (a: number, j: () => unknown) => unknown }).locked = (_a, j) =>
+        j();
     const copies = () => [...bags.values()].reduce((n, bag) => n + has(bag, G1), 0);
-    return { carry, clients, bags, sets, accountSet, calls, copies };
+    return { carry, clients, bags, sets, claims, calls, copies, notices };
   }
 
   it('two characters of one account joining at once add the grant exactly once', async () => {
@@ -650,11 +717,10 @@ describe("B1': one serialisation point per account (round 6)", () => {
       w.carry.join(w.clients.get(2)! as never),
     ]);
     expect(w.copies()).toBe(1);
-    expect(w.accountSet.size).toBe(1);
   });
 
-  it('the account lock alone (no database guard) keeps it to one copy', async () => {
-    const w = twoOnline({ noDbGuard: true });
+  it('the claim alone (without the account lock) still keeps it to one copy', async () => {
+    const w = twoOnline({ noLock: true });
     await Promise.all([
       w.carry.join(w.clients.get(1)! as never),
       w.carry.join(w.clients.get(2)! as never),
@@ -662,11 +728,13 @@ describe("B1': one serialisation point per account (round 6)", () => {
     expect(w.copies()).toBe(1);
   });
 
-  it('a save the database refuses (claim conflict) is undone in memory and nothing is acked', async () => {
-    const w = twoOnline({ conflictOn: 70 });
+  it('claim first: a failed item save announces and acks nothing; another online character waits', async () => {
+    const w = twoOnline({ failSaveOf: 70 });
     await w.carry.join(w.clients.get(1)! as never);
-    expect(w.bags.get(1)).toHaveLength(0); // the add was undone with the rolled-back save
-    expect(w.sets.get(1)?.size).toBe(0);
+    expect(w.claims.get(G1)).toMatchObject({ character: 70, pending: true });
+    expect(w.notices).toEqual([]);
     expect(w.calls).not.toContain('/mod/ack');
+    await w.carry.join(w.clients.get(2)! as never); // 70 is online with it pending: busy
+    expect(w.copies()).toBe(1);
   });
 });

@@ -1,15 +1,15 @@
-// Executed PostgreSQL proof for the account-level PlaceSchema accepted set (PLACE-276):
-// server/placeschema_accepted_db.ts's boot migration and syncPlaceschemaAccepted, the statement every
-// character save runs in its own transaction. Only real PostgreSQL can prove the claim refusal under
-// concurrency (the unique key makes the second insert WAIT for the first transaction, then see its
-// row), so this drives the exported SQL in a private schema. The PG16 CI shard supplies
-// TEST_DATABASE_URL; local runs without it skip. Teardown drops only the private schema.
+// Executed PostgreSQL proof for the account-level PlaceSchema claims (PLACE-276):
+// server/placeschema_accepted_db.ts's boot migration, claimGrant (join claims before it adds) and
+// syncPlaceschemaAccepted (the statement every character save runs in its own transaction). Only
+// real PostgreSQL can prove the unique-key race between two characters claiming one grant, so this
+// drives the exported SQL in a private schema. The PG16 CI shard supplies TEST_DATABASE_URL; local
+// runs without it skip. Teardown drops only the private schema.
 
 import type { Pool } from 'pg';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import {
+  claimGrant,
   PLACESCHEMA_ACCEPTED_SCHEMA,
-  PlaceschemaClaimConflict,
   syncPlaceschemaAccepted,
 } from '../../server/placeschema_accepted_db';
 
@@ -18,7 +18,7 @@ const d = url === '' ? describe.skip : describe;
 const SCHEMA = 'placeschema_accepted_pg_test';
 const G = (c: string) => c.repeat(64);
 
-d('the account-level accepted set against real PostgreSQL', () => {
+d('the account-level claims against real PostgreSQL', () => {
   let pool: Pool;
 
   beforeAll(async () => {
@@ -48,16 +48,25 @@ d('the account-level accepted set against real PostgreSQL', () => {
     await pool.query('DELETE FROM characters');
     await pool.query('DELETE FROM accounts');
     await pool.query('INSERT INTO accounts (id) VALUES (1), (2)');
+    await pool.query(
+      "INSERT INTO characters (id, account_id, state) VALUES (10, 1, '{}'), (11, 1, '{}'), (20, 2, '{}')",
+    );
   });
 
   const rows = async () =>
     (
       await pool.query(
-        'SELECT account_id, left(grant_id, 1) AS g, character_id FROM placeschema_accepted ORDER BY 1, 2',
+        'SELECT account_id, left(grant_id, 1) AS g, character_id, pending FROM placeschema_accepted ORDER BY 1, 2',
       )
     ).rows;
+  const claimOf = async (g: string) =>
+    Number(
+      (await pool.query('SELECT claim_id FROM placeschema_accepted WHERE grant_id = $1', [g]))
+        .rows[0].claim_id,
+    );
 
   it('the boot migration moves per-character ids up to their account, once, ignoring junk', async () => {
+    await pool.query('DELETE FROM characters');
     await pool.query(
       `INSERT INTO characters (id, account_id, state) VALUES
         (10, 1, jsonb_build_object('placeschemaAccepted', jsonb_build_array($1::text, 'not-a-grant'))),
@@ -69,59 +78,76 @@ d('the account-level accepted set against real PostgreSQL', () => {
     await pool.query(PLACESCHEMA_ACCEPTED_SCHEMA);
     await pool.query(PLACESCHEMA_ACCEPTED_SCHEMA); // idempotent: a second boot adds nothing
     expect(await rows()).toEqual([
-      { account_id: 1, g: 'a', character_id: 10 },
-      { account_id: 2, g: 'b', character_id: 20 },
+      { account_id: 1, g: 'a', character_id: 10, pending: false },
+      { account_id: 2, g: 'b', character_id: 20, pending: false },
     ]);
   });
 
-  it('a save adds and removes its own ids and never moves another character claim', async () => {
-    await pool.query(
-      "INSERT INTO characters (id, account_id, state) VALUES (10, 1, '{}'), (11, 1, '{}')",
-    );
+  it('claim first: claimed (pending), confirmed by the save, then held for every character', async () => {
     await pool.query(PLACESCHEMA_ACCEPTED_SCHEMA);
-    await syncPlaceschemaAccepted(pool, 10, { placeschemaAccepted: [G('a'), G('c')] });
-    expect(await rows()).toEqual([
-      { account_id: 1, g: 'a', character_id: 10 },
-      { account_id: 1, g: 'c', character_id: 10 },
-    ]);
-    await syncPlaceschemaAccepted(pool, 10, { placeschemaAccepted: [G('c')] }); // carried a out
-    expect(await rows()).toEqual([{ account_id: 1, g: 'c', character_id: 10 }]);
-    await expect(
-      syncPlaceschemaAccepted(pool, 11, { placeschemaAccepted: [G('c')] }),
-    ).rejects.toBeInstanceOf(PlaceschemaClaimConflict);
-    expect(await rows()).toEqual([{ account_id: 1, g: 'c', character_id: 10 }]); // still 10's
-    // a real move: 10 carries it out (its save deletes the row), then 11 receives it back
-    await syncPlaceschemaAccepted(pool, 10, { placeschemaAccepted: [] });
-    await syncPlaceschemaAccepted(pool, 11, { placeschemaAccepted: [G('c')] });
-    expect(await rows()).toEqual([{ account_id: 1, g: 'c', character_id: 11 }]);
+    expect(await claimGrant(pool, 1, G('c'), 10, [10])).toBe('claimed');
+    expect(await rows()).toEqual([{ account_id: 1, g: 'c', character_id: 10, pending: true }]);
+    expect(await claimGrant(pool, 1, G('c'), 11, [10, 11])).toBe('busy'); // 10 is online, saving
+    expect(await claimGrant(pool, 1, G('c'), 10, [10])).toBe('claimed'); // its own pending claim
+    await syncPlaceschemaAccepted(pool, 10, { placeschemaAccepted: [G('c')] });
+    expect(await rows()).toEqual([{ account_id: 1, g: 'c', character_id: 10, pending: false }]);
+    expect(await claimGrant(pool, 1, G('c'), 11, [11])).toBe('held');
+    expect(await claimGrant(pool, 1, G('c'), 10, [10])).toBe('held');
   });
 
-  it('two characters saving the same grant at once: exactly one commits, the other rolls back', async () => {
-    await pool.query(
-      "INSERT INTO characters (id, account_id, state) VALUES (10, 1, '{}'), (11, 1, '{}')",
-    );
+  it('a crash leftover (pending, its character offline) is taken over exactly once', async () => {
     await pool.query(PLACESCHEMA_ACCEPTED_SCHEMA);
-    const a = await pool.connect();
-    const b = await pool.connect();
-    try {
-      await a.query('BEGIN');
-      await b.query('BEGIN');
-      await syncPlaceschemaAccepted(a, 10, { placeschemaAccepted: [G('d')] });
-      // b's insert waits on a's uncommitted unique key; commit a while b waits
-      const bSave = syncPlaceschemaAccepted(b, 11, { placeschemaAccepted: [G('d')] }).then(
-        () => b.query('COMMIT').then(() => 'committed'),
-        async (e) => {
-          await b.query('ROLLBACK');
-          return e instanceof PlaceschemaClaimConflict ? 'rolled back' : `error ${e}`;
-        },
-      );
-      await new Promise((r) => setTimeout(r, 100));
-      await a.query('COMMIT');
-      expect(await bSave).toBe('rolled back');
-    } finally {
-      a.release();
-      b.release();
-    }
-    expect(await rows()).toEqual([{ account_id: 1, g: 'd', character_id: 10 }]);
+    expect(await claimGrant(pool, 1, G('d'), 10, [10])).toBe('claimed'); // then the process dies
+    expect(await claimGrant(pool, 1, G('d'), 11, [11])).toBe('claimed'); // 10 is offline now
+    expect(await rows()).toEqual([{ account_id: 1, g: 'd', character_id: 11, pending: true }]);
+    // 10's save cannot confirm a claim that is no longer its own
+    await syncPlaceschemaAccepted(pool, 10, { placeschemaAccepted: [G('d')] });
+    expect((await rows())[0].pending).toBe(true);
+    await syncPlaceschemaAccepted(pool, 11, { placeschemaAccepted: [G('d')] });
+    expect((await rows())[0].pending).toBe(false);
+  });
+
+  it('B2: a release deletes the claim by id whichever character claimed it, and never a later one', async () => {
+    await pool.query(PLACESCHEMA_ACCEPTED_SCHEMA);
+    await claimGrant(pool, 1, G('e'), 10, [10]); // A claims it
+    await syncPlaceschemaAccepted(pool, 10, { placeschemaAccepted: [G('e')] });
+    const first = await claimOf(G('e'));
+    // B (11) received it by mail and carries it out: B's save releases A's claim
+    await syncPlaceschemaAccepted(pool, 11, {
+      placeschemaAccepted: [],
+      placeschemaReleased: [first],
+    });
+    expect(await rows()).toEqual([]);
+    // re-offered and claimed again: a replay of the old release deletes nothing
+    expect(await claimGrant(pool, 1, G('e'), 11, [11])).toBe('claimed');
+    await syncPlaceschemaAccepted(pool, 11, {
+      placeschemaAccepted: [G('e')],
+      placeschemaReleased: [first],
+    });
+    expect(await rows()).toEqual([{ account_id: 1, g: 'e', character_id: 11, pending: false }]);
+    // a release names a claim of THIS account only
+    await syncPlaceschemaAccepted(pool, 20, {
+      placeschemaAccepted: [],
+      placeschemaReleased: [await claimOf(G('e'))],
+    });
+    expect(await rows()).toHaveLength(1);
+  });
+
+  it('two characters claiming one grant at once: exactly one claims it', async () => {
+    await pool.query(PLACESCHEMA_ACCEPTED_SCHEMA);
+    const results = await Promise.all([
+      claimGrant(pool, 1, G('f'), 10, [10, 11]),
+      claimGrant(pool, 1, G('f'), 11, [10, 11]),
+    ]);
+    expect(results.filter((r) => r === 'claimed')).toHaveLength(1);
+    expect(results.filter((r) => r === 'busy')).toHaveLength(1);
+    expect(await rows()).toHaveLength(1);
+  });
+
+  it('a character that never used PlaceSchema runs no statement', async () => {
+    await pool.query(PLACESCHEMA_ACCEPTED_SCHEMA);
+    const seen: string[] = [];
+    await syncPlaceschemaAccepted({ query: async (s: string) => seen.push(s) }, 10, {});
+    expect(seen).toEqual([]);
   });
 });

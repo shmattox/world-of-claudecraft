@@ -2957,7 +2957,7 @@ export class Sim {
       honorMod.loadHonorState(meta, s);
       worldPvpMod.loadWorldPvpState(this.ctx, meta, player, s.worldPvp);
       meta.prestigeRank = s.prestigeRank ?? 0;
-      meta.placeschemaAccepted = loadPlaceschemaAccepted(s.placeschemaAccepted);
+      meta.placeschemaAccepted = loadPlaceschemaAccepted(s);
       meta.restedXp = Math.max(0, s.restedXp ?? 0);
       // `s.professions` is the legacy pre-rename field (#1119); `s.gatheringProficiency`
       // is the current one. Prefer the current field, fall back to the legacy one so
