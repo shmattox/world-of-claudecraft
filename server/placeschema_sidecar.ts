@@ -92,31 +92,11 @@ export interface CarryDeps<S extends CarrySession> {
   notice(session: S, text: string): void;
   /** persist this live session's character now; false if the save was refused */
   save(session: S): Promise<boolean>;
-  /** run a job on the character's own save FIFO (game.ts enqueueCharacterWrite) */
-  enqueueWrite<T>(characterId: number, job: () => Promise<T>): Promise<T>;
-  /** add a copy to a logged-off character's saved row (load, add, save); runs inside enqueueWrite */
-  writeSavedRow(characterId: number, slot: InvSlot, grantId: string): Promise<void>;
   fetch?: typeof fetch;
 }
 
 const holdsIn = (slots: readonly InvSlot[] | undefined, grantId: string) =>
   !!slots && slotOfGrant(slots, grantId) >= 0;
-
-/** The default saved-row write: the row gains the copy unless its bag or bank already holds it. */
-export async function writeSavedCharacterRow(
-  characterId: number,
-  slot: InvSlot,
-  grantId: string,
-): Promise<void> {
-  const db = await import('./db');
-  const row = await db.getCharacterById(characterId);
-  if (!row?.state)
-    throw new Error(`placeschema: no saved character ${characterId} to restore into`);
-  const bank = (row.state as { bank?: { inventory?: InvSlot[] } }).bank?.inventory;
-  if (holdsIn(row.state.inventory, grantId) || holdsIn(bank, grantId)) return;
-  row.state.inventory.push(slot);
-  await db.saveCharacterState(characterId, row.level, row.state);
-}
 
 export const platformId = (cfg: SidecarConfig, accountId: number) =>
   `${accountId}@${cfg.realmHost}`;
@@ -150,8 +130,8 @@ export function grantOfSlot(slot: InvSlot | undefined): string | undefined {
 export class PlaceSchemaCarry<S extends CarrySession> {
   private readonly linked = new Map<number, string | null>(); // accountId -> holder
   private readonly busy = new Set<number>();
-  /** carry-outs whose answer was lost: grant -> the removed copy, settled by status on join */
-  private readonly unsettled = new Map<string, { characterId: number; slot: InvSlot }>();
+  /** cancels the sidecar has not confirmed yet: grant -> account; retried before each join */
+  private readonly cancels = new Map<string, number>();
 
   /** Whether this player holds the grant anywhere the game keeps items: bag, bank or mail. */
   private holds(s: S, grantId: string): boolean {
@@ -163,19 +143,6 @@ export class PlaceSchemaCarry<S extends CarrySession> {
     return (this.d.sim.postOffice?.mail ?? []).some((m) => holdsIn(m.items, grantId));
   }
 
-  /** The escrow's own answer for one grant: held, in-transit, gone (landed), or undefined. */
-  private async stateOf(s: S, grantId: string): Promise<string | undefined> {
-    try {
-      const r = await this.call('/mod/status', { platformId: platformId(this.cfg, s.accountId) });
-      if (!r.ok) return undefined;
-      const row = (r.body.items ?? []).find(
-        (v: { grant?: { id?: string } }) => v.grant?.id === grantId,
-      );
-      return row ? String(row.state) : 'gone';
-    } catch {
-      return undefined;
-    }
-  }
   constructor(
     private readonly cfg: SidecarConfig,
     private readonly d: CarryDeps<S>,
@@ -204,6 +171,9 @@ export class PlaceSchemaCarry<S extends CarrySession> {
     if (this.busy.has(s.pid)) return;
     this.busy.add(s.pid);
     try {
+      // A cancel not yet confirmed goes first, so the item it re-offers arrives in this join.
+      for (const [g, account] of [...this.cancels])
+        if (account === s.accountId) await this.cancel(s, g);
       const r = await this.call('/mod/join', {
         platformId: platformId(this.cfg, s.accountId),
         caps: { mesh: false, sprite: true, cuboid: false },
@@ -218,7 +188,6 @@ export class PlaceSchemaCarry<S extends CarrySession> {
         const itemId = itemIdForGrant(a.grant);
         if (!itemId) continue; // no body for this kind here yet: left pending, not acked
         // Adding one we already hold (bag, bank or mail) is a no-op: the grant id is the key.
-        this.unsettled.delete(a.grant.id); // the escrow's own return settles a lost carry-out
         if (!this.holds(s, a.grant.id)) {
           const pending = meta.inventory.find((x) => pendingOf(x) === itemId);
           if (pending) {
@@ -237,10 +206,6 @@ export class PlaceSchemaCarry<S extends CarrySession> {
         }
         added.push(a.grant.id);
       }
-      // Lost carry-outs for this character: ask the escrow now (after adds, so a returned grant
-      // just delivered above is already settled and never given back twice).
-      for (const [g, u] of [...this.unsettled])
-        if (u.characterId === s.characterId) await this.settle(s, g);
       if (!added.length) return;
       s.selfHeavyDirty = true;
       // Add, SAVE, then ack: a crash before the ack re-delivers, and the grant id dedupes it.
@@ -313,12 +278,9 @@ export class PlaceSchemaCarry<S extends CarrySession> {
     // Remove before release (contract section 3): the copy leaves the bag first.
     // And the removal is SAVED before the escrow is asked: a crash after carry-out must not reload
     // a bag that still holds the copy.
-    const [removed] = meta.inventory.splice(at, 1);
+    meta.inventory.splice(at, 1);
     s.selfHeavyDirty = true;
-    if (!(await this.d.save(s))) {
-      this.putBack(s, removed, grantId);
-      return this.refused(s, 'save-failed');
-    }
+    if (!(await this.d.save(s))) return this.giveUp(s, grantId, 'save-failed');
     let r: { ok: boolean; status: number; body: any } | undefined;
     try {
       r = await this.call('/mod/carry-out', {
@@ -333,59 +295,33 @@ export class PlaceSchemaCarry<S extends CarrySession> {
       this.d.send(s, { t: 'placeschema', kind: 'ticket', url: r.body.url });
       return;
     }
-    if (r && r.status >= 400 && r.status < 500) {
-      // A definite refusal: the escrow never moved it, so the copy comes back.
-      await this.giveBack(s, removed, grantId);
-      return this.refused(s, r.body?.error ?? 'refused');
+    // Refused, timed out, or the answer was lost (a slow relay may still commit it later): the game
+    // never adds it back itself. Cancel it at the sidecar, which refuses any late commit and
+    // re-offers the item, and the next join is the one way it comes back.
+    await this.giveUp(s, grantId, r?.body?.error ?? 'sidecar-unreachable');
+  }
+
+  /** Cancel a carry-out and let join bring the item back; an unreachable sidecar is retried. */
+  private async giveUp(s: S, grantId: string, reason: string): Promise<void> {
+    this.cancels.set(grantId, s.accountId);
+    await this.cancel(s, grantId);
+    if (this.d.clients.get(s.pid) !== s) return; // offline: their next login's join delivers it
+    this.refused(s, reason);
+    await this.join(s).catch(() => undefined); // unreachable: the 5 s poll tries again
+  }
+
+  private async cancel(s: S, grantId: string): Promise<void> {
+    try {
+      const r = await this.call('/mod/cancel', {
+        platformId: platformId(this.cfg, s.accountId),
+        grant: grantId,
+      });
+      // Confirmed (re-add pending), or nothing to return (it landed elsewhere): settled either way.
+      if (r.ok || r.body?.error === 'landed' || r.body?.error === 'unknown-grant')
+        this.cancels.delete(grantId);
+    } catch {
+      /* unreachable: stays pending, retried before the next join */
     }
-    // The answer was lost: the escrow may have moved it. Never guess; ask it.
-    this.unsettled.set(grantId, { characterId: s.characterId, slot: removed });
-    await this.settle(s, grantId);
-    if (this.unsettled.has(grantId) && this.d.clients.get(s.pid) === s)
-      this.d.notice(s, 'The carry did not confirm; the item will come back if it did not leave.');
-  }
-
-  /**
-   * Settle one lost carry-out by the escrow's own state: `held` means it never left, so the copy
-   * comes back; `in-transit` means it left, and the escrow's timed-out return comes back through
-   * join; `gone` means it landed elsewhere. Unreachable: stays unsettled for the next join.
-   */
-  private async settle(s: S, grantId: string): Promise<void> {
-    const pending = this.unsettled.get(grantId);
-    if (!pending) return;
-    const state = await this.stateOf(s, grantId);
-    if (state === undefined) return;
-    this.unsettled.delete(grantId);
-    if (state === 'held') await this.giveBack(s, pending.slot, grantId);
-  }
-
-  /** Put a removed copy back, durably: into the live bag and saved, or into the saved row. */
-  private async giveBack(s: S, slot: InvSlot, grantId: string): Promise<void> {
-    await this.restore(s.characterId, slot, grantId);
-  }
-
-  /**
-   * Restore one copy on the character's own save FIFO, so no pending final save or re-login can
-   * overwrite it: in memory if the character is online by the time the job runs, else in the row.
-   */
-  async restore(characterId: number, slot: InvSlot, grantId: string): Promise<void> {
-    let live: S | undefined;
-    await this.d.enqueueWrite(characterId, async () => {
-      live = [...this.d.clients.values()].find((c) => c.characterId === characterId);
-      if (live) {
-        if (!this.holds(live, grantId)) this.putBack(live, slot, grantId);
-        return;
-      }
-      await this.d.writeSavedRow(characterId, slot, grantId);
-    });
-    // Outside the job: a live save enqueues on the same FIFO (awaiting it inside would deadlock).
-    if (live) await this.d.save(live);
-  }
-
-  private putBack(s: S, slot: InvSlot, grantId: string): void {
-    const back = this.d.sim.meta(s.pid);
-    if (back && slotOfGrant(back.inventory, grantId) < 0) back.inventory.push(slot);
-    s.selfHeavyDirty = true;
   }
 
   private refused(s: S, reason: string): void {
@@ -414,11 +350,11 @@ export class PlaceSchemaCarry<S extends CarrySession> {
 /** Build the carry from the environment and start polling arrivals; null when not configured. */
 export function startPlaceSchemaCarry<S extends CarrySession>(
   env: NodeJS.ProcessEnv,
-  deps: Omit<CarryDeps<S>, 'writeSavedRow'>,
+  deps: CarryDeps<S>,
 ): PlaceSchemaCarry<S> | null {
   const cfg = sidecarConfig(env);
   if (!cfg) return null;
-  const carry = new PlaceSchemaCarry(cfg, { ...deps, writeSavedRow: writeSavedCharacterRow });
+  const carry = new PlaceSchemaCarry(cfg, deps);
   setInterval(() => void carry.pollAll(), 5_000).unref();
   return carry;
 }

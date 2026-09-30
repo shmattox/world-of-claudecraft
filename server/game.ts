@@ -2688,7 +2688,6 @@ export class GameServer {
       send: (s, frame) => this.send(s, frame),
       notice: (s, text) => this.sendSystemNotice(s, text),
       save: (s) => this.saveCharacter(s),
-      enqueueWrite: (id, job) => this.enqueueCharacterWrite(id, job),
     });
     this.lastKeepaliveSweepAt = Date.now();
     this.keepaliveInterval = setInterval(() => {

@@ -1696,10 +1696,10 @@ const MONOLITHS: MonolithRow[] = [
     // (Reuben's call): both parent pins for the record, the release 9827 and the
     // branch 9965; the two sides' additions compose to 9840 by wc -l on the merged
     // tree (after biome). Exact count, zero slack.
-    // RECORDED RAISE +13 (PLACE-276, PlaceSchema carry): the logic lives in
+    // RECORDED RAISE +12 (PLACE-276, PlaceSchema carry): the logic lives in
     // server/placeschema_sidecar.ts; game.ts gains only its construction (with
-    // the save and save-queue hooks), the event-drain call and the ps_carry command arm.
-    ceiling: 9853,
+    // the save hook), the event-drain call and the ps_carry command arm.
+    ceiling: 9852,
     seam: 'a sibling server module; see the hot-path seams in server/CLAUDE.md',
   },
   {
