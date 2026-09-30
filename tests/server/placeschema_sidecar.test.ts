@@ -26,6 +26,7 @@ const grant = (id: string, type = 'blade.sword') => ({
 type Grant = ReturnType<typeof grant>;
 type Session = { accountId: number; characterId: number; pid: number; selfHeavyDirty: boolean };
 type Fault = 'refuse' | 'crash-after' | 'disconnect' | 'lost' | 'down' | 'slow';
+type Item = { grant: Grant; label: string; state: string; readd: boolean; ackedSeq: number };
 const clone = <T>(v: T): T => structuredClone(v);
 const flush = () => new Promise((r) => setTimeout(r, 20));
 const has = (slots: InvSlot[], g: string) =>
@@ -33,22 +34,22 @@ const has = (slots: InvSlot[], g: string) =>
     .length;
 
 /**
- * One player (a live bag, the bag as last SAVED, a bank and mail), another player's bag (a trade or
- * sale target), and a model of the sidecar's escrow that follows adapters/sidecar/src/store.ts:
- * carry-out needs `held` and not re-add pending; a cancel moves held/in-transit to held + re-add and
- * refuses any carry-out that began before it. `copies(g)` counts one grant everywhere a copy can be.
+ * One player (a live bag and accepted set, both as last SAVED, plus equipment), another player's bag
+ * (a trade or sale), and a model of the sidecar escrow that follows adapters/sidecar/src/store.ts:
+ * carry-out records its attempt before the relay read and refuses a cancelled attempt at commit; a
+ * cancel names an attempt, re-offers once, and is a no-op when repeated or older than the game's
+ * ack. `copies(g)` counts one grant everywhere a copy can be.
  */
 function world() {
-  let now = 1000;
+  let seq = 0;
   let inventory: InvSlot[] = [];
+  let accepted = new Set<string>();
   let saved: InvSlot[] = [];
-  const bank: InvSlot[] = [];
-  const mail: { items: InvSlot[] }[] = [];
+  let savedAccepted = new Set<string>();
+  const equipment: InvSlot[] = [];
   const other: InvSlot[] = [];
-  const escrow = new Map<
-    string,
-    { grant: Grant; label: string; state: string; acked: boolean; cancelledAt?: number }
-  >();
+  const escrow = new Map<string, Item>();
+  const attempts = new Map<string, { seq: number; state: string }>();
   const calls: string[] = [];
   const frames: unknown[] = [];
   const faults: Record<string, Fault> = {};
@@ -56,15 +57,22 @@ function world() {
   let session: Session = { accountId: 7, characterId: 70, pid: 1, selfHeavyDirty: false };
   clients.set(1, session);
   const late: (() => void)[] = [];
-  const carryOutCommit = (b: any, startedAt: number): { status: number; body: unknown } => {
+  let lateResult: { status: number; body: unknown } | undefined;
+  const commit = (b: any): { status: number; body: unknown } => {
     for (const g of b.grants) {
       const e = escrow.get(g);
-      if (e?.state !== 'held' || !e.acked) return { status: 409, body: { error: `not-held:${g}` } };
-      if (e.cancelledAt !== undefined && e.cancelledAt >= startedAt)
+      if (attempts.get(`${b.attempt}:${g}`)?.state === 'cancelled')
         return { status: 409, body: { error: `cancelled:${g}` } };
+      if (e?.state !== 'held' || e.readd) return { status: 409, body: { error: `not-held:${g}` } };
     }
-    for (const g of b.grants) escrow.get(g)!.state = 'in-transit';
-    return { status: 200, body: { url: `${b.destination}/arrive#ps-ticket=x` } };
+    for (const g of b.grants) {
+      escrow.get(g)!.state = 'in-transit';
+      attempts.get(`${b.attempt}:${g}`)!.state = 'committed';
+    }
+    return {
+      status: 200,
+      body: { url: `${b.destination}/arrive#ps-ticket=x`, attempt: b.attempt },
+    };
   };
   const answer = (path: string, b: any): { status: number; body: unknown } => {
     if (path === '/mod/join')
@@ -73,46 +81,65 @@ function world() {
         body: {
           holder: 'h',
           add: [...escrow.values()]
-            .filter((e) => e.state === 'held' && !e.acked)
+            .filter((e) => e.state === 'held' && e.readd)
             .map((e) => ({ grant: e.grant, label: e.label })),
         },
       };
     if (path === '/mod/ack') {
-      for (const g of b.grants) escrow.get(g)!.acked = true;
+      for (const g of b.grants) {
+        const e = escrow.get(g)!;
+        if (e.state === 'held' && e.readd) Object.assign(e, { readd: false, ackedSeq: ++seq });
+      }
       return { status: 200, body: { ok: true } };
     }
     if (path === '/mod/mint') {
       const g = grant(G1, b.template.type);
-      escrow.set(G1, { grant: g, label: b.template.label, state: 'held', acked: false });
+      escrow.set(G1, {
+        grant: g,
+        label: b.template.label,
+        state: 'held',
+        readd: true,
+        ackedSeq: 0,
+      });
       return { status: 200, body: { grant: g } };
     }
     if (path === '/mod/cancel') {
       const e = escrow.get(b.grant);
       if (!e) return { status: 409, body: { error: 'unknown-grant' } };
+      const key = `${b.attempt}:${b.grant}`;
+      const a = attempts.get(key);
+      if (a?.state === 'cancelled') return { status: 200, body: { reoffered: false } };
       if (e.state === 'landed') return { status: 409, body: { error: 'landed' } };
-      Object.assign(e, { state: 'held', acked: false, cancelledAt: now });
-      return { status: 200, body: { ok: true } };
+      const at = a?.seq ?? ++seq;
+      const moved = e.state === 'in-transit' ? a?.state === 'committed' : !e.readd;
+      attempts.set(key, { seq: at, state: 'cancelled' });
+      if (e.ackedSeq > at || !moved) return { status: 200, body: { reoffered: false } };
+      Object.assign(e, { state: 'held', readd: true });
+      return { status: 200, body: { reoffered: true } };
     }
     if (path === '/mod/carry-out') {
       if (faults[path] === 'refuse' || faults[path] === 'disconnect')
         return { status: 409, body: { error: 'link-not-honoured' } };
-      const startedAt = now;
+      for (const g of b.grants) {
+        const key = `${b.attempt}:${g}`;
+        if (attempts.get(key)?.state === 'cancelled')
+          return { status: 409, body: { error: `cancelled:${g}` } };
+        if (!attempts.has(key)) attempts.set(key, { seq: ++seq, state: 'started' });
+      }
       if (faults[path] === 'slow') {
-        // A slow relay holds this request inside the sidecar; it commits whenever the test says.
+        // A slow relay holds this request inside the sidecar; it commits when the test says.
         late.push(() => {
-          lateResult = carryOutCommit(b, startedAt);
+          lateResult = commit(b);
         });
         return { status: 0, body: {} };
       }
-      return carryOutCommit(b, startedAt);
+      return commit(b);
     }
     return { status: 404, body: {} };
   };
-  let lateResult: { status: number; body: unknown } | undefined;
   const deps = {
     sim: {
-      meta: () => ({ inventory, bank: { inventory: bank }, cls: 'warrior' }) as never,
-      postOffice: { mail },
+      meta: () => ({ inventory, placeschemaAccepted: accepted, cls: 'warrior' }) as never,
       addItemInstance: (itemId: string, instance: never) => {
         inventory.push({ itemId, count: 1, instance });
       },
@@ -123,6 +150,7 @@ function world() {
     save: async () => {
       calls.push('save');
       saved = clone(inventory);
+      savedAccepted = new Set(accepted);
       return true;
     },
     fetch: (async (url: string, init: RequestInit) => {
@@ -137,10 +165,7 @@ function world() {
       // The sidecar committed, but the answer never arrived: the game server lives on.
       if (faults[path] === 'lost') throw new Error(`lost answer from ${path}`);
       // The game's 10 s abort fires while the sidecar is still waiting on the relay.
-      if (faults[path] === 'slow') {
-        now += 11;
-        throw new Error(`aborted ${path}`);
-      }
+      if (faults[path] === 'slow') throw new Error(`aborted ${path}`);
       return new Response(JSON.stringify(a.body), { status: a.status });
     }) as typeof fetch,
   };
@@ -151,8 +176,7 @@ function world() {
     frames,
     faults,
     escrow,
-    bank,
-    mail,
+    equipment,
     other,
     get inventory() {
       return inventory;
@@ -160,9 +184,14 @@ function world() {
     get saved() {
       return saved;
     },
+    get accepted() {
+      return accepted;
+    },
     session: () => session,
+    /** log out and back in: the bag and accepted set load from the last save */
     relogin() {
       inventory = clone(saved);
+      accepted = new Set(savedAccepted);
       clients.set(1, session);
     },
     /** the slow relay finally answers: the delayed carry-out reaches its commit */
@@ -170,41 +199,41 @@ function world() {
       for (const f of late.splice(0)) f();
       return lateResult;
     },
-    /** the process dies: memory is gone, the bag reloads from the last save */
+    /** the process dies: memory is gone, the bag and accepted set reload from the last save */
     crash() {
       inventory = clone(saved);
+      accepted = new Set(savedAccepted);
       for (const k of Object.keys(faults)) delete faults[k];
       session = { ...session };
       clients.set(1, session);
       return make();
     },
-    /** copies of a grant: bag (or a given bag), bank, mail, another player, and the escrow */
+    /** copies of a grant: bag (or a given bag), equipment, another player, and the escrow */
     copies(g: string, bag: InvSlot[] = inventory) {
-      const inGame = [bag, bank, other, ...mail.map((m) => m.items)].reduce(
-        (n, slots) => n + has(slots, g),
-        0,
-      );
+      const inGame = [bag, equipment, other].reduce((n, slots) => n + has(slots, g), 0);
       const e = escrow.get(g);
       const away = e && (e.state === 'in-transit' || e.state === 'landed') ? 1 : 0;
-      const due = e && e.state === 'held' && !e.acked && inGame === 0 ? 1 : 0; // next join adds it
+      // an offered grant the game has not accepted yet: the next join adds it
+      const due = e && e.state === 'held' && e.readd && !accepted.has(g) && inGame === 0 ? 1 : 0;
       return inGame + away + due;
     },
     timeout(g = G1) {
       const e = escrow.get(g);
-      if (e?.state === 'in-transit') Object.assign(e, { state: 'held', acked: false });
+      if (e?.state === 'in-transit') Object.assign(e, { state: 'held', readd: true });
     },
     arrive(g = G1, label = 'Ember Blade') {
-      escrow.set(g, { grant: grant(g), label, state: 'held', acked: false });
+      escrow.set(g, { grant: grant(g), label, state: 'held', readd: true, ackedSeq: 0 });
     },
   };
 }
 
-/** A world where the player already holds G1 (arrived, added, saved, acked). */
+/** A world where the player already holds G1 (arrived, added, accepted, saved, acked). */
 async function holding() {
   const w = world();
   w.arrive();
   await w.carry.join(w.session());
   expect(slotOfGrant(w.inventory, G1)).toBe(0);
+  expect(w.accepted.has(G1)).toBe(true);
   return w;
 }
 
@@ -238,12 +267,13 @@ describe('placeschema sidecar game side (PLACE-276)', () => {
     expect(itemIdForGrant(grant(G1, 'potion.heal'))).toBeUndefined();
   });
 
-  it('adds an arrival once by grant id, names it by its label, saves, then acks', async () => {
+  it('adds an arrival once, accepts it in the same save, then acks', async () => {
     const w = await holding();
     await w.carry.join(w.session());
     expect(w.inventory).toHaveLength(1);
     expect(w.inventory[0].instance).toMatchObject({ [GRANT_KEY]: G1, name: 'Ember Blade' });
     expect(w.calls.indexOf('save')).toBeLessThan(w.calls.indexOf('/mod/ack'));
+    expect(slotOfGrant(w.saved, G1)).toBe(0);
   });
 
   it('finding 2: a crash after the arrival but before the ack keeps exactly one copy', async () => {
@@ -254,8 +284,33 @@ describe('placeschema sidecar game side (PLACE-276)', () => {
     await flush();
     const again = w.crash();
     expect(slotOfGrant(w.inventory, G1)).toBe(0);
-    await again.join(w.session()); // re-delivered; the grant id dedupes it
+    await again.join(w.session()); // re-offered; the accepted set acks it without adding
     expect(w.inventory).toHaveLength(1);
+    expect(w.copies(G1)).toBe(1);
+  });
+
+  it('N4 (reviewer): a lost ack, then the item is equipped: the re-offer is acked, not added', async () => {
+    const w = world();
+    w.arrive();
+    w.faults['/mod/ack'] = 'down'; // the ack never reaches the sidecar
+    await w.carry.join(w.session()).catch(() => undefined);
+    delete w.faults['/mod/ack'];
+    w.equipment.push(...w.inventory.splice(0)); // equipped: no longer in the bag
+    await w.carry.join(w.session());
+    expect(w.inventory).toHaveLength(0);
+    expect(w.escrow.get(G1)?.readd).toBe(false); // acked this time
+    expect(w.copies(G1)).toBe(1);
+  });
+
+  it('N4 (reviewer): a lost ack, then the item is traded away: the re-offer is acked, not added', async () => {
+    const w = world();
+    w.arrive();
+    w.faults['/mod/ack'] = 'down';
+    await w.carry.join(w.session()).catch(() => undefined);
+    delete w.faults['/mod/ack'];
+    w.other.push(...w.inventory.splice(0)); // traded to another player
+    await w.carry.join(w.session());
+    expect(w.inventory).toHaveLength(0);
     expect(w.copies(G1)).toBe(1);
   });
 
@@ -267,6 +322,7 @@ describe('placeschema sidecar game side (PLACE-276)', () => {
     expect(w.calls.lastIndexOf('save')).toBeLessThan(w.calls.lastIndexOf('/mod/carry-out'));
     w.crash();
     expect(slotOfGrant(w.inventory, G1)).toBe(-1);
+    expect(w.accepted.has(G1)).toBe(false); // left in the same save as the item
     expect(w.escrow.get(G1)?.state).toBe('in-transit');
     expect(w.copies(G1)).toBe(1);
   });
@@ -310,10 +366,10 @@ describe('placeschema sidecar game side (PLACE-276)', () => {
     expect(w.calls).toContain('/mod/link');
   });
 
-  it('N2 (reviewer): slow relay, the game aborts, it is traded away, then the late commit: one copy', async () => {
+  it('N2: slow relay, the game aborts, the item is traded away, then the late commit: one copy', async () => {
     const w = await holding();
     w.faults['/mod/carry-out'] = 'slow';
-    await w.carry.carry(w.session(), G1); // aborted at 10 s: cancel, and join brings it back
+    await w.carry.carry(w.session(), G1); // aborted: cancel names the attempt, join brings it back
     expect(slotOfGrant(w.inventory, G1)).toBe(0);
     w.other.push(...w.inventory.splice(0)); // traded to another player
     const late = w.lateCommit(); // the delayed carry-out finally reaches its commit
@@ -323,29 +379,33 @@ describe('placeschema sidecar game side (PLACE-276)', () => {
     expect(w.copies(G1)).toBe(1);
   });
 
-  it('N1 (reviewer): lost carry-out answer, copy moved to the bank, escrow timeout, join: one copy', async () => {
+  it('N3 (reviewer): a cancel whose answer is lost is retried after join acked: no second copy', async () => {
     const w = await holding();
-    w.faults['/mod/carry-out'] = 'lost'; // it committed; the answer never came back
+    w.faults['/mod/carry-out'] = 'lost'; // committed; the answer never came back
+    w.faults['/mod/cancel'] = 'lost'; // the cancel committed too; its answer is lost
     await w.carry.carry(w.session(), G1);
-    expect(slotOfGrant(w.inventory, G1)).toBe(0); // back through cancel + join only
-    w.bank.push(...w.inventory.splice(0)); // the player banks it
-    w.timeout(); // nothing is in transit any more
+    expect(slotOfGrant(w.inventory, G1)).toBe(-1); // no adds while a cancel is unconfirmed
+    delete w.faults['/mod/cancel'];
+    delete w.faults['/mod/carry-out'];
+    await w.carry.join(w.session()); // retried cancel (a no-op now), then the one re-offer
+    expect(slotOfGrant(w.inventory, G1)).toBe(0);
+    w.equipment.push(...w.inventory.splice(0));
+    await w.carry.join(w.session());
     await w.carry.join(w.session());
     expect(w.inventory).toHaveLength(0);
     expect(w.copies(G1)).toBe(1);
   });
 
-  it('N1 (belt and braces): join never re-adds a grant already in the bank or the mail', async () => {
-    for (const where of ['bank', 'mail'] as const) {
-      const w = await holding();
-      const [copy] = w.inventory.splice(0);
-      if (where === 'bank') w.bank.push(copy);
-      else w.mail.push({ items: [copy] });
-      Object.assign(w.escrow.get(G1)!, { acked: false }); // the sidecar offers it again
-      await w.carry.join(w.session());
-      expect(w.inventory).toHaveLength(0);
-      expect(w.copies(G1)).toBe(1);
-    }
+  it('N1: lost carry-out answer, copy moved away, escrow timeout, join: one copy', async () => {
+    const w = await holding();
+    w.faults['/mod/carry-out'] = 'lost';
+    await w.carry.carry(w.session(), G1);
+    expect(slotOfGrant(w.inventory, G1)).toBe(0); // back through cancel + join only
+    w.equipment.push(...w.inventory.splice(0));
+    w.timeout();
+    await w.carry.join(w.session());
+    expect(w.inventory).toHaveLength(0);
+    expect(w.copies(G1)).toBe(1);
   });
 
   it('an unreachable sidecar keeps the copy out; the cancel is retried before the next join', async () => {
@@ -380,6 +440,7 @@ describe('placeschema sidecar game side (PLACE-276)', () => {
       itemId: 'greyjaw_pelt_cloak',
       instance: { [GRANT_KEY]: G1 },
     });
+    expect(w.accepted.has(G1)).toBe(true);
     expect(w.copies(G1)).toBe(1);
   });
 
