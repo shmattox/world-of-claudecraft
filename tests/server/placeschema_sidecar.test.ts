@@ -184,10 +184,10 @@ function world() {
         if (savedState.placeschemaReleased?.includes(c.claim)) claims.delete(g);
       for (const g of savedState.placeschemaAccepted ?? []) {
         const c = claims.get(g);
-        // the owner's save fails loudly if its claim is gone or moved (syncPlaceschemaAccepted)
-        if (c?.character !== session.characterId) throw new Error('PlaceschemaClaimLost');
-        c.pending = false;
+        // only this character's own pending claims are completed; the landed blob keeps no ids
+        if (c?.character === session.characterId) c.pending = false;
       }
+      savedState = { ...savedState, placeschemaAccepted: [] };
       return true;
     },
     store: {

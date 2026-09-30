@@ -17,11 +17,7 @@ import {
 } from '../src/sim/placeschema_accepted';
 import type { Sim } from '../src/sim/sim';
 import type { InvSlot, ItemInstancePayload } from '../src/sim/types';
-import {
-  type AcceptedStore,
-  PlaceschemaClaimLost,
-  pgAcceptedStore,
-} from './placeschema_accepted_db';
+import { type AcceptedStore, pgAcceptedStore } from './placeschema_accepted_db';
 
 /** The carried grant's id rides on the item copy; the copy's `name` is the grant's minted label. */
 export const GRANT_KEY = 'psGrant';
@@ -258,10 +254,6 @@ export class PlaceSchemaCarry<S extends CarrySession> {
       // in memory for the next save to land; nothing is acked or announced until one does.
       const saved = await this.d.save(s).catch((e) => {
         console.error('placeschema: arrival save failed', e);
-        // A claim this character added is gone (defence in depth: nothing takes claims over): stop
-        // confirming it, so later saves are not refused over it.
-        if (e instanceof PlaceschemaClaimLost)
-          for (const g of e.grants) meta.placeschemaAccepted.delete(g);
         return false;
       });
       if (!saved) return;

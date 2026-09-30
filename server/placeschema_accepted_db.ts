@@ -77,34 +77,21 @@ export async function syncPlaceschemaAccepted(
     (g): g is string => typeof g === 'string' && GRANT_ID.test(g),
   );
   if (!ids.length) return;
-  // Each id this character added must still be ITS claim: a claim that is gone or moved means this
-  // save would commit a copy with no claim, so the whole save fails instead (round 8, B3).
-  const confirmed = rowsOf<{ grant_id: string }>(
-    await tx.query(
-      `UPDATE placeschema_accepted SET pending = false
-       WHERE character_id = $1 AND grant_id = ANY($2::text[]) RETURNING grant_id`,
-      [characterId, ids],
-    ),
+  // Round 9 (B4): only this character's own PENDING claims are completed here. A claim that is already
+  // confirmed, or gone (its item moved away and was released), needs nothing, so a stale id can never
+  // wedge a save. No other character can hold a claim this one added: claimGrant never takes over.
+  await tx.query(
+    `UPDATE placeschema_accepted SET pending = false
+     WHERE character_id = $1 AND grant_id = ANY($2::text[]) AND pending`,
+    [characterId, ids],
   );
-  if (confirmed.length !== ids.length) {
-    const ok = new Set(confirmed.map((r) => r.grant_id));
-    throw new PlaceschemaClaimLost(
-      characterId,
-      ids.filter((g) => !ok.has(g)),
-    );
-  }
-}
-
-/** Thrown inside a character save so the WHOLE save rolls back: a grant this character added is no
- *  longer its claim, so its copy must not be committed. */
-export class PlaceschemaClaimLost extends Error {
-  constructor(
-    readonly characterId: number,
-    readonly grants: string[],
-  ) {
-    super(`placeschema: ${grants.length} claim(s) of character ${characterId} are gone`);
-    this.name = 'PlaceschemaClaimLost';
-  }
+  // Every id is now recorded in the account table (or its item left), so the landed blob keeps none:
+  // a relog or a crash after the ack can never re-arm a stale id. ponytail: an id still in memory
+  // re-runs this per save until the next join or relog drops it; cheap and inert.
+  await tx.query(
+    `UPDATE characters SET state = jsonb_set(state, '{placeschemaAccepted}', '[]'::jsonb) WHERE id = $1`,
+    [characterId],
+  );
 }
 
 /** Inside a character's DELETE transaction: its pending claims (items it never saved) are released

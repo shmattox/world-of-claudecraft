@@ -10,7 +10,6 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import {
   claimGrant,
   PLACESCHEMA_ACCEPTED_SCHEMA,
-  PlaceschemaClaimLost,
   releasePendingClaimsOf,
   syncPlaceschemaAccepted,
 } from '../../server/placeschema_accepted_db';
@@ -108,24 +107,49 @@ d('the account-level claims against real PostgreSQL', () => {
     expect(await claimGrant(pool, 1, G('d'), 11)).toBe('held'); // exactly one copy: 10's
   });
 
-  it("the owner's save fails loudly (and rolls back) if its claim is gone", async () => {
-    await pool.query(PLACESCHEMA_ACCEPTED_SCHEMA);
-    await claimGrant(pool, 1, G('7'), 10);
-    await pool.query('DELETE FROM placeschema_accepted'); // the claim vanished
+  // A save as every path runs it: the blob write, then the sync, in one transaction.
+  const save = async (id: number, state: Record<string, unknown>) => {
     const tx = await pool.connect();
     try {
       await tx.query('BEGIN');
-      await tx.query('UPDATE characters SET state = \'{"marker": 1}\' WHERE id = 10'); // the save's write
-      await expect(
-        syncPlaceschemaAccepted(tx, 10, { placeschemaAccepted: [G('7')] }),
-      ).rejects.toBeInstanceOf(PlaceschemaClaimLost);
+      await tx.query('UPDATE characters SET state = $2 WHERE id = $1', [id, JSON.stringify(state)]);
+      await syncPlaceschemaAccepted(tx, id, state);
+      await tx.query('COMMIT');
+    } catch (e) {
       await tx.query('ROLLBACK');
+      throw e;
     } finally {
       tx.release();
     }
-    expect((await pool.query('SELECT state FROM characters WHERE id = 10')).rows[0].state).toEqual(
-      {},
-    );
+  };
+  const blob = async (id: number) =>
+    (await pool.query('SELECT state FROM characters WHERE id = $1', [id])).rows[0].state;
+
+  it('B4 (reviewer): mailed to an alt that carries it out, the original keeps saving; one copy', async () => {
+    await pool.query(PLACESCHEMA_ACCEPTED_SCHEMA);
+    expect(await claimGrant(pool, 1, G('7'), 10)).toBe('claimed');
+    // the arrival save failed; A's autosave lands the item with the id still in memory
+    await save(10, { item: 1, placeschemaAccepted: [G('7')] });
+    expect(await rows()).toEqual([{ account_id: 1, g: '7', character_id: 10, pending: false }]);
+    expect((await blob(10)).placeschemaAccepted).toEqual([]); // the landed blob keeps no stale id
+    // mailed to alt 11, which carries it out: its save releases A's claim by id
+    await save(11, { placeschemaAccepted: [], placeschemaReleased: [await claimOf(G('7'))] });
+    expect(await rows()).toEqual([]);
+    // A still has the stale id in memory: every later save of A lands, again and again
+    await save(10, { item: 0, placeschemaAccepted: [G('7')] });
+    await save(10, { item: 0, placeschemaAccepted: [G('7')] });
+    expect(await blob(10)).toEqual({ item: 0, placeschemaAccepted: [] });
+    expect(await rows()).toEqual([]); // nothing re-created: no second copy anywhere
+  });
+
+  it('B4: a crash after the ack leaves no stale id in the committed blob to re-arm on relog', async () => {
+    await pool.query(PLACESCHEMA_ACCEPTED_SCHEMA);
+    await claimGrant(pool, 1, G('6'), 10);
+    await save(10, { item: 1, placeschemaAccepted: [G('6')] }); // the arrival save; ack; crash
+    expect((await blob(10)).placeschemaAccepted).toEqual([]); // a relog loads nothing to confirm
+    await save(11, { placeschemaAccepted: [], placeschemaReleased: [await claimOf(G('6'))] });
+    await save(10, (await blob(10)) as Record<string, unknown>); // after the relog: saves land
+    expect(await rows()).toEqual([]);
   });
 
   it('deleting a character releases its pending claims and keeps its confirmed ones', async () => {
