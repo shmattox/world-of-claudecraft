@@ -2,11 +2,15 @@
 //   node <open-place>/adapters/sidecar/dist/main.mjs --resolver server/placeschema_resolver.mjs
 // It confirms that `<account id>@<realm host>` is a real account on THIS realm and returns its
 // public name. Attested: the WoC server authenticated every login (spec/nostr.md section 11, `woc`).
-// Reads DATABASE_URL and PLACESCHEMA_REALM_HOST; reads only accounts.id and accounts.username.
+// Reads DATABASE_URL, and PLACESCHEMA_REALM_HOST or else PUBLIC_ORIGIN's host (the same rule as
+// server/placeschema_sidecar.ts sidecarConfig); reads only accounts.id and accounts.username.
 
 import pg from 'pg';
 
-const REALM = process.env.PLACESCHEMA_REALM_HOST ?? '127.0.0.1:5173';
+/** This realm's host: the id suffix the server sends. Pinned equal to sidecarConfig's by test. */
+export const realmHost = (env) =>
+  env.PLACESCHEMA_REALM_HOST ?? new URL(env.PUBLIC_ORIGIN ?? 'http://127.0.0.1:5173').host;
+const REALM = realmHost(process.env);
 const ID = /^([1-9][0-9]{0,15})@(.+)$/;
 let pool;
 

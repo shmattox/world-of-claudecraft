@@ -58,8 +58,21 @@ export function sidecarConfig(env: NodeJS.ProcessEnv): SidecarConfig | null {
   return { url, token, realmHost, home: env.PLACESCHEMA_HOME ?? '' };
 }
 
+/** A quest-reward copy waiting for its mint: the value is the item id. Converted, never duplicated. */
+export const PENDING_KEY = 'psPending';
+const pendingOf = (slot: InvSlot): string | undefined => {
+  const v = (slot.instance as Record<string, unknown> | undefined)?.[PENDING_KEY];
+  return typeof v === 'string' ? v : undefined;
+};
+const signedInstance = (a: Added): ItemInstancePayload => {
+  const inst = { [GRANT_KEY]: a.grant.id } as ItemInstancePayload;
+  if (a.label) inst.name = a.label.slice(0, 64);
+  return inst;
+};
+
 export interface CarrySession {
   accountId: number;
+  characterId: number;
   pid: number;
   linkdead?: boolean;
   /** set after an inventory change so the next snapshot resends the bags */
@@ -75,7 +88,26 @@ export interface CarryDeps<S extends CarrySession> {
   /** a `{t:'placeschema', ...}` frame to one player */
   send(session: S, frame: { t: 'placeschema'; kind: 'ticket' | 'link'; url: string }): void;
   notice(session: S, text: string): void;
+  /** persist this live session's character now; false if the save was refused */
+  save(session: S): Promise<boolean>;
+  /** put a copy back into a logged-off character's saved row (load, add, save) */
+  restoreOffline(characterId: number, slot: InvSlot, grantId: string): Promise<void>;
   fetch?: typeof fetch;
+}
+
+/** The default offline restore: the saved row gains the copy unless it already holds that grant. */
+export async function restoreToSavedCharacter(
+  characterId: number,
+  slot: InvSlot,
+  grantId: string,
+): Promise<void> {
+  const db = await import('./db');
+  const row = await db.getCharacterById(characterId);
+  if (!row?.state)
+    throw new Error(`placeschema: no saved character ${characterId} to restore into`);
+  if (slotOfGrant(row.state.inventory, grantId) >= 0) return;
+  row.state.inventory.push(slot);
+  await db.saveCharacterState(characterId, row.level, row.state);
 }
 
 export const platformId = (cfg: SidecarConfig, accountId: number) =>
@@ -149,28 +181,32 @@ export class PlaceSchemaCarry<S extends CarrySession> {
       const added: string[] = [];
       for (const a of (r.body.add ?? []) as Added[]) {
         if (!a?.grant || !HEX64.test(a.grant.id)) continue;
-        // Adding one we already hold is a no-op: the grant id is the key.
         const itemId = itemIdForGrant(a.grant);
         if (!itemId) continue; // no body for this kind here yet: left pending, not acked
+        // Adding one we already hold is a no-op: the grant id is the key.
         if (slotOfGrant(meta.inventory, a.grant.id) < 0) {
-          const inst: ItemInstancePayload = { [GRANT_KEY]: a.grant.id } as ItemInstancePayload;
-          if (a.label) inst.name = a.label.slice(0, 64);
-          this.d.sim.addItemInstance(itemId, inst, s.pid);
-          this.d.notice(
-            s,
-            itemId !== FOREIGN_WEAPON_ID
-              ? `${a.label ?? 'Your item'} is now yours to carry to other worlds.`
-              : `${a.label ?? 'An item'} arrived from another world.`,
-          );
+          const pending = meta.inventory.find((x) => pendingOf(x) === itemId);
+          if (pending) {
+            // Our own quest reward, tagged before the mint: that exact copy becomes the signed one.
+            pending.instance = signedInstance(a);
+            this.d.notice(s, `${a.label ?? 'Your item'} is now yours to carry to other worlds.`);
+          } else {
+            this.d.sim.addItemInstance(itemId, signedInstance(a), s.pid);
+            this.d.notice(
+              s,
+              itemId !== FOREIGN_WEAPON_ID
+                ? `${a.label ?? 'Your item'} is now yours to carry to other worlds.`
+                : `${a.label ?? 'An item'} arrived from another world.`,
+            );
+          }
         }
         added.push(a.grant.id);
       }
-      if (added.length) s.selfHeavyDirty = true;
-      if (added.length)
-        await this.call('/mod/ack', {
-          platformId: platformId(this.cfg, s.accountId),
-          grants: added,
-        });
+      if (!added.length) return;
+      s.selfHeavyDirty = true;
+      // Add, SAVE, then ack: a crash before the ack re-delivers, and the grant id dedupes it.
+      if (!(await this.d.save(s))) return;
+      await this.call('/mod/ack', { platformId: platformId(this.cfg, s.accountId), grants: added });
     } finally {
       this.busy.delete(s.pid);
     }
@@ -184,23 +220,40 @@ export class PlaceSchemaCarry<S extends CarrySession> {
     const itemId = questRewardItemId(quest, meta.cls);
     if (!itemId || !ITEMS[itemId]) return;
     if (!this.linked.get(s.accountId)) return; // unlinked: an ordinary WoC item, nothing to carry
-    const r = await this.call('/mod/mint', {
-      platformId: platformId(this.cfg, s.accountId),
-      template: templateFor(itemId),
-    });
-    const grant = r.body?.grant as Grant | undefined;
-    if (!r.ok || !grant || !HEX64.test(grant.id)) return;
-    // The minted grant arrives through the next join (the sidecar queues it), which adds the signed
-    // copy; take back the plain copy the quest just gave so the player holds exactly one.
-    const live = this.d.sim.meta(s.pid);
-    if (!live) return;
-    const at = live.inventory.findIndex((x) => x.itemId === itemId && !x.instance);
-    if (at >= 0) {
-      if (live.inventory[at].count > 1) live.inventory[at].count--;
-      else live.inventory.splice(at, 1);
-      s.selfHeavyDirty = true;
+    // Tag the exact plain copy the quest gave, and save that, BEFORE minting: whenever the grant
+    // later arrives (now, or on a join after a crash) it converts this copy instead of adding one.
+    // No plain copy in the bag (it went elsewhere): no mint, never two copies.
+    const at = meta.inventory.findIndex((x) => x.itemId === itemId && !x.instance);
+    if (at < 0) return;
+    const slot = meta.inventory[at];
+    if (slot.count > 1) {
+      slot.count--;
+      meta.inventory.push({ itemId, count: 1, instance: { [PENDING_KEY]: itemId } as never });
+    } else slot.instance = { [PENDING_KEY]: itemId } as never;
+    s.selfHeavyDirty = true;
+    if (!(await this.d.save(s))) return this.untag(s, itemId);
+    let r: { ok: boolean; status: number; body: any } | undefined;
+    try {
+      r = await this.call('/mod/mint', {
+        platformId: platformId(this.cfg, s.accountId),
+        template: templateFor(itemId),
+      });
+    } catch {
+      r = undefined;
     }
-    await this.join(s);
+    const grant = r?.body?.grant as Grant | undefined;
+    // No answer: the mint may have landed, so the tag stays and a later join settles it.
+    if (!r || r.status >= 500) return;
+    if (!r.ok || !grant || !HEX64.test(grant.id)) return this.untag(s, itemId);
+    await this.join(s); // the sidecar queued the grant: this converts the tagged copy and saves
+  }
+
+  /** The mint did not happen: the tagged copy goes back to plain. */
+  private untag(s: S, itemId: string): void {
+    const tagged = this.d.sim.meta(s.pid)?.inventory.find((x) => pendingOf(x) === itemId);
+    if (!tagged) return;
+    delete tagged.instance;
+    s.selfHeavyDirty = true;
   }
 
   /** One Carry click: remove the copy, then escrow it out and send the player home with a ticket. */
@@ -219,8 +272,14 @@ export class PlaceSchemaCarry<S extends CarrySession> {
     const at = slotOfGrant(meta.inventory, grantId);
     if (at < 0) return;
     // Remove before release (contract section 3): the copy leaves the bag first.
+    // And the removal is SAVED before the escrow is asked: a crash after carry-out must not reload
+    // a bag that still holds the copy.
     const [removed] = meta.inventory.splice(at, 1);
     s.selfHeavyDirty = true;
+    if (!(await this.d.save(s))) {
+      this.putBack(s, removed, grantId);
+      return this.refused(s, 'save-failed');
+    }
     let r: { ok: boolean; body: any } | undefined;
     try {
       r = await this.call('/mod/carry-out', {
@@ -235,11 +294,22 @@ export class PlaceSchemaCarry<S extends CarrySession> {
       this.d.send(s, { t: 'placeschema', kind: 'ticket', url: r.body.url });
       return;
     }
-    // Not carried out: the sidecar still says held, so the copy goes back.
+    // Not carried out: the copy goes back, and is saved. (Even if the escrow did move it and the
+    // answer was lost, the unseen ticket times out, the item returns, and the grant id dedupes it.)
+    if (this.d.clients.get(s.pid) === s) {
+      this.putBack(s, removed, grantId);
+      await this.d.save(s);
+      this.refused(s, r?.body?.error ?? 'sidecar-unreachable');
+    } else {
+      // The player left while we waited: their final save has no copy, so restore the saved row.
+      await this.d.restoreOffline(s.characterId, removed, grantId);
+    }
+  }
+
+  private putBack(s: S, slot: InvSlot, grantId: string): void {
     const back = this.d.sim.meta(s.pid);
-    if (back && slotOfGrant(back.inventory, grantId) < 0) back.inventory.push(removed);
+    if (back && slotOfGrant(back.inventory, grantId) < 0) back.inventory.push(slot);
     s.selfHeavyDirty = true;
-    this.refused(s, r?.body?.error ?? 'sidecar-unreachable');
   }
 
   private refused(s: S, reason: string): void {
@@ -268,11 +338,11 @@ export class PlaceSchemaCarry<S extends CarrySession> {
 /** Build the carry from the environment and start polling arrivals; null when not configured. */
 export function startPlaceSchemaCarry<S extends CarrySession>(
   env: NodeJS.ProcessEnv,
-  deps: CarryDeps<S>,
+  deps: Omit<CarryDeps<S>, 'restoreOffline'>,
 ): PlaceSchemaCarry<S> | null {
   const cfg = sidecarConfig(env);
   if (!cfg) return null;
-  const carry = new PlaceSchemaCarry(cfg, deps);
+  const carry = new PlaceSchemaCarry(cfg, { ...deps, restoreOffline: restoreToSavedCharacter });
   setInterval(() => void carry.pollAll(), 5_000).unref();
   return carry;
 }
