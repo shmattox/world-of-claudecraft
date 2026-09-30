@@ -26,7 +26,20 @@ const grant = (id: string, type = 'blade.sword') => ({
 type Grant = ReturnType<typeof grant>;
 type Session = { accountId: number; characterId: number; pid: number; selfHeavyDirty: boolean };
 type Fault = 'refuse' | 'crash-after' | 'disconnect' | 'lost' | 'down' | 'slow';
-type Item = { grant: Grant; label: string; state: string; readd: boolean; ackedSeq: number };
+type Item = {
+  grant: Grant;
+  label: string;
+  state: string;
+  readd: boolean;
+  ackedSeq: number;
+  holder?: string;
+};
+type Char = {
+  inventory: InvSlot[];
+  accepted: Set<string>;
+  saved: InvSlot[];
+  savedAccepted: Set<string>;
+};
 const clone = <T>(v: T): T => structuredClone(v);
 const flush = () => new Promise((r) => setTimeout(r, 20));
 const has = (slots: InvSlot[], g: string) =>
@@ -49,6 +62,10 @@ function world() {
   const equipment: InvSlot[] = [];
   const other: InvSlot[] = [];
   const escrow = new Map<string, Item>();
+  // the account-level store (placeschema_accepted / placeschema_cancels): grant -> owning character
+  const accountSet = new Map<string, number>();
+  const cancelRows = new Map<string, string>();
+  const parked = new Map<number, Char>(); // the account's other characters, as saved
   const attempts = new Map<string, { seq: number; state: string }>();
   const calls: string[] = [];
   const frames: unknown[] = [];
@@ -106,6 +123,7 @@ function world() {
     if (path === '/mod/cancel') {
       const e = escrow.get(b.grant);
       if (!e) return { status: 409, body: { error: 'unknown-grant' } };
+      if (e.holder && e.holder !== 'h') return { status: 409, body: { error: 'not-yours' } };
       const key = `${b.attempt}:${b.grant}`;
       const a = attempts.get(key);
       if (a?.state === 'cancelled') return { status: 200, body: { reoffered: false } };
@@ -151,7 +169,17 @@ function world() {
       calls.push('save');
       saved = clone(inventory);
       savedAccepted = new Set(accepted);
+      // the same transaction mirrors this character's accepted ids into the account set
+      for (const [g, c] of [...accountSet])
+        if (c === session.characterId && !accepted.has(g)) accountSet.delete(g);
+      for (const g of accepted) accountSet.set(g, session.characterId);
       return true;
+    },
+    store: {
+      accepted: async () => new Set(accountSet.keys()),
+      cancels: async () => [...cancelRows].map(([grant, attempt]) => ({ grant, attempt })),
+      putCancel: async (_a: number, g: string, attempt: string) => void cancelRows.set(g, attempt),
+      dropCancel: async (_a: number, g: string) => void cancelRows.delete(g),
     },
     fetch: (async (url: string, init: RequestInit) => {
       const path = new URL(url).pathname;
@@ -188,6 +216,30 @@ function world() {
       return accepted;
     },
     session: () => session,
+    cancelRows,
+    accountSet,
+    /** log out, and log in on another character of the SAME account */
+    switchCharacter(characterId: number) {
+      parked.set(session.characterId, {
+        inventory: clone(saved),
+        accepted: new Set(savedAccepted),
+        saved,
+        savedAccepted,
+      });
+      const next = parked.get(characterId) ?? {
+        inventory: [],
+        accepted: new Set<string>(),
+        saved: [],
+        savedAccepted: new Set<string>(),
+      };
+      parked.delete(characterId);
+      inventory = next.inventory;
+      accepted = next.accepted;
+      saved = next.saved;
+      savedAccepted = next.savedAccepted;
+      session = { ...session, characterId };
+      clients.set(1, session);
+    },
     /** log out and back in: the bag and accepted set load from the last save */
     relogin() {
       inventory = clone(saved);
@@ -210,11 +262,17 @@ function world() {
     },
     /** copies of a grant: bag (or a given bag), equipment, another player, and the escrow */
     copies(g: string, bag: InvSlot[] = inventory) {
-      const inGame = [bag, equipment, other].reduce((n, slots) => n + has(slots, g), 0);
+      const inGame = [bag, equipment, other, ...[...parked.values()].map((c) => c.saved)].reduce(
+        (n, slots) => n + has(slots, g),
+        0,
+      );
       const e = escrow.get(g);
       const away = e && (e.state === 'in-transit' || e.state === 'landed') ? 1 : 0;
       // an offered grant the game has not accepted yet: the next join adds it
-      const due = e && e.state === 'held' && e.readd && !accepted.has(g) && inGame === 0 ? 1 : 0;
+      const due =
+        e && e.state === 'held' && e.readd && !accepted.has(g) && !accountSet.has(g) && inGame === 0
+          ? 1
+          : 0;
       return inGame + away + due;
     },
     timeout(g = G1) {
@@ -421,6 +479,61 @@ describe('placeschema sidecar game side (PLACE-276)', () => {
     expect(slotOfGrant(w.inventory, G1)).toBe(0);
     await w.carry.join(w.session());
     expect(w.copies(G1)).toBe(1);
+  });
+
+  it('B1 (reviewer): character A adds it, the ack is lost, character B on the same account joins: one copy', async () => {
+    const w = world();
+    w.arrive();
+    w.faults['/mod/ack'] = 'down'; // A added and saved it; the ack never arrived
+    await w.carry.join(w.session()).catch(() => undefined);
+    delete w.faults['/mod/ack'];
+    expect(w.accountSet.get(G1)).toBe(70); // the save put it in the ACCOUNT set
+    w.switchCharacter(71); // character B, same account
+    await w.carry.join(w.session());
+    expect(w.inventory).toHaveLength(0); // acked, not added again
+    expect(w.escrow.get(G1)?.readd).toBe(false);
+    expect(w.copies(G1)).toBe(1);
+  });
+
+  it('N-a: an unconfirmed cancel is persisted and retried after a restart', async () => {
+    const w = await holding();
+    w.faults['/mod/carry-out'] = 'down';
+    w.faults['/mod/cancel'] = 'down';
+    w.faults['/mod/join'] = 'down';
+    await w.carry.carry(w.session(), G1);
+    expect([...w.cancelRows.keys()]).toEqual([G1]);
+    const again = w.crash(); // the process restarts: memory is gone, the cancel row is not
+    await again.join(w.session());
+    expect(w.cancelRows.size).toBe(0);
+    expect(slotOfGrant(w.inventory, G1)).toBe(0);
+    expect(w.copies(G1)).toBe(1);
+  });
+
+  it('N-b: a copy traded in from another account is refused before anything is removed', async () => {
+    const w = world();
+    w.inventory.push({
+      itemId: FOREIGN_WEAPON_ID,
+      count: 1,
+      instance: { [GRANT_KEY]: G1 } as never,
+    });
+    await w.carry.join(w.session()); // linked; nothing accepted by this account
+    await w.carry.carry(w.session(), G1);
+    expect(slotOfGrant(w.inventory, G1)).toBe(0); // still there
+    expect(w.calls).not.toContain('/mod/carry-out');
+    expect(w.frames.at(-1)).toBe('The item could not be carried (not-yours).');
+  });
+
+  it('N-b: a cancel the sidecar answers not-yours is settled and does not wedge arrivals', async () => {
+    const w = world();
+    const G2 = 'b'.repeat(64);
+    w.arrive(G2, 'Traded Blade');
+    w.escrow.get(G2)!.holder = 'someone-else';
+    w.cancelRows.set(G2, 'c'.repeat(32));
+    w.arrive(G1);
+    w.escrow.get(G2)!.readd = false;
+    await w.carry.join(w.session());
+    expect(w.cancelRows.size).toBe(0);
+    expect(slotOfGrant(w.inventory, G1)).toBe(0);
   });
 
   it('finding 4: a quest reward stays one copy when the mint answer is lost to a crash', async () => {

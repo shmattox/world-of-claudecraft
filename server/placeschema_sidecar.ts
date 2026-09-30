@@ -12,10 +12,13 @@ import { randomBytes } from 'node:crypto';
 import { ITEMS, QUESTS, questRewardItemId } from '../src/sim/data';
 import type { Sim } from '../src/sim/sim';
 import type { InvSlot, ItemInstancePayload } from '../src/sim/types';
+import { type AcceptedStore, pgAcceptedStore } from './placeschema_accepted_db';
 
 /** The carried grant's id rides on the item copy; the copy's `name` is the grant's minted label. */
 export const GRANT_KEY = 'psGrant';
 const HEX64 = /^[0-9a-f]{64}$/;
+/** A cancel answer that settles it for good: nothing of this holder's is there to return. */
+const SETTLED = /^(landed|unknown-grant|not-yours)/;
 /** A foreign blade or weapon (not minted here) is held as this WoC weapon, named by its grant.
  *  ponytail: one stand-in body per category; the item's own mesh (its grant look) is follow-up work. */
 export const FOREIGN_WEAPON_ID = 'worn_sword';
@@ -91,6 +94,8 @@ export interface CarryDeps<S extends CarrySession> {
   notice(session: S, text: string): void;
   /** persist this live session's character now; false if the save was refused */
   save(session: S): Promise<boolean>;
+  /** the ACCOUNT's accepted grants and unconfirmed cancels (placeschema_accepted_db.ts) */
+  store: AcceptedStore;
   fetch?: typeof fetch;
 }
 
@@ -126,8 +131,6 @@ export function grantOfSlot(slot: InvSlot | undefined): string | undefined {
 export class PlaceSchemaCarry<S extends CarrySession> {
   private readonly linked = new Map<number, string | null>(); // accountId -> holder
   private readonly busy = new Set<number>();
-  /** cancels the sidecar has not confirmed yet: grant -> the account and the carry-out attempt */
-  private readonly cancels = new Map<string, { account: number; attempt: string }>();
 
   constructor(
     private readonly cfg: SidecarConfig,
@@ -157,11 +160,11 @@ export class PlaceSchemaCarry<S extends CarrySession> {
     if (this.busy.has(s.pid)) return;
     this.busy.add(s.pid);
     try {
-      // A cancel not yet confirmed goes first, so the item it re-offers arrives in this join.
-      for (const [g, c] of [...this.cancels])
-        if (c.account === s.accountId) await this.cancel(s, g, c.attempt);
-      // While any cancel is unconfirmed, add nothing: its item may still be on its way back.
-      if ([...this.cancels.values()].some((c) => c.account === s.accountId)) return;
+      // The account's unconfirmed cancels (persisted, so they survive a restart) go first, so the
+      // item a cancel re-offers arrives in this join. While any is unconfirmed, add nothing.
+      for (const c of await this.d.store.cancels(s.accountId))
+        await this.cancel(s, c.grant, c.attempt);
+      if ((await this.d.store.cancels(s.accountId)).length) return;
       const r = await this.call('/mod/join', {
         platformId: platformId(this.cfg, s.accountId),
         caps: { mesh: false, sprite: true, cuboid: false },
@@ -170,15 +173,19 @@ export class PlaceSchemaCarry<S extends CarrySession> {
       this.linked.set(s.accountId, r.body.holder ?? null);
       const meta = this.d.sim.meta(s.pid);
       if (!meta || this.d.clients.get(s.pid) !== s) return;
+      // Exactly once PER ACCOUNT (the unit the sidecar offers and acks to): what any character on
+      // this account has accepted, plus this character's unsaved adds.
+      const accountAccepted = await this.d.store.accepted(s.accountId);
       const added: string[] = [];
       for (const a of (r.body.add ?? []) as Added[]) {
         if (!a?.grant || !HEX64.test(a.grant.id)) continue;
         const itemId = itemIdForGrant(a.grant);
         if (!itemId) continue; // no body for this kind here yet: left pending, not acked
-        // Exactly once: a grant this character already accepted is acked, never added again,
+        // A grant this account already accepted is acked, never added again, on any character and
         // wherever the copy has gone since (equipment, trade, market, sold).
-        if (!meta.placeschemaAccepted.has(a.grant.id)) {
-          meta.placeschemaAccepted.add(a.grant.id); // saved in the same save as the item below
+        if (!accountAccepted.has(a.grant.id) && !meta.placeschemaAccepted.has(a.grant.id)) {
+          // Saved with the item; the save mirrors it to the account set in the same transaction.
+          meta.placeschemaAccepted.add(a.grant.id);
           const pending = meta.inventory.find((x) => pendingOf(x) === itemId);
           if (pending) {
             // Our own quest reward, tagged before the mint: that exact copy becomes the signed one.
@@ -265,6 +272,13 @@ export class PlaceSchemaCarry<S extends CarrySession> {
     if (!meta) return;
     const at = slotOfGrant(meta.inventory, grantId);
     if (at < 0) return;
+    // Only a grant this account accepted is its own to carry: a copy traded in from someone else is
+    // refused here, BEFORE anything is removed (N-b).
+    if (
+      !meta.placeschemaAccepted.has(grantId) &&
+      !(await this.d.store.accepted(s.accountId)).has(grantId)
+    )
+      return this.refused(s, 'not-yours');
     // Remove before release (contract section 3): the copy leaves the bag first.
     // And the removal is SAVED before the escrow is asked: a crash after carry-out must not reload
     // a bag that still holds the copy.
@@ -297,7 +311,7 @@ export class PlaceSchemaCarry<S extends CarrySession> {
 
   /** Cancel a carry-out and let join bring the item back; an unreachable sidecar is retried. */
   private async giveUp(s: S, grantId: string, attempt: string, reason: string): Promise<void> {
-    this.cancels.set(grantId, { account: s.accountId, attempt });
+    await this.d.store.putCancel(s.accountId, grantId, attempt); // persisted before it is sent
     await this.cancel(s, grantId, attempt);
     if (this.d.clients.get(s.pid) !== s) return; // offline: their next login's join delivers it
     this.refused(s, reason);
@@ -311,9 +325,11 @@ export class PlaceSchemaCarry<S extends CarrySession> {
         grant: grantId,
         attempt,
       });
-      // Confirmed (re-add pending), or nothing to return (it landed elsewhere): settled either way.
-      if (r.ok || r.body?.error === 'landed' || r.body?.error === 'unknown-grant')
-        this.cancels.delete(grantId);
+      // Settled when confirmed, or when the sidecar says definitely there is nothing of this holder's
+      // to return (landed, unknown, not this holder's): a traded copy must not wedge arrivals (N-b).
+      const settled =
+        r.ok || (r.status >= 400 && r.status < 500 && SETTLED.test(String(r.body?.error ?? '')));
+      if (settled) await this.d.store.dropCancel(s.accountId, grantId);
     } catch {
       /* unreachable: stays pending, retried before the next join */
     }
@@ -345,11 +361,11 @@ export class PlaceSchemaCarry<S extends CarrySession> {
 /** Build the carry from the environment and start polling arrivals; null when not configured. */
 export function startPlaceSchemaCarry<S extends CarrySession>(
   env: NodeJS.ProcessEnv,
-  deps: CarryDeps<S>,
+  deps: Omit<CarryDeps<S>, 'store'>,
 ): PlaceSchemaCarry<S> | null {
   const cfg = sidecarConfig(env);
   if (!cfg) return null;
-  const carry = new PlaceSchemaCarry(cfg, deps);
+  const carry = new PlaceSchemaCarry(cfg, { ...deps, store: pgAcceptedStore() });
   setInterval(() => void carry.pollAll(), 5_000).unref();
   return carry;
 }
