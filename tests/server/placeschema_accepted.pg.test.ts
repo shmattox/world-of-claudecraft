@@ -10,6 +10,8 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import {
   claimGrant,
   PLACESCHEMA_ACCEPTED_SCHEMA,
+  PlaceschemaClaimLost,
+  releasePendingClaimsOf,
   syncPlaceschemaAccepted,
 } from '../../server/placeschema_accepted_db';
 
@@ -85,31 +87,60 @@ d('the account-level claims against real PostgreSQL', () => {
 
   it('claim first: claimed (pending), confirmed by the save, then held for every character', async () => {
     await pool.query(PLACESCHEMA_ACCEPTED_SCHEMA);
-    expect(await claimGrant(pool, 1, G('c'), 10, [10])).toBe('claimed');
+    expect(await claimGrant(pool, 1, G('c'), 10)).toBe('claimed');
     expect(await rows()).toEqual([{ account_id: 1, g: 'c', character_id: 10, pending: true }]);
-    expect(await claimGrant(pool, 1, G('c'), 11, [10, 11])).toBe('busy'); // 10 is online, saving
-    expect(await claimGrant(pool, 1, G('c'), 10, [10])).toBe('claimed'); // its own pending claim
+    expect(await claimGrant(pool, 1, G('c'), 11)).toBe('busy'); // 10 is online, saving
+    expect(await claimGrant(pool, 1, G('c'), 10)).toBe('claimed'); // its own pending claim
     await syncPlaceschemaAccepted(pool, 10, { placeschemaAccepted: [G('c')] });
     expect(await rows()).toEqual([{ account_id: 1, g: 'c', character_id: 10, pending: false }]);
-    expect(await claimGrant(pool, 1, G('c'), 11, [11])).toBe('held');
-    expect(await claimGrant(pool, 1, G('c'), 10, [10])).toBe('held');
+    expect(await claimGrant(pool, 1, G('c'), 11)).toBe('held');
+    expect(await claimGrant(pool, 1, G('c'), 10)).toBe('held');
   });
 
-  it('a crash leftover (pending, its character offline) is taken over exactly once', async () => {
+  it('B3 (reviewer): another character never takes a pending claim over, online or not', async () => {
     await pool.query(PLACESCHEMA_ACCEPTED_SCHEMA);
-    expect(await claimGrant(pool, 1, G('d'), 10, [10])).toBe('claimed'); // then the process dies
-    expect(await claimGrant(pool, 1, G('d'), 11, [11])).toBe('claimed'); // 10 is offline now
-    expect(await rows()).toEqual([{ account_id: 1, g: 'd', character_id: 11, pending: true }]);
-    // 10's save cannot confirm a claim that is no longer its own
-    await syncPlaceschemaAccepted(pool, 10, { placeschemaAccepted: [G('d')] });
-    expect((await rows())[0].pending).toBe(true);
-    await syncPlaceschemaAccepted(pool, 11, { placeschemaAccepted: [G('d')] });
-    expect((await rows())[0].pending).toBe(false);
+    expect(await claimGrant(pool, 1, G('d'), 10)).toBe('claimed'); // 10 may be mid-leave-save
+    expect(await claimGrant(pool, 1, G('d'), 11)).toBe('busy'); // never claimed, whatever 11 believes
+    expect(await claimGrant(pool, 1, G('d'), 11)).toBe('busy');
+    expect(await claimGrant(pool, 1, G('d'), 10)).toBe('claimed'); // 10 after a restart: its own
+    await syncPlaceschemaAccepted(pool, 10, { placeschemaAccepted: [G('d')] }); // 10's save lands
+    expect(await rows()).toEqual([{ account_id: 1, g: 'd', character_id: 10, pending: false }]);
+    expect(await claimGrant(pool, 1, G('d'), 11)).toBe('held'); // exactly one copy: 10's
+  });
+
+  it("the owner's save fails loudly (and rolls back) if its claim is gone", async () => {
+    await pool.query(PLACESCHEMA_ACCEPTED_SCHEMA);
+    await claimGrant(pool, 1, G('7'), 10);
+    await pool.query('DELETE FROM placeschema_accepted'); // the claim vanished
+    const tx = await pool.connect();
+    try {
+      await tx.query('BEGIN');
+      await tx.query('UPDATE characters SET state = \'{"marker": 1}\' WHERE id = 10'); // the save's write
+      await expect(
+        syncPlaceschemaAccepted(tx, 10, { placeschemaAccepted: [G('7')] }),
+      ).rejects.toBeInstanceOf(PlaceschemaClaimLost);
+      await tx.query('ROLLBACK');
+    } finally {
+      tx.release();
+    }
+    expect((await pool.query('SELECT state FROM characters WHERE id = 10')).rows[0].state).toEqual(
+      {},
+    );
+  });
+
+  it('deleting a character releases its pending claims and keeps its confirmed ones', async () => {
+    await pool.query(PLACESCHEMA_ACCEPTED_SCHEMA);
+    await claimGrant(pool, 1, G('8'), 10); // pending: the item was never saved
+    await claimGrant(pool, 1, G('9'), 10);
+    await syncPlaceschemaAccepted(pool, 10, { placeschemaAccepted: [G('9')] }); // confirmed
+    await releasePendingClaimsOf(pool, 10);
+    expect(await rows()).toEqual([{ account_id: 1, g: '9', character_id: 10, pending: false }]);
+    expect(await claimGrant(pool, 1, G('8'), 11)).toBe('claimed'); // free for the account again
   });
 
   it('B2: a release deletes the claim by id whichever character claimed it, and never a later one', async () => {
     await pool.query(PLACESCHEMA_ACCEPTED_SCHEMA);
-    await claimGrant(pool, 1, G('e'), 10, [10]); // A claims it
+    await claimGrant(pool, 1, G('e'), 10); // A claims it
     await syncPlaceschemaAccepted(pool, 10, { placeschemaAccepted: [G('e')] });
     const first = await claimOf(G('e'));
     // B (11) received it by mail and carries it out: B's save releases A's claim
@@ -119,7 +150,7 @@ d('the account-level claims against real PostgreSQL', () => {
     });
     expect(await rows()).toEqual([]);
     // re-offered and claimed again: a replay of the old release deletes nothing
-    expect(await claimGrant(pool, 1, G('e'), 11, [11])).toBe('claimed');
+    expect(await claimGrant(pool, 1, G('e'), 11)).toBe('claimed');
     await syncPlaceschemaAccepted(pool, 11, {
       placeschemaAccepted: [G('e')],
       placeschemaReleased: [first],
@@ -136,11 +167,11 @@ d('the account-level claims against real PostgreSQL', () => {
   it('two characters claiming one grant at once: exactly one claims it', async () => {
     await pool.query(PLACESCHEMA_ACCEPTED_SCHEMA);
     const results = await Promise.all([
-      claimGrant(pool, 1, G('f'), 10, [10, 11]),
-      claimGrant(pool, 1, G('f'), 11, [10, 11]),
+      claimGrant(pool, 1, G('f'), 10),
+      claimGrant(pool, 1, G('f'), 11),
     ]);
     expect(results.filter((r) => r === 'claimed')).toHaveLength(1);
-    expect(results.filter((r) => r === 'busy')).toHaveLength(1);
+    expect(results.filter((r) => r === 'busy')).toHaveLength(1); // never both
     expect(await rows()).toHaveLength(1);
   });
 

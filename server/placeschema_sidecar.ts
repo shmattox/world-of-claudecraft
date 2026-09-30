@@ -17,7 +17,11 @@ import {
 } from '../src/sim/placeschema_accepted';
 import type { Sim } from '../src/sim/sim';
 import type { InvSlot, ItemInstancePayload } from '../src/sim/types';
-import { type AcceptedStore, pgAcceptedStore } from './placeschema_accepted_db';
+import {
+  type AcceptedStore,
+  PlaceschemaClaimLost,
+  pgAcceptedStore,
+} from './placeschema_accepted_db';
 
 /** The carried grant's id rides on the item copy; the copy's `name` is the grant's minted label. */
 export const GRANT_KEY = 'psGrant';
@@ -62,9 +66,27 @@ export function sidecarConfig(env: NodeJS.ProcessEnv): SidecarConfig | null {
   const url = env.PLACESCHEMA_SIDECAR_URL?.replace(/\/$/, '');
   const token = env.PLACESCHEMA_MOD_TOKEN;
   if (!url || !token) return null;
-  const realmHost =
-    env.PLACESCHEMA_REALM_HOST ?? new URL(env.PUBLIC_ORIGIN ?? 'http://127.0.0.1:5173').host;
-  return { url, token, realmHost, home: env.PLACESCHEMA_HOME ?? '' };
+  return { url, token, realmHost: realmHostOf(env), home: env.PLACESCHEMA_HOME ?? '' };
+}
+
+/**
+ * The realm host is the id suffix every platform id carries, so it must be THIS realm's own host:
+ * two realms sharing one (the loopback default) would honour each other's account numbers. It comes
+ * from PLACESCHEMA_REALM_HOST, else PUBLIC_ORIGIN's host; with neither set, or a loopback host
+ * without PLACESCHEMA_ALLOW_LOOPBACK=1 (local development), PlaceSchema refuses to start.
+ */
+export function realmHostOf(env: NodeJS.ProcessEnv): string {
+  const host =
+    env.PLACESCHEMA_REALM_HOST ?? (env.PUBLIC_ORIGIN ? new URL(env.PUBLIC_ORIGIN).host : undefined);
+  if (!host)
+    throw new Error(
+      "placeschema: set PLACESCHEMA_REALM_HOST (or PUBLIC_ORIGIN) to this realm's own host",
+    );
+  if (/^(127\.|localhost\b|\[::1\])/.test(host) && env.PLACESCHEMA_ALLOW_LOOPBACK !== '1')
+    throw new Error(
+      `placeschema: realm host ${host} is loopback; set PLACESCHEMA_ALLOW_LOOPBACK=1 for local development only`,
+    );
+  return host;
 }
 
 /** A quest-reward copy waiting for its mint: the value is the item id. Converted, never duplicated. */
@@ -201,9 +223,6 @@ export class PlaceSchemaCarry<S extends CarrySession> {
       if (!meta || this.d.clients.get(s.pid) !== s) return;
       // Exactly once PER ACCOUNT, claim first: each offered grant is claimed for the account in its own
       // committed statement BEFORE its item is added (placeschema_accepted_db.ts has the crash cases).
-      const online = [...this.d.clients.values()]
-        .filter((c) => c.accountId === s.accountId)
-        .map((c) => c.characterId);
       const toAck: string[] = [];
       const notices: string[] = [];
       for (const a of (r.body.add ?? []) as Added[]) {
@@ -211,7 +230,7 @@ export class PlaceSchemaCarry<S extends CarrySession> {
         const itemId = itemIdForGrant(a.grant);
         if (!itemId) continue; // no body for this kind here yet: left pending, not acked
         const g = a.grant.id;
-        const outcome = await this.d.store.claim(s.accountId, g, s.characterId, online);
+        const outcome = await this.d.store.claim(s.accountId, g, s.characterId);
         if (outcome === 'busy') continue; // another character's claim is still being saved
         toAck.push(g);
         // held: the account already has it, on some character, wherever it went: never added again.
@@ -239,9 +258,15 @@ export class PlaceSchemaCarry<S extends CarrySession> {
       // in memory for the next save to land; nothing is acked or announced until one does.
       const saved = await this.d.save(s).catch((e) => {
         console.error('placeschema: arrival save failed', e);
+        // A claim this character added is gone (defence in depth: nothing takes claims over): stop
+        // confirming it, so later saves are not refused over it.
+        if (e instanceof PlaceschemaClaimLost)
+          for (const g of e.grants) meta.placeschemaAccepted.delete(g);
         return false;
       });
       if (!saved) return;
+      // Confirmed in that save: the character no longer needs to confirm these ids.
+      for (const g of toAck) meta.placeschemaAccepted.delete(g);
       for (const n of notices) this.d.notice(s, n);
       await this.call('/mod/ack', { platformId: platformId(this.cfg, s.accountId), grants: toAck });
     }

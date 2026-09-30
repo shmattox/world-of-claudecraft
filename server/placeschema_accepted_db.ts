@@ -7,8 +7,8 @@
 // `pending`; the character save that then holds the item clears `pending` in its own transaction
 // (syncPlaceschemaAccepted, beside journalCharacterSaveSources in every save path). Crash cases:
 //  - after the claim, before the item save: the claim stays pending and nobody holds the item. The
-//    sidecar still offers the grant (it was never acked), and the next join re-claims that pending
-//    claim (its character is offline after a restart) and adds the item once.
+//    sidecar still offers the grant (it was never acked), and that character's next join re-claims
+//    its own pending claim and adds the item once. No other character ever takes it over.
 //  - after the item save, before the ack: the claim is no longer pending; the re-offer is acked and
 //    never added again, on any character.
 // Release (round 7, B2). A carry-out removes the item and records the CLAIM ID it releases in the
@@ -76,29 +76,59 @@ export async function syncPlaceschemaAccepted(
   const ids = state.placeschemaAccepted.filter(
     (g): g is string => typeof g === 'string' && GRANT_ID.test(g),
   );
-  if (ids.length)
+  if (!ids.length) return;
+  // Each id this character added must still be ITS claim: a claim that is gone or moved means this
+  // save would commit a copy with no claim, so the whole save fails instead (round 8, B3).
+  const confirmed = rowsOf<{ grant_id: string }>(
     await tx.query(
       `UPDATE placeschema_accepted SET pending = false
-       WHERE character_id = $1 AND grant_id = ANY($2::text[]) AND pending`,
+       WHERE character_id = $1 AND grant_id = ANY($2::text[]) RETURNING grant_id`,
       [characterId, ids],
+    ),
+  );
+  if (confirmed.length !== ids.length) {
+    const ok = new Set(confirmed.map((r) => r.grant_id));
+    throw new PlaceschemaClaimLost(
+      characterId,
+      ids.filter((g) => !ok.has(g)),
     );
+  }
+}
+
+/** Thrown inside a character save so the WHOLE save rolls back: a grant this character added is no
+ *  longer its claim, so its copy must not be committed. */
+export class PlaceschemaClaimLost extends Error {
+  constructor(
+    readonly characterId: number,
+    readonly grants: string[],
+  ) {
+    super(`placeschema: ${grants.length} claim(s) of character ${characterId} are gone`);
+    this.name = 'PlaceschemaClaimLost';
+  }
+}
+
+/** Inside a character's DELETE transaction: its pending claims (items it never saved) are released
+ *  so the grants can be claimed again; its confirmed claims stay, the account accepted them. */
+export async function releasePendingClaimsOf(tx: SqlRunner, characterId: number): Promise<void> {
+  await tx.query(`DELETE FROM placeschema_accepted WHERE character_id = $1 AND pending`, [
+    characterId,
+  ]);
 }
 
 export type ClaimOutcome = 'claimed' | 'held' | 'busy';
 
 /**
  * Claim one offered grant for this account, before the item is added (its own statements, committed
- * at once). `claimed`: add the item now. `held`: the account already holds it (ack, never add).
- * `busy`: another ONLINE character of the account has a pending claim still being saved (skip; the
- * next join settles it). A pending claim whose character is not online is a crash leftover: taken
- * over, so the item is added exactly once.
+ * at once). `claimed`: add the item now (a new claim, or this character's own pending one left by a
+ * crash). `held`: the account already holds it (ack, never add). `busy`: another character's pending
+ * claim (skip, never take it over: that character may still be saving, here or in another realm
+ * process; its delete releases it).
  */
 export async function claimGrant(
   q: SqlRunner,
   accountId: number,
   grantId: string,
   characterId: number,
-  onlineCharacterIds: readonly number[],
 ): Promise<ClaimOutcome> {
   const inserted = rowsOf(
     await q.query(
@@ -116,28 +146,14 @@ export async function claimGrant(
   );
   if (!row) return 'busy'; // released between the two statements: the next join claims it
   if (!row.pending) return 'held';
-  if (row.character_id === characterId) return 'claimed';
-  if (onlineCharacterIds.includes(row.character_id)) return 'busy';
-  const taken = rowsOf(
-    await q.query(
-      `UPDATE placeschema_accepted SET character_id = $1
-       WHERE claim_id = $2 AND pending AND character_id = $3 RETURNING claim_id`,
-      [characterId, row.claim_id, row.character_id],
-    ),
-  );
-  return taken.length ? 'claimed' : 'busy';
+  return row.character_id === characterId ? 'claimed' : 'busy';
 }
 
 /** The account-level store the carry module reads (and a test replaces). */
 export interface AcceptedStore {
   /** the account's claims: grant id -> claim id */
   claims(accountId: number): Promise<Map<string, number>>;
-  claim(
-    accountId: number,
-    grantId: string,
-    characterId: number,
-    onlineCharacterIds: readonly number[],
-  ): Promise<ClaimOutcome>;
+  claim(accountId: number, grantId: string, characterId: number): Promise<ClaimOutcome>;
   cancels(accountId: number): Promise<{ grant: string; attempt: string }[]>;
   putCancel(accountId: number, grant: string, attempt: string): Promise<void>;
   dropCancel(accountId: number, grant: string): Promise<void>;
@@ -157,8 +173,8 @@ export function pgAcceptedStore(): AcceptedStore {
           )
         ).map((r) => [r.grant_id, Number(r.claim_id)]),
       ),
-    claim: async (accountId, grantId, characterId, online) =>
-      claimGrant(await pool(), accountId, grantId, characterId, online),
+    claim: async (accountId, grantId, characterId) =>
+      claimGrant(await pool(), accountId, grantId, characterId),
     cancels: async (accountId) =>
       (
         await q<{ grant_id: string; attempt: string }>(

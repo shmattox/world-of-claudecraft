@@ -184,24 +184,23 @@ function world() {
         if (savedState.placeschemaReleased?.includes(c.claim)) claims.delete(g);
       for (const g of savedState.placeschemaAccepted ?? []) {
         const c = claims.get(g);
-        if (c?.character === session.characterId) c.pending = false;
+        // the owner's save fails loudly if its claim is gone or moved (syncPlaceschemaAccepted)
+        if (c?.character !== session.characterId) throw new Error('PlaceschemaClaimLost');
+        c.pending = false;
       }
       return true;
     },
     store: {
       claims: async () => new Map([...claims].map(([g, c]) => [g, c.claim])),
       // claimGrant, statement for statement
-      claim: async (_a: number, g: string, character: number, online: number[]) => {
+      claim: async (_a: number, g: string, character: number) => {
         const c = claims.get(g);
         if (!c) {
           claims.set(g, { claim: nextClaim++, character, pending: true });
           return 'claimed';
         }
         if (!c.pending) return 'held';
-        if (c.character === character) return 'claimed';
-        if (online.includes(c.character)) return 'busy';
-        c.character = character;
-        return 'claimed';
+        return c.character === character ? 'claimed' : 'busy'; // never taken over
       },
       cancels: async () => [...cancelRows].map(([grant, attempt]) => ({ grant, attempt })),
       putCancel: async (_a: number, g: string, attempt: string) => void cancelRows.set(g, attempt),
@@ -318,7 +317,7 @@ async function holding() {
   w.arrive();
   await w.carry.join(w.session());
   expect(slotOfGrant(w.inventory, G1)).toBe(0);
-  expect(w.accepted.has(G1)).toBe(true);
+  expect(w.claims.get(G1)).toMatchObject({ character: 70, pending: false });
   return w;
 }
 
@@ -331,17 +330,26 @@ describe('placeschema sidecar game side (PLACE-276)', () => {
     const { realmHost } = (await import('../../server/placeschema_resolver.mjs' as string)) as {
       realmHost: (env: Record<string, string | undefined>) => string;
     };
-    for (const env of [
-      { PUBLIC_ORIGIN: 'https://worldofclaudecraft.com' },
-      { PUBLIC_ORIGIN: 'http://127.0.0.1:5173', PLACESCHEMA_REALM_HOST: 'realm.example' },
-      {},
-    ]) {
-      const server = sidecarConfig({
+    const serverHost = (env: Record<string, string | undefined>) =>
+      sidecarConfig({
         ...env,
         PLACESCHEMA_SIDECAR_URL: 'http://s',
         PLACESCHEMA_MOD_TOKEN: 'x',
-      } as never);
-      expect(realmHost(env)).toBe(server?.realmHost);
+      } as never)?.realmHost;
+    for (const env of [
+      { PUBLIC_ORIGIN: 'https://worldofclaudecraft.com' },
+      { PUBLIC_ORIGIN: 'http://127.0.0.1:5173', PLACESCHEMA_REALM_HOST: 'realm.example' },
+      { PLACESCHEMA_REALM_HOST: '127.0.0.1:5173', PLACESCHEMA_ALLOW_LOOPBACK: '1' },
+    ])
+      expect(realmHost(env)).toBe(serverHost(env));
+    // round 8: no default host, and loopback only with the explicit development flag
+    for (const env of [
+      {},
+      { PUBLIC_ORIGIN: 'http://127.0.0.1:5173' },
+      { PLACESCHEMA_REALM_HOST: 'localhost:5173' },
+    ]) {
+      expect(() => realmHost(env)).toThrow(/placeschema/);
+      expect(() => serverHost(env)).toThrow(/placeschema/);
     }
   });
 
@@ -608,7 +616,7 @@ describe('placeschema sidecar game side (PLACE-276)', () => {
       itemId: 'greyjaw_pelt_cloak',
       instance: { [GRANT_KEY]: G1 },
     });
-    expect(w.accepted.has(G1)).toBe(true);
+    expect(w.claims.get(G1)?.pending).toBe(false);
     expect(w.copies(G1)).toBe(1);
   });
 
@@ -676,7 +684,7 @@ describe("B1': one serialisation point per account, claim first (rounds 6 and 7)
       },
       store: {
         claims: async () => new Map([...claims].map(([g, c]) => [g, c.claim])),
-        claim: async (_a: number, g: string, character: number, online: number[]) => {
+        claim: async (_a: number, g: string, character: number) => {
           await flush();
           const c = claims.get(g);
           if (!c) {
@@ -684,8 +692,7 @@ describe("B1': one serialisation point per account, claim first (rounds 6 and 7)
             return 'claimed';
           }
           if (!c.pending) return 'held';
-          if (c.character === character) return 'claimed';
-          return online.includes(c.character) ? 'busy' : 'claimed';
+          return c.character === character ? 'claimed' : 'busy';
         },
         cancels: async () => [],
         putCancel: async () => {},
