@@ -36,14 +36,21 @@ const flush = () => new Promise((r) => setTimeout(r, 20));
 function world() {
   let inventory: InvSlot[] = [];
   let saved: InvSlot[] = [];
+  const bank: InvSlot[] = [];
+  const mail: { items: InvSlot[] }[] = [];
   const escrow = new Map<string, { grant: Grant; label: string; state: string; acked: boolean }>();
   const calls: string[] = [];
   const frames: unknown[] = [];
-  const faults: Record<string, 'refuse' | 'crash-after' | 'disconnect'> = {};
+  const faults: Record<string, 'refuse' | 'crash-after' | 'disconnect' | 'lost' | 'down'> = {};
   const clients = new Map<number, Session>();
   let session: Session = { accountId: 7, characterId: 70, pid: 1, selfHeavyDirty: false };
   clients.set(1, session);
   const offline: { characterId: number; slot: InvSlot }[] = [];
+  let fifo: Promise<unknown> = Promise.resolve();
+  const heldAnywhere = (g: string, bag: InvSlot[]) =>
+    [bag, bank, ...mail.map((m) => m.items)]
+      .flat()
+      .filter((x) => (x.instance as Record<string, unknown> | undefined)?.[GRANT_KEY] === g).length;
   const answer = (path: string, b: any): { status: number; body: unknown } => {
     if (path === '/mod/join')
       return {
@@ -64,6 +71,15 @@ function world() {
       escrow.set(G1, { grant: g, label: b.template.label, state: 'held', acked: false });
       return { status: 200, body: { grant: g } };
     }
+    if (path === '/mod/status')
+      return {
+        status: 200,
+        body: {
+          items: [...escrow.values()]
+            .filter((e) => e.state === 'held' || e.state === 'in-transit')
+            .map((e) => ({ grant: e.grant, state: e.state })),
+        },
+      };
     if (path === '/mod/carry-out') {
       if (faults[path] === 'refuse' || faults[path] === 'disconnect')
         return { status: 409, body: { error: 'link-not-honoured' } };
@@ -74,7 +90,8 @@ function world() {
   };
   const deps = {
     sim: {
-      meta: () => ({ inventory, cls: 'warrior' }) as never,
+      meta: () => ({ inventory, bank: { inventory: bank }, cls: 'warrior' }) as never,
+      postOffice: { mail },
       addItemInstance: (itemId: string, instance: never) => {
         inventory.push({ itemId, count: 1, instance });
       },
@@ -87,15 +104,24 @@ function world() {
       saved = clone(inventory);
       return true;
     },
-    restoreOffline: async (characterId: number, slot: InvSlot) => {
+    enqueueWrite: <T>(_id: number, job: () => Promise<T>): Promise<T> => {
+      const run = fifo.then(job);
+      fifo = run.catch(() => undefined);
+      return run;
+    },
+    writeSavedRow: async (characterId: number, slot: InvSlot, g: string) => {
       offline.push({ characterId, slot });
-      saved.push(clone(slot));
+      if (heldAnywhere(g, saved) === 0) saved.push(clone(slot));
     },
     fetch: (async (url: string, init: RequestInit) => {
       const path = new URL(url).pathname;
       calls.push(path);
+      // Unreachable: the request never reaches the sidecar, so nothing commits.
+      if (faults[path] === 'down') throw new Error('sidecar unreachable');
       const a = answer(path, JSON.parse(String(init.body)));
       if (faults[path] === 'disconnect') clients.delete(1);
+      // The sidecar committed, but the answer never arrived (a timeout): the game server lives on.
+      if (faults[path] === 'lost') throw new Error(`lost answer from ${path}`);
       // The sidecar committed, then the game server died before it read the answer: nothing after
       // this point ever runs.
       if (faults[path] === 'crash-after') return new Promise<Response>(() => {});
@@ -110,6 +136,8 @@ function world() {
     faults,
     offline,
     escrow,
+    bank,
+    mail,
     get inventory() {
       return inventory;
     },
@@ -117,6 +145,9 @@ function world() {
       return saved;
     },
     session: () => session,
+    relogin() {
+      clients.set(1, session);
+    },
     /** the process dies: memory is gone, the bag reloads from the last save */
     crash() {
       inventory = clone(saved);
@@ -125,14 +156,18 @@ function world() {
       clients.set(1, session);
       return make();
     },
+    /** copies of a grant across bag, bank, mail and the escrow (plus one the next join will add) */
     copies(g: string, bag: InvSlot[] = inventory) {
-      const inBag = bag.filter(
-        (x) => (x.instance as Record<string, unknown> | undefined)?.[GRANT_KEY] === g,
-      ).length;
+      const inBag = heldAnywhere(g, bag);
       const e = escrow.get(g);
       const away = e && (e.state === 'in-transit' || e.state === 'landed') ? 1 : 0;
       const due = e && e.state === 'held' && !e.acked && inBag === 0 ? 1 : 0; // next join adds it
       return inBag + away + due;
+    },
+    /** the escrow's timeout returns an unredeemed carry-out to held, to be re-added on join */
+    timeout(g = G1) {
+      const e = escrow.get(g);
+      if (e?.state === 'in-transit') Object.assign(e, { state: 'held', acked: false });
     },
     arrive(g = G1, label = 'Ember Blade') {
       escrow.set(g, { grant: grant(g), label, state: 'held', acked: false });
@@ -288,5 +323,116 @@ describe('placeschema sidecar game side (PLACE-276)', () => {
     await w.carry.questDone(w.session(), 'q_greyjaw');
     expect(w.calls).not.toContain('/mod/mint');
     expect(w.inventory).toHaveLength(0);
+  });
+
+  it('N1 (reviewer): lost carry-out answer, copy moved out of the bag, escrow timeout, join: one copy', async () => {
+    const w = world();
+    w.arrive();
+    await w.carry.join(w.session());
+    w.faults['/mod/carry-out'] = 'lost'; // the escrow moved it; the answer never came back
+    await w.carry.carry(w.session(), G1);
+    expect(w.escrow.get(G1)?.state).toBe('in-transit');
+    expect(slotOfGrant(w.inventory, G1)).toBe(-1); // not put back on a guess
+    // the player moves whatever the bag holds of it out (bank, mail): there is nothing to move
+    for (const slot of w.inventory.splice(0)) w.bank.push(slot);
+    expect(w.copies(G1)).toBe(1);
+    w.timeout(); // the unseen ticket expires: the escrow returns it for re-adding
+    await w.carry.join(w.session());
+    expect(w.copies(G1)).toBe(1);
+    expect(slotOfGrant(w.inventory, G1)).toBe(0);
+  });
+
+  it('N1 (belt and braces): join never re-adds a grant already in the bank or the mail', async () => {
+    for (const where of ['bank', 'mail'] as const) {
+      const w = world();
+      w.arrive();
+      await w.carry.join(w.session());
+      const [copy] = w.inventory.splice(0);
+      if (where === 'bank') w.bank.push(copy);
+      else w.mail.push({ items: [copy] });
+      Object.assign(w.escrow.get(G1)!, { acked: false }); // the sidecar offers it again
+      await w.carry.join(w.session());
+      expect(w.inventory).toHaveLength(0);
+      expect(w.copies(G1)).toBe(1);
+    }
+  });
+
+  it('N1: a lost answer whose status says held gives the copy back, once', async () => {
+    const w = world();
+    w.arrive();
+    await w.carry.join(w.session());
+    w.faults['/mod/carry-out'] = 'down'; // unreachable before it committed: still held
+    await w.carry.carry(w.session(), G1);
+    expect(slotOfGrant(w.inventory, G1)).toBe(0);
+    expect(slotOfGrant(w.saved, G1)).toBe(0);
+    await w.carry.join(w.session());
+    expect(w.copies(G1)).toBe(1);
+  });
+
+  it('N1: status unreachable leaves the copy removed until a later join settles it', async () => {
+    const w = world();
+    w.arrive();
+    await w.carry.join(w.session());
+    w.faults['/mod/carry-out'] = 'down';
+    w.faults['/mod/status'] = 'down';
+    await w.carry.carry(w.session(), G1);
+    expect(slotOfGrant(w.inventory, G1)).toBe(-1); // unknown: never guess
+    expect(w.frames.at(-1)).toBe(
+      'The carry did not confirm; the item will come back if it did not leave.',
+    );
+    delete w.faults['/mod/status'];
+    await w.carry.join(w.session()); // status now says held: it comes back
+    expect(slotOfGrant(w.inventory, G1)).toBe(0);
+    await w.carry.join(w.session());
+    expect(w.copies(G1)).toBe(1);
+  });
+
+  it('limitation A: an offline restore queues behind the final save instead of being overwritten', async () => {
+    const w = world();
+    w.arrive();
+    await w.carry.join(w.session());
+    w.faults['/mod/carry-out'] = 'disconnect';
+    // the leave flush is already on this character's save FIFO, holding a bag without the copy
+    let release = () => {};
+    const gate = new Promise<void>((r) => (release = r));
+    const finalSave = (
+      w.carry as unknown as {
+        d: { enqueueWrite: (id: number, j: () => Promise<void>) => Promise<void> };
+      }
+    ).d.enqueueWrite(70, async () => {
+      await gate;
+    });
+    const carrying = w.carry.carry(w.session(), G1);
+    await new Promise((r) => setTimeout(r, 20));
+    expect(w.offline).toHaveLength(0); // the restore waits its turn
+    release();
+    await finalSave;
+    await carrying;
+    expect(w.offline).toHaveLength(1);
+    expect(w.copies(G1, w.saved)).toBe(1);
+  });
+
+  it('limitation A: a character back online when the restore runs gets the copy in memory', async () => {
+    const w = world();
+    w.arrive();
+    await w.carry.join(w.session());
+    w.faults['/mod/carry-out'] = 'disconnect';
+    let release = () => {};
+    const gate = new Promise<void>((r) => (release = r));
+    void (
+      w.carry as unknown as {
+        d: { enqueueWrite: (id: number, j: () => Promise<void>) => Promise<void> };
+      }
+    ).d.enqueueWrite(70, async () => {
+      await gate;
+    });
+    const carrying = w.carry.carry(w.session(), G1);
+    await new Promise((r) => setTimeout(r, 20));
+    w.relogin(); // the player is back before the queued restore runs
+    release();
+    await carrying;
+    expect(w.offline).toHaveLength(0); // no row write under a live session
+    expect(slotOfGrant(w.inventory, G1)).toBe(0);
+    expect(w.copies(G1)).toBe(1);
   });
 });
