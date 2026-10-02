@@ -29,6 +29,30 @@ const HEX64 = /^[0-9a-f]{64}$/;
 const MC_UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 const TEXTURE_URL = /^https?:\/\/textures\.minecraft\.net\/texture\/[0-9a-f]+$/;
 const MAX_PNG = 64 * 1024;
+const MAX_PROFILE = 64 * 1024;
+const MAX_EVENTS = 16;
+
+/** A response body read up to `max` bytes: undefined (and the stream cancelled) once it passes. */
+export async function readCapped(r: Response, max: number): Promise<Buffer | undefined> {
+  if (Number(r.headers.get('content-length') ?? 0) > max) {
+    await r.body?.cancel().catch(() => undefined);
+    return undefined;
+  }
+  const chunks: Uint8Array[] = [];
+  let n = 0;
+  const reader = r.body?.getReader();
+  if (!reader) return Buffer.alloc(0);
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) return Buffer.concat(chunks);
+    n += value.byteLength;
+    if (n > max) {
+      await reader.cancel().catch(() => undefined);
+      return undefined;
+    }
+    chunks.push(value);
+  }
+}
 
 /** A well-formed event the holder really signed (NIP-01 id + BIP-340 signature). */
 export function signedBy(ev: NostrEvent, holder: string): boolean {
@@ -89,8 +113,10 @@ export function queryRelay(url: string, holder: string, timeoutMs = 5_000): Prom
     ws.on('message', (data) => {
       try {
         const m = JSON.parse(String(data));
-        if (m[0] === 'EVENT' && m[1] === 'skin' && m[2] && typeof m[2] === 'object') out.push(m[2]);
-        else if (m[0] === 'EOSE') done();
+        if (m[0] === 'EVENT' && m[1] === 'skin' && m[2] && typeof m[2] === 'object') {
+          out.push(m[2]);
+          if (out.length >= MAX_EVENTS) done(); // a relay that floods gets no more of our time
+        } else if (m[0] === 'EOSE') done();
       } catch {}
     });
     ws.on('error', done);
@@ -105,14 +131,18 @@ export async function mojangSkin(uuid: string, f: typeof fetch = fetch): Promise
     { signal: AbortSignal.timeout(5_000) },
   );
   if (!r.ok) return undefined;
-  const profile = (await r.json()) as { properties?: { name: string; value: string }[] };
+  const body = await readCapped(r, MAX_PROFILE);
+  if (!body) return undefined;
+  const profile = JSON.parse(body.toString('utf8')) as {
+    properties?: { name: string; value: string }[];
+  };
   const raw = profile.properties?.find((p) => p.name === 'textures')?.value;
   if (!raw) return undefined;
   const skin = JSON.parse(Buffer.from(raw, 'base64').toString('utf8')).textures?.SKIN;
   if (!skin || typeof skin.url !== 'string' || !TEXTURE_URL.test(skin.url)) return undefined;
   const png = await f(skin.url.replace(/^http:/, 'https:'), { signal: AbortSignal.timeout(5_000) });
-  const bytes = Buffer.from(await png.arrayBuffer());
-  if (!png.ok || bytes.length > MAX_PNG || bytes.readUInt32BE(0) !== 0x89504e47) return undefined;
+  const bytes = png.ok ? await readCapped(png, MAX_PNG) : undefined;
+  if (!bytes || bytes.length < 8 || bytes.readUInt32BE(0) !== 0x89504e47) return undefined;
   return {
     url: `data:image/png;base64,${bytes.toString('base64')}`,
     model: skin.metadata?.model === 'slim' ? 'slim' : 'classic',

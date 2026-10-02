@@ -129,7 +129,7 @@ type Look = { rung: 'as-is' | 'generic'; mesh?: { name?: unknown } };
 type Added = { grant: Grant; label?: string; look?: Look };
 
 export interface CarryDeps<S extends CarrySession> {
-  sim: Pick<Sim, 'meta' | 'addItemInstance'> & Partial<Pick<Sim, 'equipItem'>>;
+  sim: Pick<Sim, 'meta' | 'addItemInstance'> & Partial<Pick<Sim, 'equipItem' | 'unequipItem'>>;
   clients: ReadonlyMap<number, S>;
   /** a `{t:'placeschema', ...}` frame to one player */
   send(
@@ -377,6 +377,17 @@ export class PlaceSchemaCarry<S extends CarrySession> {
     if (!this.cfg.home) return this.refused(s, 'no-home-world');
     const meta = this.d.sim.meta(s.pid);
     if (!meta) return;
+    // A worn copy (an arrival goes straight to the main hand) is unequipped into the bag first, so
+    // the one removal path below, and its save, carries it either way.
+    const worn = Object.entries(meta.equipmentInstance ?? {}).find(
+      ([, inst]) => (inst as Record<string, unknown> | undefined)?.[GRANT_KEY] === grantId,
+    )?.[0];
+    if (
+      slotOfGrant(meta.inventory, grantId) < 0 &&
+      worn &&
+      !this.d.sim.unequipItem?.(worn as never, s.pid)
+    )
+      return this.refused(s, 'bags-full');
     const at = slotOfGrant(meta.inventory, grantId);
     if (at < 0) return;
     // Only a grant this account accepted is its own to carry: a copy traded in from someone else is
@@ -463,8 +474,12 @@ export class PlaceSchemaCarry<S extends CarrySession> {
 
   /** The `ps_carry` command: the named bag slot's signed copy leaves through the sidecar. */
   onCarryCommand(s: S, slot: unknown): void {
-    const at = Number.isInteger(slot) ? Number(slot) : -1;
-    const grant = grantOfSlot(this.d.sim.meta(s.pid)?.inventory[at]);
+    // a bag slot index, or an equipment slot name (the worn copy is carried from the slot)
+    const meta = this.d.sim.meta(s.pid);
+    const grant =
+      typeof slot === 'string'
+        ? grantOfSlot({ instance: meta?.equipmentInstance?.[slot as never] } as InvSlot)
+        : grantOfSlot(meta?.inventory[Number.isInteger(slot) ? Number(slot) : -1]);
     if (grant)
       void this.carry(s, grant).catch((e) => console.error('placeschema carry failed:', e));
   }

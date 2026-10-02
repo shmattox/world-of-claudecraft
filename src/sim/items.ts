@@ -85,6 +85,7 @@ import {
 import { canStackInstancePayloads, itemInstancePayloadsEqual } from './item_instance_merge';
 import { meetsLevelRequirement, requiredLevelFor } from './item_level_req';
 import { isItemLocked } from './item_lock';
+import { isSignedCopy } from './item_lock_flag';
 import { withoutPartyTradeMarker } from './loot/bop_trade_window';
 import { isMaterialItemId } from './material_ids';
 import {
@@ -469,7 +470,18 @@ export function discardItem(
     return;
   }
   if (def.noDiscard) return;
-  const discardCount = Number.isFinite(count) ? Math.min(Math.floor(count), available) : 0;
+  // A PlaceSchema-signed copy (PLACE-410) is never destroyed here: its grant says it exists.
+  const named = slotIndex !== undefined ? meta.inventory[slotIndex] : undefined;
+  const signedHeld = meta.inventory
+    .filter((s) => s.itemId === itemId && isSignedCopy(s.instance))
+    .reduce((n, s) => n + s.count, 0);
+  if ((named?.itemId === itemId && isSignedCopy(named.instance)) || available - signedHeld <= 0) {
+    ctx.error(meta.entityId, 'That item is bound to another world and cannot be destroyed.');
+    return;
+  }
+  const discardCount = Number.isFinite(count)
+    ? Math.min(Math.floor(count), available - signedHeld)
+    : 0;
   if (discardCount <= 0) return;
   // A named slot destroys exactly that copy, but ONLY for a single unit.
   //
@@ -500,7 +512,7 @@ export function discardItem(
       itemId,
       discardCount,
       meta.entityId,
-      undefined,
+      isSignedCopy,
       sellerSignedCharmDeprioritize(meta.name, itemId),
     );
   }

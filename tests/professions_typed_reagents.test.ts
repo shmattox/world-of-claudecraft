@@ -346,6 +346,14 @@ describe('bind-on-trade primitive (social/trade.ts)', () => {
     expect(sim.countItem('resonant_steel', a)).toBe(0); // never crossed
   });
 
+  it('refuses to trade a PlaceSchema-signed copy (PLACE-410): its grant never changes hands', () => {
+    const { sim, a, b } = makeTradeSim();
+    grantInstance(sim, 'resonant_steel', { psGrant: 'a'.repeat(64) } as ItemInstancePayload, b);
+    doTrade(sim, b, a, [{ itemId: 'resonant_steel', count: 1 }]);
+    expect(sim.countItem('resonant_steel', b)).toBe(1);
+    expect(sim.countItem('resonant_steel', a)).toBe(0);
+  });
+
   it('confirm-time revalidation (offerCovered) blocks a copy bound AFTER the offer was set', () => {
     // Review should-fix: the offer-time clamp normally fires first, so the
     // confirm-time unbound recheck never sees a bound copy in a natural session

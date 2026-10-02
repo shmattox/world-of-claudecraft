@@ -129,6 +129,7 @@ function carryWorld(cls: PlayerClass, opts: { look?: unknown } = {}) {
         );
       return { ok: true };
     }
+    if (path === '/mod/carry-out') return { url: `${body.destination}/arrive#ps-ticket=x` };
     if (path === '/mod/mint') {
       // PLACE-386: every mint is distinct (the sidecar stamps a serial), so every mint is a new id
       const grant = { id: G(++n), tags: [], content: JSON.stringify(body.template) };
@@ -144,7 +145,22 @@ function carryWorld(cls: PlayerClass, opts: { look?: unknown } = {}) {
     { url: 'http://sidecar.test', token: 't', realmHost: 'woc.test', home: 'http://hub.test' },
     {
       sim: {
-        meta: () => ({ inventory, placeschemaAccepted: accepted, cls }) as never,
+        meta: () =>
+          ({
+            inventory,
+            placeschemaAccepted: accepted,
+            cls,
+            equipmentInstance: Object.fromEntries(
+              Object.entries(equipment).flatMap(([k, v]) => (v ? [[k, v.instance]] : [])),
+            ),
+          }) as never,
+        unequipItem: (slot: string) => {
+          const worn = equipment[slot];
+          if (!worn) return false;
+          equipment[slot] = undefined;
+          inventory.push(worn);
+          return true;
+        },
         addItemInstance: (itemId: string, instance: never) => {
           inventory.push({ itemId, count: 1, instance });
         },
@@ -295,5 +311,38 @@ describe('arriving: a carried sword by name and mesh', () => {
     expect(w.frames).toEqual([
       { t: 'placeschema', kind: 'skin', url: 'data:image/png;base64,AAAA', model: 'classic' },
     ]);
+  });
+});
+
+describe('discard: a signed copy is never destroyed', () => {
+  const WEAPON = 'eastbrook_arming_sword';
+  it('the named copy is refused with a notice; bulk discard spares it', () => {
+    const { sim, pid, meta, ctx } = vendorPlayer();
+    meta.inventory.push({ itemId: WEAPON, count: 1, instance: signed(1) });
+    sim.drainEvents();
+    items.discardItem(ctx, WEAPON, 1, pid, 0);
+    expect(errors(sim.drainEvents())).toContain(
+      'That item is bound to another world and cannot be destroyed.',
+    );
+    meta.inventory.unshift({ itemId: WEAPON, count: 1 });
+    items.discardItem(ctx, WEAPON, 2, pid);
+    expect(meta.inventory).toEqual([{ itemId: WEAPON, count: 1, instance: signed(1) }]);
+  });
+});
+
+describe('carry: a worn signed copy is carried too', () => {
+  it('unequips into the bag, then the one removal + save + carry-out path runs', async () => {
+    const asIs = { rung: 'as-is', mesh: { name: `ps_${'b'.repeat(32)}.glb` } };
+    const w = carryWorld('warrior', { look: asIs });
+    await w.carry.join(w.session);
+    expect(w.equipment.mainhand?.instance).toMatchObject({ [GRANT_KEY]: G(900) });
+    await w.carry.carry(w.session, G(900));
+    const out = w.sent.filter((s) => s.path === '/mod/carry-out');
+    expect(out).toHaveLength(1);
+    expect(out[0].body.grants).toEqual([G(900)]);
+    // gone from both the hand and the bag: exactly one copy, now in escrow
+    expect(w.equipment.mainhand).toBeUndefined();
+    expect(w.inventory.filter((s) => (s.instance as any)?.[GRANT_KEY] === G(900))).toHaveLength(0);
+    expect(w.frames).toContainEqual(expect.objectContaining({ kind: 'ticket' }));
   });
 });
