@@ -66,6 +66,7 @@ import { ITEMS } from '../data';
 import { recalcPlayerStats } from '../entity';
 import { consumeSelectedInventorySlot, itemCopyPin } from '../item_copy_ref';
 import { requiredLevelFor } from '../item_level_req';
+import { isSignedCopy } from '../item_lock_flag';
 import {
   consumePlayerVaultStock,
   drawableCounterFor,
@@ -409,14 +410,34 @@ export function consumePreferredDisenchantVictim(
   }
   for (let i = inventory.length - 1; i >= 0; i--) {
     const slot = inventory[i];
-    if (slot.itemId === itemId && slot.instance && !isEnchantedInstance(slot.instance)) {
+    if (
+      slot.itemId === itemId &&
+      slot.instance &&
+      !isEnchantedInstance(slot.instance) &&
+      !isSignedCopy(slot.instance)
+    ) {
       return consumeAt(i);
     }
   }
   for (let i = inventory.length - 1; i >= 0; i--) {
-    if (inventory[i].itemId === itemId) return consumeAt(i);
+    if (inventory[i].itemId === itemId && !isSignedCopy(inventory[i].instance)) return consumeAt(i);
   }
   return undefined;
+}
+
+/** A PlaceSchema-signed copy is never destroyed here (PLACE-410): the named copy, or, with no copy
+ *  named, the case where every held copy is signed, is refused as not disenchantable. */
+function signedCopyDenial(
+  meta: PlayerMeta | undefined,
+  itemId: string,
+  slotIndex: number | undefined,
+): DisenchantResult | null {
+  if (!meta) return null;
+  const signed =
+    slotIndex !== undefined
+      ? isSignedCopy(meta.inventory[slotIndex]?.instance)
+      : !meta.inventory.some((s) => s.itemId === itemId && !isSignedCopy(s.instance));
+  return signed ? { ok: false, itemId, reason: 'not_disenchantable' } : null;
 }
 
 /** Resolve one disenchant attempt: denies (no side effect) if the item id is
@@ -441,6 +462,8 @@ export function resolveDisenchant(
   if (!isDisenchantable(def)) return { ok: false, itemId, reason: 'not_disenchantable' };
   if (ctx.countItem(itemId, pid) < 1) return { ok: false, itemId, reason: 'not_held' };
   const meta = ctx.players.get(pid);
+  const signed = signedCopyDenial(meta, itemId, slotIndex);
+  if (signed) return signed;
   // The yield plan (pure def lookups, no rng): hoisted above the capacity
   // gate so the gate can model the exact grants the success path mints below.
   const quality = def.quality ?? 'common';
@@ -562,6 +585,8 @@ export function evaluateDisenchantAdmission(
   if (!isDisenchantable(def)) return { ok: false, itemId, reason: 'not_disenchantable' };
   if (ctx.countItem(itemId, pid) < 1) return { ok: false, itemId, reason: 'not_held' };
   const meta = ctx.players.get(pid);
+  const signed = signedCopyDenial(meta, itemId, slotIndex);
+  if (signed) return signed;
   if (!meta) return null;
   const quality = def.quality ?? 'common';
   const materialItemId = DISENCHANT_MATERIAL_BY_QUALITY[quality] ?? 'arcane_dust';

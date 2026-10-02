@@ -19,6 +19,7 @@ import { RIFT_GEAR_ITEM_ID_SET } from '../content/rift/items';
 import { ITEMS } from '../data';
 import { itemCopyPin } from '../item_copy_ref';
 import { itemInstancePayloadsEqual } from '../item_instance_merge';
+import { isSignedCopy } from '../item_lock_flag';
 import {
   removeSellUnitsFromInventory,
   sellerSignedCharmDeprioritize,
@@ -60,7 +61,8 @@ export const TRADE_OFFER_MAX_LINES = 6;
 // offerable-count gate in tradeSetOffer, the confirm-time revalidation in
 // offerCovered, and the removal preference in removeOffer/fitsAfterSwap.
 function isTradeLocked(instance: ItemInstancePayload | undefined): boolean {
-  return instance?.boundTo !== undefined;
+  // A PlaceSchema-signed copy is trade-locked too (PLACE-410): its grant names its holder.
+  return instance?.boundTo !== undefined || isSignedCopy(instance);
 }
 
 // The counterparty identity the window gate matches against: the display

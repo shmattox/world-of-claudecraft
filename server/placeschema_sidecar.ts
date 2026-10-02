@@ -10,6 +10,7 @@
 
 import { randomBytes } from 'node:crypto';
 import { ITEMS, QUESTS, questRewardItemId } from '../src/sim/data';
+import { canEquipItem } from '../src/sim/equipment_rules';
 import {
   releasePlaceschemaClaim,
   touchPlaceschemaAccepted,
@@ -18,14 +19,15 @@ import {
 import type { Sim } from '../src/sim/sim';
 import type { InvSlot, ItemInstancePayload } from '../src/sim/types';
 import { type AcceptedStore, pgAcceptedStore } from './placeschema_accepted_db';
+import { type Skin, skinForHolder } from './placeschema_skin';
 
 /** The carried grant's id rides on the item copy; the copy's `name` is the grant's minted label. */
 export const GRANT_KEY = 'psGrant';
 const HEX64 = /^[0-9a-f]{64}$/;
 /** A cancel answer that settles it for good: nothing of this holder's is there to return. */
 const SETTLED = /^(landed|unknown-grant|not-yours)/;
-/** A foreign blade or weapon (not minted here) is held as this WoC weapon, named by its grant.
- *  ponytail: one stand-in body per category; the item's own mesh (its grant look) is follow-up work. */
+/** A foreign blade or weapon (not minted here) is held as this WoC weapon, named by its grant; its
+ *  own mesh rides on the copy when the sidecar's look says `as-is` (MESH_KEY, PLACE-410). */
 export const FOREIGN_WEAPON_ID = 'worn_sword';
 const WOC_TYPE = /^(?:weapon|armor|misc)\.woc\.([a-z0-9_]{1,48})$/;
 
@@ -56,13 +58,21 @@ export interface SidecarConfig {
   realmHost: string;
   /** where Carry sends the player (a canonical origin): their home world */
   home: string;
+  /** relays holding the holders' linked accounts (kind 30082), for the arriving skin */
+  relays?: string[];
 }
 
 export function sidecarConfig(env: NodeJS.ProcessEnv): SidecarConfig | null {
   const url = env.PLACESCHEMA_SIDECAR_URL?.replace(/\/$/, '');
   const token = env.PLACESCHEMA_MOD_TOKEN;
   if (!url || !token) return null;
-  return { url, token, realmHost: realmHostOf(env), home: env.PLACESCHEMA_HOME ?? '' };
+  return {
+    url,
+    token,
+    realmHost: realmHostOf(env),
+    home: env.PLACESCHEMA_HOME ?? '',
+    relays: (env.PLACESCHEMA_RELAYS ?? '').split(',').filter((r) => /^wss?:\/\//.test(r)),
+  };
 }
 
 /**
@@ -91,9 +101,17 @@ const pendingOf = (slot: InvSlot): string | undefined => {
   const v = (slot.instance as Record<string, unknown> | undefined)?.[PENDING_KEY];
   return typeof v === 'string' ? v : undefined;
 };
-const signedInstance = (a: Added): ItemInstancePayload => {
+/** A foreign copy's own mesh: the sidecar media name (content-addressed) the client loads through
+ *  the game server's `/api/placeschema/media/<name>` (server/placeschema_media.ts). */
+export const MESH_KEY = 'psMesh';
+export const MEDIA_NAME = /^ps_[0-9a-f]{32}\.glb$/; // open-place tools/look-plan plan.ts names
+const signedInstance = (a: Added, foreign = false): ItemInstancePayload => {
   const inst = { [GRANT_KEY]: a.grant.id } as ItemInstancePayload;
   if (a.label) inst.name = a.label.slice(0, 64);
+  // `generic` (or a look we cannot serve) keeps the stand-in's own WoC model.
+  const mesh = foreign && a.look?.rung === 'as-is' ? a.look.mesh?.name : undefined;
+  if (typeof mesh === 'string' && MEDIA_NAME.test(mesh))
+    (inst as Record<string, unknown>)[MESH_KEY] = mesh;
   return inst;
 };
 
@@ -107,19 +125,25 @@ export interface CarrySession {
 }
 
 type Grant = { id: string; tags: string[][]; content: string };
-type Added = { grant: Grant; label?: string };
+type Look = { rung: 'as-is' | 'generic'; mesh?: { name?: unknown } };
+type Added = { grant: Grant; label?: string; look?: Look };
 
 export interface CarryDeps<S extends CarrySession> {
-  sim: Pick<Sim, 'meta' | 'addItemInstance'>;
+  sim: Pick<Sim, 'meta' | 'addItemInstance'> & Partial<Pick<Sim, 'equipItem' | 'unequipItem'>>;
   clients: ReadonlyMap<number, S>;
   /** a `{t:'placeschema', ...}` frame to one player */
-  send(session: S, frame: { t: 'placeschema'; kind: 'ticket' | 'link'; url: string }): void;
+  send(
+    session: S,
+    frame: { t: 'placeschema'; kind: 'ticket' | 'link' | 'skin'; url: string; model?: string },
+  ): void;
   notice(session: S, text: string): void;
   /** persist this live session's character now; false if the save was refused */
   save(session: S): Promise<boolean>;
   /** the ACCOUNT's accepted grants and unconfirmed cancels (placeschema_accepted_db.ts) */
   store: AcceptedStore;
   fetch?: typeof fetch;
+  /** holder -> Minecraft skin (placeschema_skin.ts); injectable for tests */
+  skin?: (holder: string) => Promise<Skin | undefined>;
 }
 
 export const platformId = (cfg: SidecarConfig, accountId: number) =>
@@ -158,6 +182,8 @@ export class PlaceSchemaCarry<S extends CarrySession> {
   private readonly chains = new Map<number, Promise<unknown>>();
   /** accounts with a poll join already queued: the 5 s poll never stacks behind itself */
   private readonly polling = new Set<number>();
+  /** the session each skin was sent to, so a holder's skin is looked up once per session */
+  private readonly skinned = new WeakMap<S, string>();
 
   private locked<T>(accountId: number, job: () => Promise<T>): Promise<T> {
     const run = (this.chains.get(accountId) ?? Promise.resolve()).then(job, job);
@@ -211,10 +237,11 @@ export class PlaceSchemaCarry<S extends CarrySession> {
       if ((await this.d.store.cancels(s.accountId)).length) return;
       const r = await this.call('/mod/join', {
         platformId: platformId(this.cfg, s.accountId),
-        caps: { mesh: false, sprite: true, cuboid: false },
+        caps: { mesh: true, sprite: true, cuboid: false },
       });
       if (!r.ok) return;
       this.linked.set(s.accountId, r.body.holder ?? null);
+      if (r.body.holder) this.wearSkin(s, r.body.holder);
       const meta = this.d.sim.meta(s.pid);
       if (!meta || this.d.clients.get(s.pid) !== s) return;
       // Exactly once PER ACCOUNT, claim first: each offered grant is claimed for the account in its own
@@ -240,7 +267,14 @@ export class PlaceSchemaCarry<S extends CarrySession> {
           pending.instance = signedInstance(a);
           notices.push(`${a.label ?? 'Your item'} is now yours to carry to other worlds.`);
         } else {
-          this.d.sim.addItemInstance(itemId, signedInstance(a), s.pid);
+          const inst = signedInstance(a, itemId === FOREIGN_WEAPON_ID);
+          this.d.sim.addItemInstance(itemId, inst, s.pid);
+          // Decision 2: a carried weapon goes to the main hand when this class can use it, else
+          // it stays in the bag (name and mesh kept); WoC's class rules are untouched.
+          if (itemId === FOREIGN_WEAPON_ID && canEquipItem(meta.cls, ITEMS[itemId])) {
+            const at = slotOfGrant(meta.inventory, g);
+            if (at >= 0) this.d.sim.equipItem?.(itemId, s.pid, 'mainhand', at);
+          }
           notices.push(
             itemId !== FOREIGN_WEAPON_ID
               ? `${a.label ?? 'Your item'} is now yours to carry to other worlds.`
@@ -262,6 +296,20 @@ export class PlaceSchemaCarry<S extends CarrySession> {
       for (const n of notices) this.d.notice(s, n);
       await this.call('/mod/ack', { platformId: platformId(this.cfg, s.accountId), grants: toAck });
     }
+  }
+
+  /** The holder's Minecraft skin to this player's client, once per session; looked up live, never
+   *  stored. No skin (no relay, no link, default skin, lookup failed): WoC's own body stays. */
+  private wearSkin(s: S, holder: string): void {
+    if (this.skinned.get(s) === holder) return;
+    this.skinned.set(s, holder);
+    const look = this.d.skin ?? ((h: string) => skinForHolder(h, this.cfg.relays ?? []));
+    void look(holder)
+      .then((skin) => {
+        if (skin && this.d.clients.get(s.pid) === s)
+          this.d.send(s, { t: 'placeschema', kind: 'skin', url: skin.url, model: skin.model });
+      })
+      .catch(() => undefined);
   }
 
   /** A quest turn-in: the reward becomes a signed grant held by the player's did (if linked). */
@@ -329,6 +377,17 @@ export class PlaceSchemaCarry<S extends CarrySession> {
     if (!this.cfg.home) return this.refused(s, 'no-home-world');
     const meta = this.d.sim.meta(s.pid);
     if (!meta) return;
+    // A worn copy (an arrival goes straight to the main hand) is unequipped into the bag first, so
+    // the one removal path below, and its save, carries it either way.
+    const worn = Object.entries(meta.equipmentInstance ?? {}).find(
+      ([, inst]) => (inst as Record<string, unknown> | undefined)?.[GRANT_KEY] === grantId,
+    )?.[0];
+    if (
+      slotOfGrant(meta.inventory, grantId) < 0 &&
+      worn &&
+      !this.d.sim.unequipItem?.(worn as never, s.pid)
+    )
+      return this.refused(s, 'bags-full');
     const at = slotOfGrant(meta.inventory, grantId);
     if (at < 0) return;
     // Only a grant this account accepted is its own to carry: a copy traded in from someone else is
@@ -415,8 +474,12 @@ export class PlaceSchemaCarry<S extends CarrySession> {
 
   /** The `ps_carry` command: the named bag slot's signed copy leaves through the sidecar. */
   onCarryCommand(s: S, slot: unknown): void {
-    const at = Number.isInteger(slot) ? Number(slot) : -1;
-    const grant = grantOfSlot(this.d.sim.meta(s.pid)?.inventory[at]);
+    // a bag slot index, or an equipment slot name (the worn copy is carried from the slot)
+    const meta = this.d.sim.meta(s.pid);
+    const grant =
+      typeof slot === 'string'
+        ? grantOfSlot({ instance: meta?.equipmentInstance?.[slot as never] } as InvSlot)
+        : grantOfSlot(meta?.inventory[Number.isInteger(slot) ? Number(slot) : -1]);
     if (grant)
       void this.carry(s, grant).catch((e) => console.error('placeschema carry failed:', e));
   }

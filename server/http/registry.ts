@@ -42,6 +42,7 @@ import { routes as leaderboardRoutes } from '../leaderboard';
 import { routes as mapsRoutes } from '../maps_routes';
 import { routes as oauthRoutes } from '../oauth';
 import { routes as otaUpdatesRoutes } from '../ota_updates';
+import { routes as placeschemaMediaRoutes } from '../placeschema_media';
 import { routes as realmBuilderRoutes } from '../realm_builder';
 import { routes as reliquaryRoutes } from '../reliquary';
 import { routes as reportsRoutes } from '../reports';
@@ -162,6 +163,7 @@ export const apiRoutes: readonly RouteDef[] = [
   ...wocMarketRoutes,
   ...guildRosterRoutes,
   ...worldQuestLeaderboardRoutes,
+  ...placeschemaMediaRoutes, // PLACE-410
   // new:endpoint spreads appear above this line (npm run new:endpoint)
 ];
 

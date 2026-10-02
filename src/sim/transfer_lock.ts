@@ -4,6 +4,7 @@
 // directly so the $WOC rail shares the exact rule without inheriting the
 // transfer module's runtime import graph (which reaches the whole content
 // tree through the sanitize-on-load helpers).
+import { isSignedCopy } from './item_lock_flag';
 import type { ItemInstancePayload } from './types';
 
 /** True when this copy is locked out of the anonymous exchange pipes (market
@@ -16,7 +17,9 @@ import type { ItemInstancePayload } from './types';
  *  that DOES honor it now (ruling R10): exchangeHardLock adds a `locked` arm, so
  *  a locked copy refuses listing while the seller can lift it in one click. */
 export function isTransferLockedInstance(instance: ItemInstancePayload | undefined): boolean {
+  // A PlaceSchema-signed copy (PLACE-410) is its holder's grant: it never changes hands here.
   return (
-    instance !== undefined && (instance.bindOnTrade === true || instance.boundTo !== undefined)
+    instance !== undefined &&
+    (instance.bindOnTrade === true || instance.boundTo !== undefined || isSignedCopy(instance))
   );
 }

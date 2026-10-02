@@ -300,7 +300,9 @@ describe('mailSend: instanced attachments', () => {
   });
 
   it('armed and stamped copies are refused with noMailBound, payload intact', () => {
-    for (const locked of [ARMED, STAMPED]) {
+    // a PlaceSchema-signed copy (PLACE-410) is its holder's grant: refused the same way
+    const PS_SIGNED = { psGrant: 'a'.repeat(64) } as ItemInstancePayload;
+    for (const locked of [ARMED, STAMPED, PS_SIGNED]) {
       const { sim, sender } = mailSetup();
       sim.addItemInstance(HIDE, { ...locked }, sender);
       sim.mailSend('Rex', 'no', 'nope', 0, [{ itemId: HIDE, count: 1, instance: locked }], sender);
