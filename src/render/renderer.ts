@@ -204,6 +204,7 @@ import {
   resolvedCharacterForm,
 } from './characters/form_visual_selection_core';
 import { visualKeyFor, weaponSkinModelUrl } from './characters/manifest';
+import { heldWeaponId, wearCarriedSkin } from './characters/placeschema_carry_view';
 import { modularLookChanged } from './characters/player_look_core';
 import { PooledVisualLifecycle } from './characters/pooled_visual_lifecycle';
 import { playerRangedAttackStartsAtLaunch } from './characters/skin_attack';
@@ -8138,7 +8139,7 @@ export class Renderer {
       swimPitch: 0,
       wasWading: false,
       skin: e.skin,
-      mainhandItemId: e.mainhandItemId,
+      mainhandItemId: heldWeaponId(e),
       offhandItemId: e.offhandItemId,
       // built skinless; the per-frame diff below applies e.weaponSkinId (and its VFX)
       weaponSkinId: null,
@@ -8444,7 +8445,7 @@ export class Renderer {
     v.clickTarget = next.clickProxy;
     v.height = next.height;
     v.skin = e.skin;
-    v.mainhandItemId = e.mainhandItemId; // next was built holding the current weapon
+    v.mainhandItemId = heldWeaponId(e); // next was built holding the current weapon
     v.offhandItemId = e.offhandItemId; // next was built holding the current offhand
     v.weaponSkinId = null; // next was built skinless; the per-frame diff re-applies it
     v.weaponStowed = false; // next was built drawn (fresh stow transition); the diff re-sheathes
@@ -10376,6 +10377,7 @@ export class Renderer {
           e.offhandItemId,
           e.weaponSkinId,
         );
+        wearCarriedSkin(v.visual.root, v.visual.height); // PLACE-410: the arriving Minecraft skin
       }
       if (iceBlockActivated) this.activeVisual(v)?.playEmote('wave', 1);
 
@@ -10394,18 +10396,16 @@ export class Renderer {
         v.visual.setSkin(e.skin);
       }
 
-      // live held-weapon swap, equipped mainhand changed (self equip or a peer's
-      // gear update); setWeapon no-ops on classes with a fixed weapon (hunter).
-      // Gated per newly attached payload: nothing else in this loop drives its own
-      // .visible, so first-sight materials link off-thread instead of freezing the
-      // frame the gear lands on (#2571).
-      // Both held swaps re-run finishWeaponAttach, which re-snapshots the
-      // original-material map with the new weapon's meshes, so the encounter
-      // mark's warmed clones no longer describe this body: re-queue on the new
-      // held look (the identity carries it, so a sheathe toggle warms nothing).
-      if (e.mainhandItemId !== v.mainhandItemId) {
-        v.mainhandItemId = e.mainhandItemId;
-        const changed = v.visual.setWeapon(e.mainhandItemId);
+      // live held-weapon swap, equipped mainhand changed (self equip, a peer's gear
+      // update, or a carried copy's own mesh turning resident, PLACE-410); setWeapon
+      // no-ops on fixed-weapon classes (hunter). Gated per newly attached payload so
+      // first-sight materials link off-thread, not in the frame the gear lands (#2571).
+      // Both held swaps re-run finishWeaponAttach (re-snapshotting the original-material
+      // map), so re-queue the encounter mark's warmed clones on the new held look (the
+      // identity carries it, so a sheathe toggle warms nothing).
+      if (heldWeaponId(e) !== v.mainhandItemId) {
+        v.mainhandItemId = heldWeaponId(e);
+        const changed = v.visual.setWeapon(v.mainhandItemId);
         if (changed) for (const node of changed) this.gateSwapOnCompile(node);
         this.reconcileViewLights(v);
         encounterPrewarm.queueLiveSoulRendPrewarm(this, v.visual, v, e.kind);

@@ -416,6 +416,47 @@ function applyVariantGrip(
   payload.scale.setScalar(t.scale);
 }
 
+// A weapon carried in from another PlaceSchema world (PLACE-410) holds its own mesh: the sidecar
+// media the game server passes through (server/placeschema_media.ts). The renderer names it by a
+// `ps_media:` weapon id once the GLB is resident (carriedWeaponVisualId), and until then shows the
+// stand-in item; it is held with the stand-in's grip and sized to the stand-in's length.
+const CARRIED_MESH = 'ps_media:';
+const CARRIED_MEDIA = /^ps_[0-9a-f]{32}\.glb$/;
+const CARRIED_STAND_IN = 'worn_sword';
+const carriedBox = new THREE.Box3();
+const carriedSize = new THREE.Vector3();
+
+/** The weapon id the renderer should hold: a resident carried mesh, else the equipped item. */
+export function carriedWeaponVisualId(
+  mainhandItemId: string | null,
+  mainhandInstance: unknown,
+): string | null {
+  const name = (mainhandInstance as { psMesh?: unknown } | undefined)?.psMesh;
+  if (!mainhandItemId || typeof name !== 'string' || !CARRIED_MEDIA.test(name))
+    return mainhandItemId;
+  const url = `/api/placeschema/media/${name}`;
+  if (characterAssetResident(url)) return `${CARRIED_MESH}${url}`;
+  void prepareCharacterUrl(url).catch(() => undefined);
+  return mainhandItemId;
+}
+
+function longestSide(o: THREE.Object3D): number {
+  o.updateMatrixWorld(true);
+  carriedBox.setFromObject(o).getSize(carriedSize);
+  return Math.max(carriedSize.x, carriedSize.y, carriedSize.z);
+}
+
+/** Hold a carried mesh like the stand-in: its grip, its length. */
+function fitCarriedMesh(payload: THREE.Object3D, root: THREE.Object3D, bone: string): void {
+  const standInUrl = itemWeaponModelUrl(CARRIED_STAND_IN);
+  if (!standInUrl) return;
+  applyHandGrip(payload, root, bone, standInUrl);
+  const standIn = gltfByUrl.get(assetUrl(standInUrl));
+  const own = longestSide(payload) / Math.max(payload.scale.x, 1e-6);
+  const want = standIn ? longestSide(standIn.scene) : 1;
+  if (own > 0) payload.scale.setScalar(want / own);
+}
+
 function attachProp(
   root: THREE.Object3D,
   bone: THREE.Object3D,
@@ -425,6 +466,7 @@ function attachProp(
 ): THREE.Object3D {
   const gltf = resolvedGltf(att.url);
   const payload = flattenWeaponScene(cloneSkinned(gltf.scene));
+  const carried = att.url.startsWith('/api/placeschema/media/');
   if (gltf.animations.length) registerHeldPropIdle(root, payload, gltf.animations);
   primeSkinnedSortSpheres(payload);
   // An authored held model (manifest AUTHORED_HELD_MODELS) keeps its shipped
@@ -445,7 +487,9 @@ function attachProp(
   }
   payload.userData[HELD_PROP_TAG] = true;
   const variantGrip = isHandslotBone(att.bone) ? variantGripFor(att.url) : null;
-  if (variantGrip) {
+  if (carried) {
+    fitCarriedMesh(payload, root, att.bone);
+  } else if (variantGrip) {
     applyVariantGrip(payload, att.bone, variantGrip, att.url);
   } else if (att.position || att.rotationY !== undefined) {
     if (att.position) payload.position.set(...att.position);
@@ -487,6 +531,8 @@ function swapAttachDef(
   // model in its authored hand rather than relocating a sword. A melee skin
   // dresses this hand only while it holds the skin's weapon type (the pure
   // rule): a dagger mainhand beside a skinned offhand mace keeps its dagger.
+  if (weaponItemId?.startsWith(CARRIED_MESH))
+    return { url: weaponItemId.slice(CARRIED_MESH.length), bone: base.bone };
   const skinUrl = mainhandShowsWeaponSkin(weaponSkinId, weaponItemId)
     ? residentOrEnsure(weaponSkinModelUrl(weaponSkinId))
     : null;

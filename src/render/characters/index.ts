@@ -4,7 +4,7 @@
 // the Renderer constructs views.
 import { type Entity, isMechWearer, type PlayerClass } from '../../sim/types';
 import { logAssetMissOnce } from './asset_miss_log';
-import { type AssembleOptions, modularHeadFor } from './assets';
+import { type AssembleOptions, carriedWeaponVisualId, modularHeadFor } from './assets';
 import { type CharacterFormKey, characterFormAssetKey } from './form_visual_selection_core';
 import { composedLookPiecesFor, type LookPieceQueue, type LookPieces } from './look_pieces';
 import {
@@ -142,7 +142,7 @@ export function createCharacterVisual(
       key,
       e.color,
       formKey ? 0 : (e.skin ?? 0),
-      formKey ? null : e.mainhandItemId,
+      formKey ? null : carriedWeaponVisualId(e.mainhandItemId, e.equippedInstances?.mainhand),
       weaponOverride,
       formKey ? null : e.offhandItemId,
       look,

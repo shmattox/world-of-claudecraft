@@ -14,5 +14,13 @@ import type { ItemInstancePayload } from './types';
  *  craft consumption, and vendor sell. A plain (no payload) copy, or one
  *  whose payload never had the flag set, is never locked. */
 export function isItemLocked(instance: ItemInstancePayload | undefined): boolean {
-  return instance?.locked === true;
+  return instance?.locked === true || isSignedCopy(instance);
+}
+
+/** True for a PlaceSchema-signed copy (PLACE-410), or a quest reward waiting for its mint: its
+ *  grant says it exists, so it is never sold, salvaged, disenchanted or consumed here. Keys match
+ *  server/placeschema_sidecar.ts GRANT_KEY / PENDING_KEY. */
+export function isSignedCopy(instance: ItemInstancePayload | undefined): boolean {
+  const i = instance as { psGrant?: unknown; psPending?: unknown } | undefined;
+  return typeof i?.psGrant === 'string' || typeof i?.psPending === 'string';
 }

@@ -17,6 +17,7 @@
 
 import { ENCHANTS } from '../sim/content/enchants';
 import { isItemLocked } from '../sim/item_lock';
+import { isSignedCopy } from '../sim/item_lock_flag';
 import { isMaterialItemId } from '../sim/material_ids';
 import type { MaterialComposition } from '../sim/material_sources';
 import { isDisenchantable, isEnchantedInstance } from '../sim/professions/enchanting';
@@ -119,7 +120,8 @@ export function bagItemNewActions(
   // A copy carrying a PlaceSchema grant can leave for another world (PLACE-276).
   if (typeof (instance as { psGrant?: unknown } | undefined)?.psGrant === 'string')
     out.push('carry');
-  out.push(isItemLocked(instance) ? 'unlock' : 'lock');
+  // A signed copy is locked for good (item_lock_flag.ts isSignedCopy): no toggle to offer.
+  if (!isSignedCopy(instance)) out.push(isItemLocked(instance) ? 'unlock' : 'lock');
   return out;
 }
 
