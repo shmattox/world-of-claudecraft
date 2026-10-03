@@ -9,25 +9,105 @@
 // Reproducibility is checked by tests/i18n_resolved_equivalence.test.ts.
 
 export const pending: Record<string, readonly string[]> = {
-  "es": [],
-  "es_ES": [],
-  "fr_FR": [],
-  "fr_CA": [],
+  "es": [
+    "wallet.placeSchemaLink",
+    "wallet.placeSchemaLinkTitle",
+    "wallet.placeSchemaLinked"
+  ],
+  "es_ES": [
+    "wallet.placeSchemaLink",
+    "wallet.placeSchemaLinkTitle",
+    "wallet.placeSchemaLinked"
+  ],
+  "fr_FR": [
+    "wallet.placeSchemaLink",
+    "wallet.placeSchemaLinkTitle",
+    "wallet.placeSchemaLinked"
+  ],
+  "fr_CA": [
+    "wallet.placeSchemaLink",
+    "wallet.placeSchemaLinkTitle",
+    "wallet.placeSchemaLinked"
+  ],
   "en_CA": [],
-  "it_IT": [],
-  "de_DE": [],
-  "zh_CN": [],
-  "zh_TW": [],
-  "ko_KR": [],
-  "ja_JP": [],
-  "pt_BR": [],
-  "ru_RU": [],
-  "cs_CZ": [],
-  "nl_NL": [],
-  "pl_PL": [],
-  "id_ID": [],
-  "tr_TR": [],
-  "sv_SE": [],
-  "vi_VN": [],
-  "da_DK": []
+  "it_IT": [
+    "wallet.placeSchemaLink",
+    "wallet.placeSchemaLinkTitle",
+    "wallet.placeSchemaLinked"
+  ],
+  "de_DE": [
+    "wallet.placeSchemaLink",
+    "wallet.placeSchemaLinkTitle",
+    "wallet.placeSchemaLinked"
+  ],
+  "zh_CN": [
+    "wallet.placeSchemaLink",
+    "wallet.placeSchemaLinkTitle",
+    "wallet.placeSchemaLinked"
+  ],
+  "zh_TW": [
+    "wallet.placeSchemaLink",
+    "wallet.placeSchemaLinkTitle",
+    "wallet.placeSchemaLinked"
+  ],
+  "ko_KR": [
+    "wallet.placeSchemaLink",
+    "wallet.placeSchemaLinkTitle",
+    "wallet.placeSchemaLinked"
+  ],
+  "ja_JP": [
+    "wallet.placeSchemaLink",
+    "wallet.placeSchemaLinkTitle",
+    "wallet.placeSchemaLinked"
+  ],
+  "pt_BR": [
+    "wallet.placeSchemaLink",
+    "wallet.placeSchemaLinkTitle",
+    "wallet.placeSchemaLinked"
+  ],
+  "ru_RU": [
+    "wallet.placeSchemaLink",
+    "wallet.placeSchemaLinkTitle",
+    "wallet.placeSchemaLinked"
+  ],
+  "cs_CZ": [
+    "wallet.placeSchemaLink",
+    "wallet.placeSchemaLinkTitle",
+    "wallet.placeSchemaLinked"
+  ],
+  "nl_NL": [
+    "wallet.placeSchemaLink",
+    "wallet.placeSchemaLinkTitle",
+    "wallet.placeSchemaLinked"
+  ],
+  "pl_PL": [
+    "wallet.placeSchemaLink",
+    "wallet.placeSchemaLinkTitle",
+    "wallet.placeSchemaLinked"
+  ],
+  "id_ID": [
+    "wallet.placeSchemaLink",
+    "wallet.placeSchemaLinkTitle",
+    "wallet.placeSchemaLinked"
+  ],
+  "tr_TR": [
+    "wallet.placeSchemaLink",
+    "wallet.placeSchemaLinkTitle",
+    "wallet.placeSchemaLinked"
+  ],
+  "sv_SE": [
+    "wallet.placeSchemaLink",
+    "wallet.placeSchemaLinkTitle",
+    "wallet.placeSchemaLinked"
+  ],
+  "vi_VN": [
+    "wallet.placeSchemaLink",
+    "wallet.placeSchemaLinkTitle",
+    "wallet.placeSchemaLinked"
+  ],
+  "da_DK": [
+    "wallet.placeSchemaLink",
+    "wallet.placeSchemaLinkTitle",
+    "wallet.placeSchemaLinked"
+  ]
 };

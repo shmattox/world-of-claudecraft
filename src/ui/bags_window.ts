@@ -454,11 +454,18 @@ export class BagsWindow {
   private paintMoneyRow(row: HTMLElement, copper: number): void {
     row.innerHTML = `${this.deps.wocBalanceHtml()}${this.deps.claudiumLauncherHtml()}${this.deps.moneyHtml(copper)}`;
     row
-      .querySelectorAll<HTMLElement>('[data-wallet-action], [data-claudium-launcher]')
+      .querySelectorAll<HTMLElement>(
+        '[data-wallet-action], [data-claudium-launcher], [data-ps-link]',
+      )
       .forEach((control) => {
         control.classList.add('ui-btn');
       });
-    row.querySelector<HTMLElement>('.woc-balance:not(button)')?.classList.add('ui-chip');
+    row.querySelectorAll<HTMLElement>('.woc-balance:not(button)').forEach((chip) => {
+      chip.classList.add('ui-chip');
+    });
+    row.querySelector('[data-ps-link]')?.addEventListener('click', () => {
+      this.deps.world().linkPlaceSchema?.();
+    });
     row.querySelector('[data-claudium-launcher]')?.addEventListener('click', () => {
       this.deps.openClaudium();
     });

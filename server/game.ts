@@ -7750,6 +7750,11 @@ export class GameServer {
       case 'ps_carry':
         this.placeschema?.onCarryCommand(session, msg.slot);
         break;
+      case 'ps_link': // PLACE-479: the bag's "Link PlaceSchema account" button
+        void this.placeschema
+          ?.link(session)
+          .catch((e) => console.error('placeschema link failed:', e));
+        break;
       case 'dev_give': {
         if (process.env.ALLOW_DEV_COMMANDS === '1' && typeof msg.item === 'string') {
           const count = typeof msg.count === 'number' ? msg.count : 1;

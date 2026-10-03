@@ -8243,6 +8243,7 @@ export class Sim {
   }
 
   carryItem(_slotIndex: number): void {} // PlaceSchema carry is online-only (no sidecar offline)
+  linkPlaceSchema(): void {} // PlaceSchema link is online-only too (PLACE-479)
   setItemLocked(
     itemId: string,
     locked: boolean,

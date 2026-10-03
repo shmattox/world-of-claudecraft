@@ -134,7 +134,9 @@ export interface CarryDeps<S extends CarrySession> {
   /** a `{t:'placeschema', ...}` frame to one player */
   send(
     session: S,
-    frame: { t: 'placeschema'; kind: 'ticket' | 'link' | 'skin'; url: string; model?: string },
+    frame:
+      | { t: 'placeschema'; kind: 'ticket' | 'link' | 'skin'; url: string; model?: string }
+      | { t: 'placeschema'; kind: 'status'; linked: boolean },
   ): void;
   notice(session: S, text: string): void;
   /** persist this live session's character now; false if the save was refused */
@@ -184,6 +186,8 @@ export class PlaceSchemaCarry<S extends CarrySession> {
   private readonly polling = new Set<number>();
   /** the session each skin was sent to, so a holder's skin is looked up once per session */
   private readonly skinned = new WeakMap<S, string>();
+  /** the link status last sent to each session */
+  private readonly told = new WeakMap<S, string | null>();
 
   private locked<T>(accountId: number, job: () => Promise<T>): Promise<T> {
     const run = (this.chains.get(accountId) ?? Promise.resolve()).then(job, job);
@@ -240,8 +244,7 @@ export class PlaceSchemaCarry<S extends CarrySession> {
         caps: { mesh: true, sprite: true, cuboid: false },
       });
       if (!r.ok) return;
-      this.linked.set(s.accountId, r.body.holder ?? null);
-      if (r.body.holder) this.wearSkin(s, r.body.holder);
+      this.setLinked(s, r.body.holder ?? null);
       const meta = this.d.sim.meta(s.pid);
       if (!meta || this.d.clients.get(s.pid) !== s) return;
       // Exactly once PER ACCOUNT, claim first: each offered grant is claimed for the account in its own
@@ -296,6 +299,34 @@ export class PlaceSchemaCarry<S extends CarrySession> {
       for (const n of notices) this.d.notice(s, n);
       await this.call('/mod/ack', { platformId: platformId(this.cfg, s.accountId), grants: toAck });
     }
+  }
+
+  /** Record who holds the account, and tell the client when that changes (PLACE-479: the bag's
+   *  "Link PlaceSchema account" button shows only once the sidecar has answered). */
+  private setLinked(s: S, holder: string | null): void {
+    this.linked.set(s.accountId, holder);
+    if (this.told.get(s) !== holder) {
+      this.told.set(s, holder);
+      this.d.send(s, { t: 'placeschema', kind: 'status', linked: !!holder });
+    }
+    if (holder) this.wearSkin(s, holder);
+  }
+
+  /** The bag's link button (PLACE-479): the one-time link page, with no item needed. Linked already:
+   *  the status again. The 5 s join poll then sees the link, delivers arrivals and wears the skin. */
+  link(s: S): Promise<void> {
+    return this.locked(s.accountId, async () => {
+      const holder = this.linked.get(s.accountId);
+      if (holder) return this.d.send(s, { t: 'placeschema', kind: 'status', linked: true });
+      await this.openLink(s);
+    });
+  }
+
+  private async openLink(s: S): Promise<void> {
+    const r = await this.call('/mod/link', { platformId: platformId(this.cfg, s.accountId) });
+    if (r.ok && typeof r.body.url === 'string')
+      this.d.send(s, { t: 'placeschema', kind: 'link', url: r.body.url });
+    else this.refused(s, r.body?.error ?? 'link-failed');
   }
 
   /** The holder's Minecraft skin to this player's client, once per session; looked up live, never
@@ -367,13 +398,7 @@ export class PlaceSchemaCarry<S extends CarrySession> {
 
   private async carryLocked(s: S, grantId: string): Promise<void> {
     const pid = platformId(this.cfg, s.accountId);
-    if (!this.linked.get(s.accountId)) {
-      const r = await this.call('/mod/link', { platformId: pid });
-      if (r.ok && typeof r.body.url === 'string')
-        this.d.send(s, { t: 'placeschema', kind: 'link', url: r.body.url });
-      else this.refused(s, r.body?.error ?? 'link-failed');
-      return;
-    }
+    if (!this.linked.get(s.accountId)) return this.openLink(s);
     if (!this.cfg.home) return this.refused(s, 'no-home-world');
     const meta = this.d.sim.meta(s.pid);
     if (!meta) return;
