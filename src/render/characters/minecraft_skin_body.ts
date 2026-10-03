@@ -85,14 +85,63 @@ const find = (root: THREE.Object3D, names: string[] | undefined) => {
 
 export const MC_SKIN_TAG = 'placeschemaMinecraftSkin';
 export const MC_HAND_TAG = 'placeschemaMinecraftHand';
+const MC_HIDDEN = 'placeschemaMinecraftHidden';
+
+/** What a hand anchor needs to put its slot back where it was. */
+type HandRestore = {
+  slot: THREE.Object3D;
+  parent: THREE.Object3D;
+  position: THREE.Vector3;
+  quaternion: THREE.Quaternion;
+  scale: THREE.Vector3;
+};
 
 /** Hide the rig's own body: every mesh that is not a held prop or one of our boxes. Re-run each
  *  frame the skin is worn (other systems may reset visibility). */
 export function hideRigBody(root: THREE.Object3D): void {
+  if (!root.userData[MC_HIDDEN]) root.userData[MC_HIDDEN] = new Set<THREE.Object3D>();
+  const hidden = root.userData[MC_HIDDEN] as Set<THREE.Object3D>;
   root.traverse((o) => {
-    if ((o as THREE.Mesh).isMesh && !o.userData.weaponMesh && !o.userData[MC_SKIN_TAG])
+    if (
+      (o as THREE.Mesh).isMesh &&
+      !o.userData.weaponMesh &&
+      !o.userData[MC_SKIN_TAG] &&
+      o.visible
+    ) {
       o.visible = false;
+      hidden.add(o);
+    }
   });
+}
+
+/** Take the skin off: dispose and remove its boxes, put each hand slot back on its own parent with
+ *  its own grip, and show the rig's body again. */
+export function removeMinecraftSkin(root: THREE.Object3D): void {
+  const boxes: THREE.Mesh[] = [];
+  const hands: THREE.Object3D[] = [];
+  root.traverse((o) => {
+    if (o.userData[MC_SKIN_TAG] && (o as THREE.Mesh).isMesh) boxes.push(o as THREE.Mesh);
+    if (o.userData[MC_HAND_TAG]) hands.push(o);
+  });
+  const materials = new Set<THREE.Material>();
+  for (const b of boxes) {
+    b.geometry.dispose();
+    materials.add(b.material as THREE.Material);
+    b.removeFromParent();
+  }
+  for (const m of materials) m.dispose();
+  for (const h of hands) {
+    const { slot, parent, position, quaternion, scale } = h.userData[MC_HAND_TAG] as HandRestore;
+    parent.add(slot);
+    slot.position.copy(position);
+    slot.quaternion.copy(quaternion);
+    slot.scale.copy(scale);
+    h.removeFromParent();
+  }
+  for (const o of (root.userData[MC_HIDDEN] as Set<THREE.Object3D> | undefined) ?? [])
+    o.visible = true;
+  delete root.userData[MC_HIDDEN];
+  delete root.userData[MC_SKIN_TAG];
 }
 
 const _m = new THREE.Matrix4();
@@ -134,15 +183,17 @@ function bindPose(root: THREE.Object3D): (o: THREE.Object3D) => THREE.Matrix4 {
   });
   root.updateMatrixWorld(true);
   const bones = skeleton?.bones ?? [];
-  const top = bones.findIndex((b) => !(b.parent as THREE.Bone | null)?.isBone);
-  const base =
-    skeleton && top >= 0
-      ? bones[top].matrixWorld.clone().multiply(skeleton.boneInverses[top])
-      : new THREE.Matrix4();
+  // each bone's bind pose is placed by the top bone of its own chain
+  const baseOf = (b: THREE.Object3D): THREE.Matrix4 | null => {
+    let top = b;
+    while ((top.parent as THREE.Bone | null)?.isBone) top = top.parent as THREE.Object3D;
+    const t = bones.indexOf(top as THREE.Bone);
+    return skeleton && t >= 0 ? top.matrixWorld.clone().multiply(skeleton.boneInverses[t]) : null;
+  };
   const at = (o: THREE.Object3D): THREE.Matrix4 => {
     const i = bones.indexOf(o as THREE.Bone);
-    if (skeleton && top >= 0 && i >= 0)
-      return base.clone().multiply(skeleton.boneInverses[i].clone().invert());
+    const base = i >= 0 ? baseOf(o) : null;
+    if (skeleton && base) return base.multiply(skeleton.boneInverses[i].clone().invert());
     return o.parent && o.parent !== root ? at(o.parent).multiply(o.matrix) : o.matrixWorld.clone();
   };
   return at;
@@ -252,7 +303,13 @@ export function wearMinecraftSkin(
         // kept across skin changes (not tagged as a skin box), so the slot never leaves the rig
         const hand = new THREE.Object3D();
         hand.name = MC_HAND_TAG;
-        hand.userData[MC_HAND_TAG] = true;
+        hand.userData[MC_HAND_TAG] = {
+          slot,
+          parent: holder,
+          position: slot.position.clone(),
+          quaternion: slot.quaternion.clone(),
+          scale: slot.scale.clone(),
+        } satisfies HandRestore;
         bind(holder).decompose(hand.position, hand.quaternion, hand.scale);
         ride(bone, hand);
         const local = [slot.position.clone(), slot.quaternion.clone(), slot.scale.clone()] as const;
@@ -277,6 +334,7 @@ export function skinTexture(url: string): THREE.Texture {
     t.minFilter = THREE.NearestFilter;
     t.generateMipmaps = false;
     t.colorSpace = THREE.SRGBColorSpace;
+    for (const old of textures.values()) old.dispose();
     textures.clear(); // ponytail: one skin per client (the local player's own)
     textures.set(url, t);
   }
@@ -284,16 +342,15 @@ export function skinTexture(url: string): THREE.Texture {
 }
 
 /** Per frame, for the local player's visual: wear the carried skin if one arrived (once per rig and
- *  skin; a rebuilt rig gets it again) and keep the rig's own body hidden under it. */
+ *  skin; a rebuilt rig gets it again) and keep the rig's own body hidden under it; take it off again when the skin goes. */
 export function wearCarriedSkin(root: THREE.Object3D, height: number): void {
   const skin = carriedSkin();
-  if (!skin) return;
+  if (!skin) {
+    if (root.userData[MC_SKIN_TAG]) removeMinecraftSkin(root);
+    return;
+  }
   if (root.userData[MC_SKIN_TAG] !== skin.url) {
-    const old: THREE.Object3D[] = [];
-    root.traverse((o) => {
-      if (o.userData[MC_SKIN_TAG]) old.push(o);
-    });
-    for (const o of old) o.removeFromParent();
+    removeMinecraftSkin(root);
     wearMinecraftSkin(
       root,
       height,
