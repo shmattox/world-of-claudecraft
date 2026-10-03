@@ -9,6 +9,7 @@
 // wallet and may drive public holder claims elsewhere. The bags window's
 // deps bag calls this and never imports it directly (Hud composes it).
 
+import { placeSchemaLinked } from '../placeschema_skin_state';
 import { esc } from './esc';
 import { t } from './i18n';
 import {
@@ -41,4 +42,15 @@ export function wocBalanceChipHtml(): string {
     : t('wallet.balancePreviewAria', { balance });
   const tag = verified ? 'span' : 'button type="button" data-wallet-action';
   return `<${tag} class="woc-balance ${verified ? 'is-verified' : 'is-preview'}" title="${esc(title)}" aria-label="${esc(aria)}"><span class="woc-coin" aria-hidden="true"></span>${esc(balance)}</${verified ? 'span' : 'button'}>`;
+}
+
+/** PLACE-479: the PlaceSchema account link, beside (and distinct from) the Solana wallet chip.
+ *  Nothing until the server's sidecar has said whether the account is linked. */
+export function placeSchemaLinkChipHtml(): string {
+  const linked = placeSchemaLinked();
+  if (linked === null) return '';
+  if (linked)
+    return `<span class="woc-balance ps-link is-linked">${esc(t('wallet.placeSchemaLinked'))}</span>`;
+  const label = t('wallet.placeSchemaLink');
+  return `<button type="button" class="woc-balance ps-link" data-ps-link title="${esc(t('wallet.placeSchemaLinkTitle'))}">${esc(label)}</button>`;
 }

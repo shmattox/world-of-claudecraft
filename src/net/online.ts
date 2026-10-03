@@ -3676,6 +3676,9 @@ export class ClientWorld extends ReconWireState implements IWorld {
   carryItem(slotIndex: number): void {
     this.cmd({ cmd: 'ps_carry', slot: slotIndex });
   }
+  linkPlaceSchema(): void {
+    this.cmd({ cmd: 'ps_link' });
+  }
   setItemLocked(itemId: string, locked: boolean, target: NamedSlotTarget): void {
     this.cmd({
       cmd: 'lock_item',

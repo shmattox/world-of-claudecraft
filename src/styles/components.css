@@ -9167,6 +9167,7 @@
     flex: none;
     display: flex;
     align-items: center;
+    flex-wrap: wrap; /* PLACE-479: the PlaceSchema link chip may share the row */
     gap: 10px;
     border-top: 1px solid var(--color-border-showcase);
     padding-top: var(--spacing-sm);

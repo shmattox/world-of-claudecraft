@@ -73,6 +73,8 @@ export interface IWorldInventory {
   setItemLocked(itemId: string, locked: boolean, target: NamedSlotTarget): void;
   /** Online only (PLACE-276): carry the PlaceSchema-signed copy in this bag slot out. */
   carryItem?(slotIndex: number): void;
+  /** PLACE-479: ask for the one-time PlaceSchema link page (online only) */
+  linkPlaceSchema?(): void;
   // The request rides an options bag (VendorBuyOptions, phase 21): `bulk`
   // requests as many units as the buyer can currently afford in one purchase,
   // capped at the item's bag stack size (VendorGoodsRow.bulkQuantity previews

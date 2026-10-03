@@ -109,6 +109,7 @@ function world() {
             .map((e) => ({ grant: e.grant, label: e.label })),
         },
       };
+    if (path === '/mod/link') return { status: 200, body: { url: 'https://sidecar.test/link#x' } };
     if (path === '/mod/ack') {
       for (const g of b.grants) {
         const e = escrow.get(g)!;
@@ -459,6 +460,35 @@ describe('placeschema sidecar game side (PLACE-276)', () => {
     expect(w.calls).toContain('/mod/link');
   });
 
+  it('PLACE-479: the link button opens the link page with no item, then reports linked', async () => {
+    const w = world();
+    await w.carry.link(w.session()); // a fresh account: no item, never joined
+    expect(w.calls).toEqual(['/mod/link']);
+    expect(w.frames).toEqual([
+      { t: 'placeschema', kind: 'link', url: 'https://sidecar.test/link#x' },
+    ]);
+    w.frames.length = 0;
+    w.arrive(); // a Hub item waiting for the link
+    await w.carry.join(w.session()); // the 5 s poll, after the player linked
+    expect(w.frames[0]).toEqual({ t: 'placeschema', kind: 'status', linked: true });
+    expect(slotOfGrant(w.inventory, G1)).toBe(0); // the arrival is delivered
+    await w.carry.join(w.session());
+    expect(w.frames.filter((f: any) => f?.kind === 'status')).toHaveLength(1); // told once
+    w.calls.length = 0;
+    w.frames.length = 0;
+    await w.carry.link(w.session()); // linked: no new link page, just the status
+    expect(w.calls).toEqual([]);
+    expect(w.frames).toEqual([{ t: 'placeschema', kind: 'status', linked: true }]);
+  });
+
+  it('PLACE-479: a spammed link button makes exactly one /mod/link call', async () => {
+    const w = world();
+    await Promise.all(Array.from({ length: 5 }, () => w.carry.link(w.session())));
+    expect(w.calls.filter((c) => c === '/mod/link')).toHaveLength(1);
+    await w.carry.link(w.session()); // once it settles, a later click works again
+    expect(w.calls.filter((c) => c === '/mod/link')).toHaveLength(2);
+  });
+
   it('N2: slow relay, the game aborts, the item is traded away, then the late commit: one copy', async () => {
     const w = await holding();
     w.faults['/mod/carry-out'] = 'slow';
@@ -590,7 +620,7 @@ describe('placeschema sidecar game side (PLACE-276)', () => {
     void w.carry.join(w.session());
     await flush();
     expect(w.claims.get(G1)).toMatchObject({ character: 70, pending: true }); // claimed, never saved
-    expect(w.frames).toEqual([]); // nothing announced before the save landed
+    expect(w.frames.filter((f: any) => f?.kind !== 'status')).toEqual([]); // nothing announced before the save landed
     const again = w.crash();
     expect(slotOfGrant(w.inventory, G1)).toBe(-1);
     await again.join(w.session()); // re-offered; the pending claim is ours: added once

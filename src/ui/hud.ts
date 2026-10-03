@@ -192,6 +192,7 @@ import {
 
 export type { BannerVariant } from './banner_queue';
 
+import { onPlaceSchemaLinkedChange } from '../placeschema_skin_state';
 import { blockLandingLogKey } from './block_landing_feedback_core';
 import { BootcampOverlay } from './bootcamp';
 import { CalendarWindow } from './calendar_window';
@@ -943,7 +944,7 @@ import { syncWindowOpenBodyClasses } from './window_open_state';
 import { installWindowReflow, rememberWindowPos, requestedWindowPos } from './window_reflow';
 import { placeWindow } from './window_reflow_core';
 import { installWindowResize, markResizableWindow } from './window_resize';
-import { wocBalanceChipHtml } from './woc_balance_chip';
+import { placeSchemaLinkChipHtml, wocBalanceChipHtml } from './woc_balance_chip';
 import { promptWocMarketBrowserVisit, wocMarketToggleAction } from './woc_market_link';
 import { type WocMarketHooks, WocMarketWindow } from './woc_market_window';
 import { installWorldDropTarget } from './world_drop_target';
@@ -2596,6 +2597,10 @@ export class Hud {
     document.addEventListener('woc:languagechange', () => this.refreshLocalizedDynamicUi());
     // re-render the bag footer (and re-composite an open player card) when the
     // connected wallet's $WOC balance changes
+    // PLACE-479: the PlaceSchema link chip follows the sidecar's link status
+    onPlaceSchemaLinkedChange(() => {
+      if (bagsWindowShown($('#bags').style.display)) this.bagsWindow.refreshMoneyRow();
+    });
     onWalletUiChange(() => {
       // Footer-only, as this comment always claimed: the balance lands asynchronously
       // with no user action behind it, so a full rebuild would drop the bag-search
@@ -6110,7 +6115,7 @@ export class Hud {
   // The connected wallet's $WOC balance, shown left of the coins in the bag
   // (woc_balance_chip.ts builds it; the Hud only composes it into the bags deps).
   private wocBalanceHtml(): string {
-    return wocBalanceChipHtml();
+    return wocBalanceChipHtml() + placeSchemaLinkChipHtml(); // PLACE-479: empty until the sidecar answers
   }
 
   private claudiumLauncherHtml(): string {
