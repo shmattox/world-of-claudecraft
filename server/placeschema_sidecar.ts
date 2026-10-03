@@ -184,6 +184,8 @@ export class PlaceSchemaCarry<S extends CarrySession> {
   private readonly chains = new Map<number, Promise<unknown>>();
   /** accounts with a poll join already queued: the 5 s poll never stacks behind itself */
   private readonly polling = new Set<number>();
+  /** accounts with a link-button request in flight (PLACE-479): extra clicks are dropped */
+  private readonly linking = new Set<number>();
   /** the session each skin was sent to, so a holder's skin is looked up once per session */
   private readonly skinned = new WeakMap<S, string>();
   /** the link status last sent to each session */
@@ -315,11 +317,14 @@ export class PlaceSchemaCarry<S extends CarrySession> {
   /** The bag's link button (PLACE-479): the one-time link page, with no item needed. Linked already:
    *  the status again. The 5 s join poll then sees the link, delivers arrivals and wears the skin. */
   link(s: S): Promise<void> {
+    // One in flight per account: a spammed button never queues jobs ahead of the join poll.
+    if (this.linking.has(s.accountId)) return Promise.resolve();
+    this.linking.add(s.accountId);
     return this.locked(s.accountId, async () => {
       const holder = this.linked.get(s.accountId);
       if (holder) return this.d.send(s, { t: 'placeschema', kind: 'status', linked: true });
       await this.openLink(s);
-    });
+    }).finally(() => this.linking.delete(s.accountId));
   }
 
   private async openLink(s: S): Promise<void> {

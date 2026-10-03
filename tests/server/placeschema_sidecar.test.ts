@@ -481,6 +481,14 @@ describe('placeschema sidecar game side (PLACE-276)', () => {
     expect(w.frames).toEqual([{ t: 'placeschema', kind: 'status', linked: true }]);
   });
 
+  it('PLACE-479: a spammed link button makes exactly one /mod/link call', async () => {
+    const w = world();
+    await Promise.all(Array.from({ length: 5 }, () => w.carry.link(w.session())));
+    expect(w.calls.filter((c) => c === '/mod/link')).toHaveLength(1);
+    await w.carry.link(w.session()); // once it settles, a later click works again
+    expect(w.calls.filter((c) => c === '/mod/link')).toHaveLength(2);
+  });
+
   it('N2: slow relay, the game aborts, the item is traded away, then the late commit: one copy', async () => {
     const w = await holding();
     w.faults['/mod/carry-out'] = 'slow';
