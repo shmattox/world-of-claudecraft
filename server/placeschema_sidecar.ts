@@ -29,6 +29,8 @@ const SETTLED = /^(landed|unknown-grant|not-yours)/;
 /** A foreign blade or weapon (not minted here) is held as this WoC weapon, named by its grant; its
  *  own mesh rides on the copy when the sidecar's look says `as-is` (MESH_KEY, PLACE-410). */
 export const FOREIGN_WEAPON_ID = 'worn_sword';
+/** Any other foreign kind (armor, misc, unknown) is held as this bag item, named by its grant. */
+export const FOREIGN_KEEPSAKE_ID = 'ps_keepsake';
 const WOC_TYPE = /^(?:weapon|armor|misc)\.woc\.([a-z0-9_]{1,48})$/;
 
 /** A WoC item as a template (protocol/src/vocabulary.ts categories: weapon, armor, misc). */
@@ -152,17 +154,19 @@ export const platformId = (cfg: SidecarConfig, accountId: number) =>
   `${accountId}@${cfg.realmHost}`;
 
 /** The WoC item a grant is held as: our own mint maps back to its item, a foreign blade or weapon
- *  to the stand-in; anything else has no body here yet (undefined: it stays pending, never acked). */
-export function itemIdForGrant(grant: Grant): string | undefined {
+ *  to the stand-in, and anything else (an item this realm lacks too) to a keepsake, so every arrival
+ *  gets a body and its ack and none strands in escrow (PLACE-293). */
+export function itemIdForGrant(grant: Grant): string {
+  let type: unknown;
   try {
-    const t = JSON.parse(grant.content) as { type?: string };
-    if (typeof t.type !== 'string') return undefined;
-    const m = WOC_TYPE.exec(t.type);
-    if (m) return ITEMS[m[1]] ? m[1] : undefined;
-    return /^(blade|weapon)\./.test(t.type) ? FOREIGN_WEAPON_ID : undefined;
+    type = (JSON.parse(grant.content) as { type?: unknown }).type;
   } catch {
-    return undefined;
+    type = undefined;
   }
+  if (typeof type !== 'string') return FOREIGN_KEEPSAKE_ID;
+  const m = WOC_TYPE.exec(type);
+  if (m) return ITEMS[m[1]] ? m[1] : FOREIGN_KEEPSAKE_ID;
+  return /^(blade|weapon)\./.test(type) ? FOREIGN_WEAPON_ID : FOREIGN_KEEPSAKE_ID;
 }
 
 /** The inventory slot holding the copy of `grantId`, if any. */
@@ -256,7 +260,6 @@ export class PlaceSchemaCarry<S extends CarrySession> {
       for (const a of (r.body.add ?? []) as Added[]) {
         if (!a?.grant || !HEX64.test(a.grant.id)) continue;
         const itemId = itemIdForGrant(a.grant);
-        if (!itemId) continue; // no body for this kind here yet: left pending, not acked
         const g = a.grant.id;
         const outcome = await this.d.store.claim(s.accountId, g, s.characterId);
         if (outcome === 'busy') continue; // another character's claim is still being saved
