@@ -284,7 +284,7 @@ export class PlaceSchemaCarry<S extends CarrySession> {
             if (at >= 0) this.d.sim.equipItem?.(itemId, s.pid, 'mainhand', at);
           }
           notices.push(
-            itemId !== FOREIGN_WEAPON_ID
+            itemId !== FOREIGN_WEAPON_ID && itemId !== FOREIGN_KEEPSAKE_ID
               ? `${a.label ?? 'Your item'} is now yours to carry to other worlds.`
               : `${a.label ?? 'An item'} arrived from another world.`,
           );
