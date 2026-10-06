@@ -146,8 +146,10 @@ const build = await buildItemArtAudit({
     // Warfare Season 2 compose with the hoard paintings: 1464 / 1482, with the
     // release's 135 pending rows (trinkets and Season 2), on 36 sheet pages.
     // The feral Season 2 staff adds one painted owner and one live definition.
-    catalogCount: 1465,
-    liveItemCount: 1483,
+    // The eight Season 2 rings and necks (vanguard-jewelry-icons-2026-10-03)
+    // add eight painted owners (measured with the verifier).
+    catalogCount: 1473,
+    liveItemCount: 1491,
     pendingArtCount: 135,
     generatedHeroicDefinitions: 78,
     heroicDefinitionsWithOwnWebp: 59,

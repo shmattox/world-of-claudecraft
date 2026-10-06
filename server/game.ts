@@ -78,7 +78,7 @@ import {
   parseTalentOptionId,
   parseTalentRowLevel,
 } from '../src/sim/talent_allocation_input';
-import { stealthDetectionRadius, threatEntries } from '../src/sim/threat';
+import { threatEntries } from '../src/sim/threat';
 import {
   DT,
   dist2d,
@@ -241,6 +241,7 @@ import {
 } from './disconnected_player_input';
 import { enqueueActivity } from './discord_activity';
 import { discordFlairForAccount, grantRewardPoints } from './discord_db';
+import { stampDiscordFlair } from './discord_flair_stamp';
 import { enqueueLinkChange } from './discord_link_changes';
 import { observeQueuePops, queuedPidsOf, queuePopDepsFor } from './discord_queue_pops';
 import { enqueueRelay } from './discord_relay';
@@ -252,6 +253,8 @@ import {
   harvestBandForNode,
   harvestTierForNode,
 } from './economy_telemetry';
+import { canObserveEntity } from './entity_observation';
+import { writeEntityPresenceBits } from './entity_presence_wire';
 import { isUpdateDue } from './entity_update_cadence';
 // Imported from the mirror modules DIRECTLY (not the ./steam or ./epic
 // barrels), the same way deeds_records imports onDeedRecorded: the barrels
@@ -265,6 +268,7 @@ import { assembleEventsFrame, filterRoutableEvents, serializeEventFragments } fr
 import { buildEventPidIndex, forEachSelectedEventIndex } from './event_pid_index';
 import { appendFarmPlotsWire, dispatchFarmingCommand } from './farming_commands';
 import { fishingBandLabel, isKoi, isRodFeeRecipe } from './fishing_telemetry';
+import { type FlairCommandHost, handleFlairChatCommand } from './flair_command';
 import { dispatchGatheringGoalCommand } from './gathering_goal_commands';
 import { appendGatheringGoalSelfWire } from './gathering_goal_wire';
 import { appendGatheringSelfWire } from './gathering_self_wire';
@@ -329,7 +333,6 @@ import {
   INTEREST_QUERY_RADIUS,
   INTEREST_RADIUS,
   interestLimitSq,
-  isStealthed,
   NPC_DROP_RADIUS,
 } from './interest_policy';
 import { IpBlockList } from './ip_block';
@@ -406,6 +409,7 @@ import { dispatchPerfectItemCommand } from './perfect_item_command';
 import { parsePerfectingSwapCommand } from './perfecting_swap_command';
 import { runPeriodicSaveFlush } from './periodic_save_flush';
 import { writePlayerIdentityWire } from './player_identity_wire';
+import * as presence from './presence_privacy';
 import { VaultGameServices, type VaultMailSaveCapture } from './vault_game_services';
 import { dispatchVehicleCommand } from './vehicle_command_wire';
 import { dispatchWeeklyRewardCommand } from './weekly_reward_open';
@@ -450,6 +454,7 @@ import {
 import type { Presence, PresenceStatus, SocialActor, SocialTransport } from './social';
 import { guildStampRankOf, SocialService } from './social';
 import { PgSocialDb } from './social_db';
+import { broadcastSocialPositions } from './social_positions';
 import { reconcileOnLogin as reconcileSteamOnLogin } from './steam/mirror';
 import {
   type StorageAppliedEffectDraft,
@@ -977,6 +982,10 @@ export interface ClientSession
   // ignore commands. Distinct from `chatMutedUntil`, which is the ADMIN silence
   // applied TO this player by staff.
   ignoredIds: Set<number>;
+  // Presence privacy (server/presence_privacy.ts), read with the character row at
+  // join; friendIds is this character's own friends list, refreshed with the panel.
+  presenceMode: presence.PresenceMode;
+  friendIds: Set<number>;
   // name of the last player to whisper this session, for the /r reply
   lastWhisperFrom: string | null;
   // last explicit channel this player sent to; plain text follows it.
@@ -1376,8 +1385,7 @@ function dynamicFields(e: Entity, includeAuras = true): Record<string, unknown> 
   if (e.ghost) out.gh = 1; // released spirit (ghost form); renders translucent
   if (e.lootable) out.loot = 1;
   if (e.hostile) out.h = 1;
-  if (e.afk) out.ak = 1; // /afk display bit: other clients tag the nameplate + presence dot
-  if (e.pvpFlag) out.pvp = 1; // /pvp flag bit: nameplate + target-frame hostility colour
+  writeEntityPresenceBits(out, e); // /afk, /pvp, hill bounty: nameplate + target frame
   // The target frame's resource bar: type + current/max, sent only for entities
   // that HAVE a resource (players and caster mobs; a resource-less wolf omits all
   // three and the frame hides its bar). The rounded res keeps an idle entity's
@@ -1615,6 +1623,14 @@ export class GameServer {
   // One FIFO per character so a burst of debounced client saves cannot commit on
   // separate pool clients in reverse order and persist a stale layout.
   readonly hotbarLayouts = new HotbarLayoutStore();
+  // The narrow host the /flair command needs (server/flair_command.ts).
+  private readonly flairHost: FlairCommandHost<ClientSession> = {
+    pool,
+    consumeCommandLane: (session, nowSec) => this.consumeLane(session, 'command', nowSec),
+    refreshDiscordFlair: (session) => this.refreshDiscordFlair(session),
+    sendChatNotice: (session, text) => this.sendChatNotice(session, text),
+  };
+  private readonly presenceHost = presence.presenceHostFrom(this.flairHost, () => this.social);
   // Serializes every write of the single global Market blob (the 30s periodic
   // saveMarket/saveMail/saveRifts and the leave-path combined save). All
   // serialize whole-blob shared state; without a queue their transactions
@@ -2317,6 +2333,7 @@ export class GameServer {
         return s ? actor(s) : null;
       },
       isOnline: (id) => this.sessionByCharacterId(id) !== null,
+      presenceSubject: (id) => this.sessionByCharacterId(id),
       locationOf: (id) => {
         const s = this.sessionByCharacterId(id);
         return s ? this.presenceOf(s) : null;
@@ -2472,7 +2489,7 @@ export class GameServer {
       if (snap.guild && !this.sim.guildBanks.has(snap.guild.id)) {
         await this.guildBankLazyLoader.ensureLoaded(snap.guild.id);
       }
-      this.send(session, { t: 'social', ...snap });
+      this.send(session, { t: 'social', ...snap, presenceMode: session.presenceMode });
       // Stamp the guild name onto the player's world entity so it rides the
       // identity wire and shows under their nameplate for everyone nearby,
       // PAIRED with the session-only membership stamp the guild bank's
@@ -2500,6 +2517,7 @@ export class GameServer {
           snap.guild?.tier ?? snap.myPledge?.tier ?? 0,
         );
       }
+      session.friendIds = new Set(snap.friends.map((f) => f.id));
       // remember who to track for the live position push (friends + guildmates)
       session.socialTrackedIds = [
         ...snap.friends.map((f) => f.id),
@@ -2510,40 +2528,15 @@ export class GameServer {
     }
   }
 
-  // Cheap (no-DB) periodic push: refresh the live positions of each client's
-  // already-known friends/guildmates so they stay current on the world map.
+  // The once-a-second friend/guildmate position push (server/social_positions.ts).
   private broadcastSocialPositions(): void {
-    for (const session of this.clients.values()) {
-      const ids = session.socialTrackedIds;
-      if (!ids || ids.length === 0) continue;
-      const list: {
-        id: number;
-        x: number;
-        z: number;
-        zone: string;
-        status: PresenceStatus;
-        title: string | null;
-      }[] = [];
-      for (const id of ids) {
-        const other = this.sessionByCharacterId(id);
-        if (!other) continue; // offline — snapshots own the online/offline flip
-        // A friend/guild edge on the OTHER side survives a block (blockAdd only
-        // cleans the blocker's own outgoing friend edge, never guild
-        // membership), so this tracked id can stay in socialTrackedIds long
-        // after a block either way. Refuse to leak live position across it,
-        // the same bidirectional rule canShowInWho already applies to /who.
-        if (!canShowInWho(session, other)) continue;
-        const loc = this.presenceOf(other);
-        if (loc.x === undefined || loc.z === undefined) continue;
-        // The live Book of Deeds title (sim meta, no DB read); the `social`
-        // frame's DB-sourced roster value lags the autosave, so this keeps
-        // non-nearby friends/guildmates current without a relog. Always
-        // present so a cleared title propagates as an explicit null.
-        const title = this.sim.meta(other.pid)?.activeTitle ?? null;
-        list.push({ id, x: loc.x, z: loc.z, zone: loc.zone, status: loc.status, title });
-      }
-      if (list.length > 0) this.send(session, { t: 'socialpos', list });
-    }
+    broadcastSocialPositions<ClientSession>({
+      sessions: () => this.clients.values(),
+      sessionByCharacterId: (id) => this.sessionByCharacterId(id),
+      presenceOf: (s) => this.presenceOf(s),
+      activeTitleOf: (s) => this.sim.meta(s.pid)?.activeTitle ?? null,
+      send: (s, frame) => this.send(s, frame as never),
+    });
   }
 
   start(): void {
@@ -2884,26 +2877,7 @@ export class GameServer {
     const flair = await discordFlairForAccount(pool, session.accountId);
     if (this.clients.get(session.pid) !== session) return;
     const e = this.sim.entities.get(session.pid);
-    if (!e) return;
-    const tier = flair?.tier ?? 0;
-    const avatar = flair?.avatarUrl ?? undefined;
-    const name = flair?.name ?? undefined;
-    const joined = flair?.joinedAtMs ?? undefined;
-    const role = flair?.role ?? undefined;
-    if (
-      e.discordTier !== tier ||
-      e.discordAvatar !== avatar ||
-      e.discordName !== name ||
-      e.discordJoined !== joined ||
-      e.discordRole !== role
-    ) {
-      // identity diff re-broadcasts the linked-Discord flair to nearby players
-      e.discordTier = tier;
-      e.discordAvatar = avatar;
-      e.discordName = name;
-      e.discordJoined = joined;
-      e.discordRole = role;
-    }
+    if (e) stampDiscordFlair(e, flair);
   }
 
   // Load one player's operator-set account flair (AI mark + streamer links) and
@@ -3238,6 +3212,7 @@ export class GameServer {
         // The account ledger loaded for this account (server/account_ledger_db.ts);
         // absent on the bare test join, which then fills a fresh ledger alone.
         accountLedger?: AccountLedger;
+        presenceMode?: string | null;
         chatStrikes?: number;
         isAdmin?: boolean;
         adminPermissions?: readonly string[];
@@ -3253,7 +3228,6 @@ export class GameServer {
         generalChatRateLimit?: GeneralChatRateLimit | null;
         // Fresh-login bank entitlement; absent for resumes and bare test joins.
         bankBonus?: { bonusSlots: number; sources: BankBonusSource[] };
-        vaultGuestUsage?: { cycle: string; payouts: number };
         // Stored layout is untrusted and revalidated before reaching the client.
         hotbarLayout?: unknown;
         // Authored appearance rides the entity identity wire.
@@ -3295,7 +3269,6 @@ export class GameServer {
       tutorialGreetingSent: state === null,
     });
     const player = this.sim.entities.get(pid);
-    this.vault.applyGuestUsage(pid, meta.vaultGuestUsage);
     if (player) {
       player.petSpecialCommandsSupported = meta.petSpecialWireVersion === PET_SPECIAL_WIRE_VERSION;
     }
@@ -3416,6 +3389,8 @@ export class GameServer {
       chatStrikes: meta.chatStrikes ?? 0,
       blockedIds: new Set(),
       blockListLoaded: false,
+      presenceMode: presence.isPresenceMode(meta.presenceMode) ? meta.presenceMode : 'everyone',
+      friendIds: new Set(),
       guildStampSeq: 0,
       dirtyGuildBanks: new Map(),
       pendingStorageAppliedEffects: [],
@@ -6872,6 +6847,9 @@ export class GameServer {
       case 'resurrect_healer':
         this.sendCommandOutcome(session, msg, sim.resurrectAtSpiritHealer(pid));
         break;
+      case 'pvp_resurrect':
+        sim.pvpResurrect(pid);
+        break;
       case 'resurrect_respond':
         if (typeof msg.accept === 'boolean') sim.respondToResurrection(msg.accept, pid);
         break;
@@ -6918,6 +6896,12 @@ export class GameServer {
         // never be shadowed by a player command. The two list READOUTS carry
         // their own DB-read guard inside (the phase 06 maintainer ruling).
         if (this.handleChatFilterCommand(session, text, receivedAtMs / 1000)) break;
+        // The player's own /flair on|off, usable while muted for the same reason.
+        if (handleFlairChatCommand(this.flairHost, session, text, receivedAtMs / 1000)) break;
+        if (
+          presence.handlePresenceChatCommand(this.presenceHost, session, text, receivedAtMs / 1000)
+        )
+          break;
         if (this.isChatMuted(session)) break;
         // The chat lane is a pre-guard CO-LOCATED with the ladder, not at the
         // case entry (R5): the moderation router and the ignore/block/filter
@@ -8187,15 +8171,7 @@ export class GameServer {
   }
 
   private canObserveEntity(viewer: Entity, e: Entity, d2: number): boolean {
-    if (e.kind !== 'player' || !isStealthed(e)) return true;
-    if (this.sim.isHostileTo(viewer, e)) return false;
-    const party = this.sim.partyOf(viewer.id);
-    const sameParty = party?.members.includes(e.id) ?? false;
-    const duel = this.sim.duelFor(viewer.id);
-    const duelingEachOther = duel !== null && (duel.a === e.id || duel.b === e.id);
-    if (sameParty && !duelingEachOther) return true;
-    const radius = stealthDetectionRadius(viewer, e, INTEREST_RADIUS);
-    return d2 <= radius * radius;
+    return canObserveEntity(this.sim, viewer, e, d2);
   }
 
   private entityWireCacheFor(e: Entity): EntityWireCache {
@@ -8457,10 +8433,6 @@ export class GameServer {
       Object.fromEntries([...meta.raidLockouts].filter(([, until]) => until > Date.now())),
     );
     maybeRaw('wba', this.worldBossIdsJson);
-    // Where the player's corpse lies while their spirit is a ghost (null otherwise).
-    // Delta-guarded: ships on death-release and clears on resurrect. The client
-    // draws the corpse marker and gates the resurrect-at-corpse button on it.
-    maybe('corpse', p.corpsePos);
     if (stableTimerWire) {
       maybeSerialized('auras', this.stableAuraWireFor(p).json);
       maybeSerialized(

@@ -438,7 +438,9 @@ export const zh_CN: EnTranslations = {
         "worldOne": "已完成{count}个世界任务",
         "worldMany": "已完成{count}个世界任务",
         "pvpOne": "已赢得{count}场评级比赛",
-        "pvpMany": "已赢得{count}场评级比赛"
+        "pvpMany": "已赢得{count}场评级比赛",
+        "pvpWinOne": "已获得{count}场PvP胜利",
+        "pvpWinMany": "已获得{count}场PvP胜利"
       },
       "requiredTask": {
         "raidOne": "击败{count}个团队副本首领",
@@ -448,7 +450,9 @@ export const zh_CN: EnTranslations = {
         "worldOne": "完成{count}个世界任务",
         "worldMany": "完成{count}个世界任务",
         "pvpOne": "赢得{count}场评级比赛",
-        "pvpMany": "赢得{count}场评级比赛"
+        "pvpMany": "赢得{count}场评级比赛",
+        "pvpWinOne": "获得{count}场PvP胜利",
+        "pvpWinMany": "获得{count}场PvP胜利"
       },
       "readyWeeks": "未领取的周次：{count}。请先领取最早完成的那一周。",
       "claimLastWeek": "领取上周的奖励",
@@ -594,6 +598,8 @@ export const zh_CN: EnTranslations = {
     },
     "death": {
       "resurrectAtCorpse": "在尸体旁复活",
+      "pvpResurrect": "PvP 复活",
+      "pvpResurrectTitle": "在最近的墓地以满生命值复活，且不会新增复活后遗症。",
       "resurrectAtHealer": "灵魂医者（复活后遗症）",
       "ghostHint": "跑回你死亡的地点，或与灵魂医者交谈以复活",
       "spiritHealerAlive": "灵魂医者只看护逝者。你仍是生者。",
@@ -2786,8 +2792,10 @@ export const zh_CN: EnTranslations = {
     },
     "worldPvp": {
       "rewardBonus": "保持世界PvP开启可多获得{percent}的经验值和阵营声望。请求关闭时，加成立即停止。",
-      "rewardTitles": "开启世界PvP的游戏时间达到{thresholds}时，可获得永久头衔。离线或身处试炼之滨时计时暂停。关闭PvP会重置计时。",
+      "rewardTitles": "在开放世界中开启世界PvP的游戏时间达到{thresholds}时，可获得永久头衔。离线、死亡、身处副本或试炼之滨时计时暂停。关闭PvP会重置计时。",
       "rewardPaused": "当前PvP连续游戏时间：{time}（在试炼之滨暂停）",
+      "rewardPausedDead": "当前PvP连续游戏时间：{time}（死亡期间暂停）",
+      "rewardPausedInstance": "当前PvP连续游戏时间：{time}（在副本中暂停）",
       "rewardProgress": "当前PvP连续游戏时间：{time}",
       "tab": "世界 PvP",
       "title": "世界 PvP",
@@ -2843,6 +2851,15 @@ export const zh_CN: EnTranslations = {
       "falls": "{minutes} 后消失",
       "pvpEntry": "进入活动圈会开启世界 PvP。",
       "pvpBanner": "PvP",
+      "callout": {
+        "killingSpree": "{name}正在大杀特杀！",
+        "rampage": "{name}已经杀人如麻！",
+        "unstoppable": "{name}已经无人能挡！",
+        "dominating": "{name}已经主宰比赛！",
+        "godlike": "{name}已经接近神了！",
+        "legendary": "{name}已经超越神了！",
+        "shutDown": "{killer}终结了{victim}！"
+      },
       "standingRaid": "团队成员不计入人数：只有队伍才能占据山丘"
     },
     "warfareShop": {
@@ -2855,7 +2872,8 @@ export const zh_CN: EnTranslations = {
       "owned": "已拥有",
       "buyAria": "以 {honor} 购买 {item}",
       "buyOwnedAria": "以 {honor} 购买 {item}，已拥有",
-      "buyConfirmBody": "用 {honor} 购买 {item}？荣誉购买后无法退款。"
+      "buyConfirmBody": "用 {honor} 购买 {item}？荣誉购买后无法退款。",
+      "buyConfirmBodyGold": "用 {price} 购买 {item}？此次购买无法退款。"
     },
     "charSheet": {
       "offense": "攻击",
@@ -3878,8 +3896,8 @@ export const zh_CN: EnTranslations = {
         "boneSpikeHeroicSummary": "每 {everyHeroic} 秒，尼思拉克西斯会用骨刺穿刺除当前目标外的 {victimsHeroic} 名队员。被穿刺的队员无法行动，每秒损失 {drainHeroic} 最大生命值，直到骨刺被摧毁。任何人命中骨刺 {hitsHeroic} 次即可将其击碎，无论伤害多少。已被穿刺过的队员在 {cooldown} 秒内不会再次被选中，因此骨刺会分散到整个团队。",
         "boneSpikeResponse": "离得最近的人攻击骨刺：任何人命中几次即可击碎，无论伤害多少。治疗者在骨刺被击碎前保住被穿刺队员的性命。",
         "graveEruptionName": "坟场爆裂",
-        "graveEruptionSummary": "每 {everyNormal} 秒，森森白骨之手会在队员脚下标记 {countNormal} 个半径 {radius} 码的圆圈。{warning} 秒后，每个圆圈都会爆裂，造成 {burstNormal} 最大生命值的暗影伤害，随后化为坟场烈焰燃烧 {flameNormal} 秒，对站在其中的任何人每秒造成 {tickNormal} 最大生命值的伤害。",
-        "graveEruptionHeroicSummary": "每 {everyHeroic} 秒，森森白骨之手会在队员脚下标记 {countHeroic} 个半径 {radius} 码的圆圈。{warning} 秒后，每个圆圈都会爆裂，造成 {burstHeroic} 最大生命值的暗影伤害，随后化为坟场烈焰燃烧 {flameHeroic} 秒，对站在其中的任何人每秒造成 {tickHeroic} 最大生命值的伤害。",
+        "graveEruptionSummary": "每 {everyNormal} 秒，森森白骨之手会在队员脚下标记 {countNormal} 个半径 {radius} 码的圆圈。{warning} 秒后，每个圆圈都会爆裂，造成 {burstNormal} 最大生命值的暗影伤害，随后化为坟场烈焰燃烧 {flameNormal} 秒，对站在其中的任何人每秒造成 {tickNormal} 最大生命值的伤害。灵魂撕裂标记存在期间以及标记消失后 {gap} 秒内，此技能不会发动。",
+        "graveEruptionHeroicSummary": "每 {everyHeroic} 秒，森森白骨之手会在队员脚下标记 {countHeroic} 个半径 {radius} 码的圆圈。{warning} 秒后，每个圆圈都会爆裂，造成 {burstHeroic} 最大生命值的暗影伤害，随后化为坟场烈焰燃烧 {flameHeroic} 秒，对站在其中的任何人每秒造成 {tickHeroic} 最大生命值的伤害。灵魂撕裂标记存在期间以及标记消失后 {gap} 秒内，此技能不会发动。",
         "graveEruptionResponse": "在每个预警圆圈爆裂前离开，并远离燃烧地面。坦克应将尼思拉克西斯拉离火焰区域，为近战输出留出空间。",
         "bindingSigilName": "束缚法阵",
         "bindingSigilSummary": "每 {everyNormal} 秒，一座古老结界的法阵会在王座两侧的两座平台之一浮现（以团队视角，位于开战时尼思拉克西斯所站位置左侧或右侧 {sideOffset} 码处），每次施放交替换边，同时他开始不死飞升，每 {ascensionEvery} 秒获得 {ascensionNormal} 伤害与攻击速度加成。若他在 {bindNormal} 秒内站上法阵，便会受缚：不死飞升被清除，他被眩晕 {stunNormal} 秒，并在接下来的 {boundNormal} 秒内受到的伤害提高 {vulnerability}。否则每名队员都会受到 {unboundHitNormal} 最大生命值的暗影伤害，且他会一直保持 {unboundBonusNormal} 的伤害加成，直到下一次束缚。",
@@ -4194,6 +4212,7 @@ export const zh_CN: EnTranslations = {
       "mobLevel": "{level}",
       "mobEliteLevel": "{level}+",
       "afkTag": "暂离",
+      "bountyTag": "悬赏 {honor}",
       "pvpTag": "PvP",
       "cheaterTag": "< 作弊者 >",
       "pledgeTag": "{guild}的宣誓者",
@@ -4579,12 +4598,11 @@ export const zh_CN: EnTranslations = {
       "memberSinceDays": "已加入 Discord {days} 天",
       "roleTag": {
         "levyst": "Levy St",
-        "admin": "管理员",
         "coredevs": "核心开发者",
         "devs": "开发者",
-        "seniormods": "高级管理员",
+        "seniormods": "哨兵",
         "mods": "管理员",
-        "juniormods": "初级管理员",
+        "juniormods": "观察员",
         "artists": "画师",
         "contentcreator": "内容创作者",
         "legend": "传奇",
@@ -5049,6 +5067,13 @@ export const zh_CN: EnTranslations = {
       "offlineHeader": "离线 ({n})",
       "hideOffline": "隐藏离线",
       "hideOfflineTitle": "隐藏离线公会成员",
+      "presence": {
+        "label": "对谁显示在线",
+        "everyone": "所有人",
+        "friends": "仅好友",
+        "none": "无人",
+        "title": "谁能在好友列表和公会名单中看到你在线，以及你的区域和地图位置。队伍成员始终能看到你。"
+      },
       "billboard": {
         "label": "公会公告板",
         "empty": "公告板上还没有内容。",
@@ -7037,7 +7062,14 @@ export const zh_CN: EnTranslations = {
       "discord": "加入 Discord",
       "communityWiki": "社区维基",
       "rights": "World of ClaudeCraft",
-      "linksLabel": "游玩与社区链接"
+      "linksLabel": "游玩与社区链接",
+      "guidesLabel": "玩家指南",
+      "guideFree": "免费 MMORPG",
+      "guideGamesLikeWow": "类似 WoW 的游戏",
+      "guideBest": "最佳 MMORPG",
+      "guideNew": "新 MMORPG",
+      "guideBrowser": "浏览器 MMORPG",
+      "guideGamesLikeDiablo": "类似《暗黑破坏神》的游戏"
     },
     "language": {
       "label": "语言",
@@ -7549,6 +7581,8 @@ export const zh_CN: EnTranslations = {
       "arena": "你在灰烬角斗场两个组别中的战绩：1v1 与 2v2 各自的评分、胜场、负场与胜率。",
       "pvp": "世界 PvP 旗帜：/pvp 切换，/pvp on 与 /pvp off 直接设置。已开启旗帜的玩家可以在任何地方互相作战；关闭需要 5 分钟。",
       "pvpZones": "世界 PvP 旗帜：/pvp 切换状态，/pvp on 和 /pvp off 分别开启和关闭。在争夺区域，已开启旗帜的玩家可以相互战斗；庇护区域禁止一切世界 PvP。进入正在进行的山丘之王活动圈会开启旗帜；关闭需要 5 分钟。",
+      "presence": "控制谁能在好友列表、公会名单和 /who 中看到你在线：/presence everyone（默认）、/presence friends（仅你好友列表中的玩家）或 /presence none。隐藏后，他们看不到你的在线标记、区域和地图位置，但密语和邀请仍能送达你；队伍成员始终能看到你。只输入 /presence 会告诉你当前设置。",
+      "flair": "对其他玩家显示或隐藏你的 Discord 身份组，即彩色名字、身份组标签和聊天认证标签：/flair on 显示，/flair off 隐藏，只输入 /flair 会告诉你当前设置。需要已关联的 Discord 账号。",
       "listings": "你自己在世界市场上的挂单，包括要价、每一件还剩多久，以及你还能再挂多少。",
       "buyback": "你最近卖给商人、目前仍能买回来的东西。",
       "groupState": "你此刻如何",
@@ -8311,7 +8345,8 @@ export const zh_CN: EnTranslations = {
       "warfareTradeBody": "这正是刻意为之的取舍。战争套装是为与玩家交战而生的，不是绕过地下城品级的捷径：在同一个部位上，一件战争装备永远不会带有同部位地下城史诗所拥有的战斗属性，而它所带来的一切都只花在其他玩家身上。想在竞技场里站得住脚，就去买它；想更快地打通英雄难度，就去地下城里挣你的装备。",
       "warfareTradeBodyRatingSpent": "这正是刻意为之的取舍。战争套装是为与玩家交战而生的，不是绕过地下城品级的捷径：在同一个部位上，一件战争装备永远不会带有同部位地下城史诗所拥有的战斗属性，而它转而带有的战争等级与套装效果，则全都花在其他玩家身上。想在竞技场里站得住脚，就去买它；想更快地打通英雄难度，就去地下城里挣你的装备。",
       "vanguardHeading": "先锋套装：战争第二赛季",
-      "vanguardBody": "先锋套装是战争套装的第二个赛季，由同样的两位军需官在原有品级之上出售，原品级仍照常在售。每个专精都有自己专属的五件先锋套装，涵盖头部、肩部、胸部、腿部与双手，商店只会列出你的职业能穿的三套装备，随后是你能使用的先锋武器。先锋装备带有与原有品级相同的战争等级，只是物品等级更高，并且每套装备都有两条套装效果，分别在凑齐两件与四件时触发，会改变你某个专精技能的效果。与原有套装不同，这些效果在任何场合都会生效，包括对怪物，但它们是为对抗玩家而设计的，因此在团队副本里，团队副本套装仍是更好的选择。"
+      "vanguardBody": "先锋套装是战争套装的第二个赛季，由同样的两位军需官在原有品级之上出售，原品级仍照常在售。每个专精都有自己专属的五件先锋套装，涵盖头部、肩部、胸部、腿部与双手，商店只会列出你的职业能穿的三套装备，随后是你能使用的先锋武器。先锋装备带有与原有品级相同的战争等级，只是物品等级更高，并且每套装备都有两条套装效果，分别在凑齐两件与四件时触发，会改变你某个专精技能的效果。与原有套装不同，这些效果在任何场合都会生效，包括对怪物，但它们是为对抗玩家而设计的，因此在团队副本里，团队副本套装仍是更好的选择。",
+      "vanguardStatsBody": "与原版装备不同，先锋装备还带有战斗等级：每件先锋护甲、武器和坠饰都带有暴击等级或急速等级，施法者和治疗者的装备还额外提供法术强度或治疗强度。先锋指环和坠饰与武器一同出售，所有职业都可以佩戴。佩戴两枚先锋近战指环，恰好提供足够的命中等级，消除你对同等级玩家攻击的基础未命中几率；佩戴两枚施法指环，则同样消除你的法术被抵抗的几率。双持时的自动攻击仍保留额外的未命中几率。治疗指环则改为提供急速等级。"
     },
     "worldPvpPage": {
       "heading": "世界 PvP",
@@ -8332,6 +8367,7 @@ export const zh_CN: EnTranslations = {
       "hillBody": "每两小时，龙裔荒原、霜幕之境或琥珀秋境会出现一座活动山丘。全服会提前十五分钟收到预告，空地上会标出圆圈。山丘活动持续三十分钟。进入活动圈会按常规等级规则开启世界 PvP 旗帜，团队成员也不例外。圈内符合条件的玩家人数最多的小队，在连续保持人数优势一分钟后占领山丘；单人视为一人小队，但团队成员和未达到 PvP 等级要求的玩家不能占领或获得山丘荣誉。占领方每名站在圈内的成员都会以逐渐提高的速率获得荣誉。发奖频率和奖励递增速度均已加快，保留原四十五分钟活动的荣誉总量。占领方变更会重置奖励递增。离开圈后旗帜仍保留；/pvp off 使用常规的五分钟延迟，在活动山丘内或战斗中无法完成。山丘状态条显示控制方、人数和占领进度；/hill 显示位置。",
       "limitsBodyHour": "反复击败同一名玩家，每次的收益都会减少并很快归零，而你对那名玩家的计数要在首次击杀约一小时之后才会重新开始，所以蹲守同一个目标永远不值得等待。远低于你等级的目标不会带来任何收益。在战场和竞技场内部适用它们自己的规则，而且它们提供的荣誉比开放世界更多，因此世界 PvP 是通往同一位商人的较慢道路。",
       "hillBodyRamp": "每两小时，龙裔荒原、霜幕之境或琥珀秋境会出现一座活动山丘。全服会提前十五分钟收到预告，空地上会标出圆圈。山丘活动持续三十分钟。进入活动圈会按常规等级规则开启世界 PvP 旗帜，团队成员也不例外。圈内符合条件的玩家人数最多的小队，在连续保持人数优势一分钟后占领山丘；单人视为一人小队，但团队成员和未达到 PvP 等级要求的玩家不能占领或获得山丘荣誉。占领方每名站在圈内的成员都会以逐渐提高的速率获得荣誉。发奖频率和奖励递增速度均已加快，保留原四十五分钟活动的荣誉总量。占领方变更会重置奖励递增。离开圈后旗帜仍保留；/pvp off 使用常规的五分钟延迟，在活动山丘内或战斗中无法完成。山丘状态条显示控制方、人数和占领进度；/hill 显示位置。",
+      "hillBodyRanked": "每两小时，龙裔荒原、霜幕之境或琥珀秋境会出现一座活动山丘。全服会提前十五分钟收到预告，空地上会标出圆圈。山丘活动持续三十分钟。进入活动圈会按常规等级规则开启世界 PvP 旗帜，团队成员也不例外。圈内符合条件的玩家人数最多的小队，在连续保持人数优势一分钟后占领山丘；单人视为一人小队，但团队成员和未达到 PvP 等级要求的玩家不能占领或获得山丘荣誉。占领方每名站在圈内的成员都会以逐渐提高的速率获得荣誉，占领方变更会重置奖励递增。山丘活动期间，全服每五分钟会收到位置提醒和各队伍的占领时长排名。山丘结束时，若占领总时长最长的队伍累计占领至少十分钟，该队伍中曾在占领期间站在圈内至少一分钟且仍留在队伍中的玩家，会为每周宝库的 PvP 奖励进度获得一场胜利。离开圈后旗帜仍保留；/pvp off 使用常规的五分钟延迟，在活动山丘内或战斗中无法完成。山丘状态条显示控制方、人数和占领进度；/hill 显示位置。",
       "limitsBodyRaids": "反复击败同一名玩家，每次的收益都会减少并很快归零，而你对那名玩家的计数要在首次击杀约一小时之后才会重新开始，所以蹲守同一个目标永远不值得等待。远低于你等级的目标不会带来任何收益。在战场和竞技场内部适用它们自己的规则，而且它们提供的荣誉比开放世界更多，因此世界 PvP 是通往同一位商人的较慢道路。团队无法从世界击杀中获得任何收益：团队成员既得不到荣誉也得不到金币，也不会减少其他人的份额，所以想获得报酬就以小队身份作战。"
     },
     "thornhollowPage": {
@@ -9675,7 +9711,14 @@ export const zh_CN: EnTranslations = {
     "whitepaper": "白皮书",
     "terms": "服务条款",
     "privacy": "隐私政策",
-    "discordLabel": "加入Discord社区"
+    "discordLabel": "加入Discord社区",
+    "guidesLabel": "玩家指南",
+    "guideFree": "免费 MMORPG",
+    "guideGamesLikeWow": "类似 WoW 的游戏",
+    "guideBest": "最佳 MMORPG",
+    "guideNew": "新 MMORPG",
+    "guideBrowser": "浏览器 MMORPG",
+    "guideGamesLikeDiablo": "类似《暗黑破坏神》的游戏"
   },
   "settings": {
     "languageLoading": "正在加载语言...",
@@ -12772,6 +12815,7 @@ export const zh_CN: EnTranslations = {
       "dps": "（每秒 {dps} 伤害）",
       "armorStat": "{value} 护甲",
       "stat": "+{value} {stat}",
+      "warfareMainHandOnly": "战争属性仅在主手时生效。",
       "useFood": "使用：在 {seconds} 秒内恢复 {amount} 点生命值。进食时必须保持坐下。",
       "useDrink": "使用：在 {seconds} 秒内恢复 {amount} 点法力值。饮水时必须保持坐下。",
       "useElixir": "使用：使你的{stat}提高 {value} 点，持续 {minutes} 分钟。会顶替其他任何同属性的药剂或卷轴。战斗中可用。",
@@ -18465,6 +18509,30 @@ export const zh_CN: EnTranslations = {
       },
       "vanguard_feral_staff": {
         "name": "先锋野性法杖"
+      },
+      "vanguard_band_of_might": {
+        "name": "先锋力量指环"
+      },
+      "vanguard_band_of_precision": {
+        "name": "先锋精准指环"
+      },
+      "vanguard_band_of_focus": {
+        "name": "先锋专注指环"
+      },
+      "vanguard_band_of_mending": {
+        "name": "先锋愈合指环"
+      },
+      "vanguard_pendant_of_might": {
+        "name": "先锋力量坠饰"
+      },
+      "vanguard_pendant_of_precision": {
+        "name": "先锋精准坠饰"
+      },
+      "vanguard_pendant_of_focus": {
+        "name": "先锋专注坠饰"
+      },
+      "vanguard_pendant_of_mending": {
+        "name": "先锋愈合坠饰"
       },
       "conjured_water4": {
         "name": "魔法泉水"

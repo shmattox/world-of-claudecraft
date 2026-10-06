@@ -438,7 +438,9 @@ export const ko_KR: EnTranslations = {
         "worldOne": "전역 퀘스트 {count}개 완료",
         "worldMany": "전역 퀘스트 {count}개 완료",
         "pvpOne": "평점전 {count}승",
-        "pvpMany": "평점전 {count}승"
+        "pvpMany": "평점전 {count}승",
+        "pvpWinOne": "PvP {count}승",
+        "pvpWinMany": "PvP {count}승"
       },
       "requiredTask": {
         "raidOne": "공격대 우두머리 {count}명을 처치하세요",
@@ -448,7 +450,9 @@ export const ko_KR: EnTranslations = {
         "worldOne": "전역 퀘스트를 {count}개 완료하세요",
         "worldMany": "전역 퀘스트를 {count}개 완료하세요",
         "pvpOne": "평점전에서 {count}승을 거두세요",
-        "pvpMany": "평점전에서 {count}승을 거두세요"
+        "pvpMany": "평점전에서 {count}승을 거두세요",
+        "pvpWinOne": "PvP에서 {count}승을 거두세요",
+        "pvpWinMany": "PvP에서 {count}승을 거두세요"
       },
       "readyWeeks": "받지 않은 주: {count}. 완료된 가장 오래된 주부터 받으세요.",
       "claimLastWeek": "지난주 보상 받기",
@@ -594,6 +598,8 @@ export const ko_KR: EnTranslations = {
     },
     "death": {
       "resurrectAtCorpse": "시신에서 부활",
+      "pvpResurrect": "PvP 부활",
+      "pvpResurrectTitle": "가장 가까운 묘지에서 생명력이 가득 찬 상태로 부활하며, 새로운 부활 후유증은 걸리지 않습니다.",
       "resurrectAtHealer": "영혼 치유사 (부활의 후유증)",
       "ghostHint": "죽은 장소로 달려가거나 영혼 치유사에게 말을 걸어 부활하세요",
       "spiritHealerAlive": "영혼 치유사는 죽은 자를 지킵니다. 당신은 아직 산 자입니다.",
@@ -2786,8 +2792,10 @@ export const ko_KR: EnTranslations = {
     },
     "worldPvp": {
       "rewardBonus": "월드 PvP를 켜 두면 경험치와 진영 평판을 {percent} 더 얻습니다. 끄기를 요청하면 즉시 보너스가 중단됩니다.",
-      "rewardTitles": "월드 PvP를 켠 플레이 시간이 {thresholds}에 도달하면 영구 칭호를 얻습니다. 로그아웃하거나 수련의 해안에 머무는 동안 타이머가 멈춥니다. PvP를 끄면 초기화됩니다.",
+      "rewardTitles": "열린 세계에서 월드 PvP를 켠 플레이 시간이 {thresholds}에 도달하면 영구 칭호를 얻습니다. 로그아웃하거나 사망 상태이거나 인스턴스 또는 수련의 해안에 머무는 동안 타이머가 멈춥니다. PvP를 끄면 초기화됩니다.",
       "rewardPaused": "현재 PvP 유지 시간: {time} (수련의 해안에서 일시 정지)",
+      "rewardPausedDead": "현재 PvP 유지 시간: {time} (사망 상태에서 일시 정지)",
+      "rewardPausedInstance": "현재 PvP 유지 시간: {time} (인스턴스에서 일시 정지)",
       "rewardProgress": "현재 PvP 유지 시간: {time}",
       "tab": "월드 PvP",
       "title": "월드 PvP",
@@ -2843,6 +2851,15 @@ export const ko_KR: EnTranslations = {
       "falls": "{minutes} 후 무너짐",
       "pvpEntry": "활성 원에 들어가면 월드 PvP가 켜집니다.",
       "pvpBanner": "PvP",
+      "callout": {
+        "killingSpree": "{name}님이 연속 처치 중입니다!",
+        "rampage": "{name}님이 학살 중입니다!",
+        "unstoppable": "{name}님을 막을 수 없습니다!",
+        "dominating": "{name}님이 전장을 지배하고 있습니다!",
+        "godlike": "{name}님이 신의 경지에 올랐습니다!",
+        "legendary": "{name}님이 전설이 되었습니다!",
+        "shutDown": "{killer}님이 {victim}님의 연속 처치를 끊었습니다!"
+      },
       "standingRaid": "공격대원은 인원수에 포함되지 않습니다: 파티만 언덕을 점령할 수 있습니다"
     },
     "warfareShop": {
@@ -2855,7 +2872,8 @@ export const ko_KR: EnTranslations = {
       "owned": "보유 중",
       "buyAria": "{honor}에 {item} 구매",
       "buyOwnedAria": "{honor}에 {item} 구매, 이미 보유 중",
-      "buyConfirmBody": "{honor}에 {item}을(를) 구매하시겠습니까? 명예 구매는 환불되지 않습니다."
+      "buyConfirmBody": "{honor}에 {item}을(를) 구매하시겠습니까? 명예 구매는 환불되지 않습니다.",
+      "buyConfirmBodyGold": "{price}에 {item}을(를) 구매하시겠습니까? 이 구매는 환불되지 않습니다."
     },
     "charSheet": {
       "offense": "공격",
@@ -3878,8 +3896,8 @@ export const ko_KR: EnTranslations = {
         "boneSpikeHeroicSummary": "{everyHeroic}초마다 나이트락시스가 현재 대상을 제외한 플레이어 {victimsHeroic}명을 뼈가시에 꿰뚫습니다. 꿰뚫린 플레이어는 행동할 수 없으며 자신의 가시가 파괴될 때까지 매초 최대 생명력의 {drainHeroic}만큼 잃습니다. 뼈가시는 누구의 공격이든 {hitsHeroic}회 맞으면 부서지며, 피해량은 상관없습니다. 이미 꿰뚫린 플레이어는 {cooldown}초 동안 다시 선택되지 않으므로 뼈가시가 공격대 전체에 고르게 분산됩니다.",
         "boneSpikeResponse": "가장 가까운 사람이 뼈가시를 공격합니다. 누구의 공격이든 몇 번만 맞으면 부서지며 피해량은 상관없습니다. 치유사는 가시가 부서질 때까지 꿰뚫린 아군을 살려 둡니다.",
         "graveEruptionName": "무덤 분출",
-        "graveEruptionSummary": "{everyNormal}초마다 해골 손이 플레이어 발밑에 반경 {radius}야드의 원 {countNormal}개를 표시합니다. {warning}초 후 각 원이 폭발해 최대 생명력의 {burstNormal}만큼 암흑 피해를 입힌 뒤, {flameNormal}초 동안 무덤 화염으로 타올라 그 안에 서 있는 대상에게 매초 최대 생명력의 {tickNormal}만큼 피해를 입힙니다.",
-        "graveEruptionHeroicSummary": "{everyHeroic}초마다 해골 손이 플레이어 발밑에 반경 {radius}야드의 원 {countHeroic}개를 표시합니다. {warning}초 후 각 원이 폭발해 최대 생명력의 {burstHeroic}만큼 암흑 피해를 입힌 뒤, {flameHeroic}초 동안 무덤 화염으로 타오르며 그 안에 서 있는 대상에게 매초 최대 생명력의 {tickHeroic}만큼 피해를 입힙니다.",
+        "graveEruptionSummary": "{everyNormal}초마다 해골 손이 플레이어 발밑에 반경 {radius}야드의 원 {countNormal}개를 표시합니다. {warning}초 후 각 원이 폭발해 최대 생명력의 {burstNormal}만큼 암흑 피해를 입힌 뒤, {flameNormal}초 동안 무덤 화염으로 타올라 그 안에 서 있는 대상에게 매초 최대 생명력의 {tickNormal}만큼 피해를 입힙니다. 영혼 가르기 표식이 활성화된 동안이나 표식이 사라진 후 {gap}초 이내에는 발생하지 않습니다.",
+        "graveEruptionHeroicSummary": "{everyHeroic}초마다 해골 손이 플레이어 발밑에 반경 {radius}야드의 원 {countHeroic}개를 표시합니다. {warning}초 후 각 원이 폭발해 최대 생명력의 {burstHeroic}만큼 암흑 피해를 입힌 뒤, {flameHeroic}초 동안 무덤 화염으로 타오르며 그 안에 서 있는 대상에게 매초 최대 생명력의 {tickHeroic}만큼 피해를 입힙니다. 영혼 가르기 표식이 활성화된 동안이나 표식이 사라진 후 {gap}초 이내에는 발생하지 않습니다.",
         "graveEruptionResponse": "폭발하기 전에 모든 경고 원 밖으로 나가고 불타는 바닥을 피하세요. 방어 담당은 근접 딜러가 움직일 공간을 확보할 수 있도록 나이트락시스를 화염에서 멀리 끌어냅니다.",
         "bindingSigilName": "결속의 인장",
         "bindingSigilSummary": "{everyNormal}초마다 왕좌 양옆의 두 발판 중 하나(전투 시작 시 나이트락시스가 서 있던 자리에서 공격대 기준 왼쪽 또는 오른쪽 {sideOffset}야드, 시전마다 좌우를 번갈아)에 옛 결계의 인장이 타오르며, 그가 불사의 상승을 시작해 {ascensionEvery}초마다 피해량과 공격 속도가 {ascensionNormal}씩 증가합니다. {bindNormal}초 안에 그가 인장 위에 서면 결속됩니다: 상승 효과가 정화되고 {stunNormal}초 동안 기절하며, {boundNormal}초 동안 {vulnerability}만큼 더 큰 피해를 받습니다. 그러지 못하면 모든 플레이어가 최대 생명력의 {unboundHitNormal}만큼 암흑 피해를 입고, 그는 다음 결속까지 {unboundBonusNormal}만큼 더 큰 피해를 유지합니다.",
@@ -4194,6 +4212,7 @@ export const ko_KR: EnTranslations = {
       "mobLevel": "{level}",
       "mobEliteLevel": "{level}+",
       "afkTag": "자리비움",
+      "bountyTag": "현상금 {honor}",
       "pvpTag": "PvP",
       "cheaterTag": "< 부정행위자 >",
       "pledgeTag": "{guild} 서약자",
@@ -4579,12 +4598,11 @@ export const ko_KR: EnTranslations = {
       "memberSinceDays": "Discord 가입 {days}일",
       "roleTag": {
         "levyst": "Levy St",
-        "admin": "관리자",
         "coredevs": "핵심 개발자",
         "devs": "개발자",
-        "seniormods": "선임 운영자",
+        "seniormods": "파수꾼",
         "mods": "운영자",
-        "juniormods": "수습 운영자",
+        "juniormods": "관찰자",
         "artists": "아티스트",
         "contentcreator": "콘텐츠 크리에이터",
         "legend": "전설",
@@ -5049,6 +5067,13 @@ export const ko_KR: EnTranslations = {
       "offlineHeader": "오프라인 ({n})",
       "hideOffline": "오프라인 숨기기",
       "hideOfflineTitle": "오프라인 길드원 숨기기",
+      "presence": {
+        "label": "접속 상태 공개 대상",
+        "everyone": "모두",
+        "friends": "친구만",
+        "none": "아무도 없음",
+        "title": "친구 목록과 길드 명단에서 누가 당신의 접속 상태, 지역, 지도 위치를 볼 수 있는지 정합니다. 파티원은 항상 볼 수 있습니다."
+      },
       "billboard": {
         "label": "길드 게시판",
         "empty": "게시판에 아직 아무 내용도 없습니다.",
@@ -7037,7 +7062,14 @@ export const ko_KR: EnTranslations = {
       "discord": "Discord 참여하기",
       "communityWiki": "커뮤니티 위키",
       "rights": "World of ClaudeCraft",
-      "linksLabel": "플레이 및 커뮤니티 링크"
+      "linksLabel": "플레이 및 커뮤니티 링크",
+      "guidesLabel": "플레이어 가이드",
+      "guideFree": "무료 MMORPG",
+      "guideGamesLikeWow": "WoW 같은 게임",
+      "guideBest": "최고의 MMORPG",
+      "guideNew": "신작 MMORPG",
+      "guideBrowser": "브라우저 MMORPG",
+      "guideGamesLikeDiablo": "디아블로 같은 게임"
     },
     "language": {
       "label": "언어",
@@ -7549,6 +7581,8 @@ export const ko_KR: EnTranslations = {
       "arena": "잿빛 콜로세움에서의 두 등급 구간 성적입니다. 1대1과 2대2 각각의 평점, 승수, 패수, 승률을 보여 줍니다.",
       "pvp": "월드 PvP 깃발: /pvp 로 전환하고 /pvp on 과 /pvp off 로 직접 설정합니다. 깃발을 올린 플레이어끼리는 어디서든 싸울 수 있으며, 끄는 데 5분이 걸립니다.",
       "pvpZones": "월드 PvP 깃발: /pvp로 전환하고 /pvp on과 /pvp off로 켜거나 끕니다. 분쟁 지역에서는 깃발을 올린 플레이어끼리 싸울 수 있고 성역에서는 월드 PvP가 금지됩니다. 진행 중인 언덕의 왕 원 안에 들어가면 깃발이 올라갑니다. 해제에는 5분이 걸립니다.",
+      "presence": "친구 목록, 길드 명단, /who에서 누가 당신의 접속 상태를 볼지 정합니다. /presence everyone(기본값), /presence friends(내 친구 목록의 플레이어만), /presence none. 숨기면 상대에게 접속 표시, 지역, 지도 위치가 보이지 않지만 귓속말과 초대는 계속 받을 수 있으며, 파티원은 항상 볼 수 있습니다. /presence만 입력하면 현재 설정을 알려 줍니다.",
+      "flair": "다른 플레이어에게 보이는 Discord 역할(색상 이름, 역할 태그, 채팅 인증 태그)을 표시하거나 숨깁니다. /flair on은 표시, /flair off는 숨기기이며, /flair만 입력하면 현재 설정을 알려 줍니다. Discord 계정 연동이 필요합니다.",
       "listings": "세계 시장에 올려 둔 자신의 등록 물품을 호가와 남은 시간, 그리고 앞으로 더 올릴 수 있는 여유와 함께 보여 줍니다.",
       "buyback": "최근에 상인에게 판 물건 가운데 아직 되사기가 가능한 것을 보여 줍니다.",
       "groupState": "지금 내 상태",
@@ -8311,7 +8345,8 @@ export const ko_KR: EnTranslations = {
       "warfareTradeBody": "이는 의도된 맞바꿈입니다. 워페어 장비는 플레이어와 싸우기 위한 것이지, 던전 등급을 건너뛰는 지름길이 아닙니다. 같은 부위의 던전 영웅 장비가 지닌 전투 능력치를 워페어 장비는 결코 갖지 못하며, 그 대신 지닌 모든 것은 다른 플레이어를 상대로 쓰입니다. 투기장에서 제 몫을 하고 싶다면 사세요. 영웅 던전을 더 빨리 밀고 싶다면 던전에서 장비를 구하세요.",
       "warfareTradeBodyRatingSpent": "이는 의도된 맞바꿈입니다. 워페어 장비는 플레이어와 싸우기 위한 것이지, 던전 등급을 건너뛰는 지름길이 아닙니다. 같은 부위의 던전 영웅 장비가 지닌 전투 등급을 워페어 장비는 결코 갖지 못하며, 그 대신 지닌 워페어 등급과 세트 효과는 온전히 다른 플레이어를 상대로 쓰입니다. 투기장에서 제 몫을 하고 싶다면 사세요. 영웅 던전을 더 빨리 밀고 싶다면 던전에서 장비를 구하세요.",
       "vanguardHeading": "선봉대 장비: 워페어 시즌 2",
-      "vanguardBody": "선봉대 장비는 워페어 장비의 두 번째 시즌으로, 판매를 이어 가는 기존 등급 위에 같은 두 병참장교가 판매합니다. 전문화마다 고유한 선봉대 세트가 머리, 어깨, 가슴, 다리, 손 다섯 부위로 갖춰져 있으며, 상점에는 자신의 직업이 입을 수 있는 세 세트만 나열되고 그 뒤로 사용할 수 있는 선봉대 무기가 이어집니다. 선봉대 부위는 기존 등급과 같은 워페어 수치를 더 높은 아이템 레벨로 지니며, 각 세트에는 두 부위와 네 부위를 채웠을 때 전문화 기술 하나를 바꾸는 보너스가 있습니다. 기존 세트와 달리 이 보너스는 몬스터를 포함해 어디서나 작동하지만, 원래 플레이어와 싸우기 위해 설계된 것이므로 공격대 안에서는 여전히 공격대용 세트가 더 나은 선택입니다."
+      "vanguardBody": "선봉대 장비는 워페어 장비의 두 번째 시즌으로, 판매를 이어 가는 기존 등급 위에 같은 두 병참장교가 판매합니다. 전문화마다 고유한 선봉대 세트가 머리, 어깨, 가슴, 다리, 손 다섯 부위로 갖춰져 있으며, 상점에는 자신의 직업이 입을 수 있는 세 세트만 나열되고 그 뒤로 사용할 수 있는 선봉대 무기가 이어집니다. 선봉대 부위는 기존 등급과 같은 워페어 수치를 더 높은 아이템 레벨로 지니며, 각 세트에는 두 부위와 네 부위를 채웠을 때 전문화 기술 하나를 바꾸는 보너스가 있습니다. 기존 세트와 달리 이 보너스는 몬스터를 포함해 어디서나 작동하지만, 원래 플레이어와 싸우기 위해 설계된 것이므로 공격대 안에서는 여전히 공격대용 세트가 더 나은 선택입니다.",
+      "vanguardStatsBody": "기존 등급과 달리 선봉대 장비에는 전투 등급도 붙어 있습니다. 선봉대 방어구, 무기, 목걸이에는 각각 치명타 등급이나 가속 등급이 있고, 주문 시전자와 치유사용 장비에는 주문력이나 치유력도 붙습니다. 선봉대 반지와 목걸이는 무기와 함께 판매되며 모든 직업이 착용할 수 있습니다. 선봉대 근접 반지 두 개를 끼면 같은 레벨의 플레이어를 상대로 한 공격의 기본 빗나감 확률을 정확히 없애는 명중 등급을 얻고, 주문 반지 두 개를 끼면 주문이 저항당할 확률도 똑같이 없앱니다. 쌍수 무기의 자동 공격에는 추가 빗나감 확률이 남습니다. 치유사 반지에는 대신 가속 등급이 붙습니다."
     },
     "worldPvpPage": {
       "heading": "월드 PvP",
@@ -8332,6 +8367,7 @@ export const ko_KR: EnTranslations = {
       "hillBody": "2시간마다 드레이크랜드, 서리장막 봉우리, 호박빛 가을터 중 한 곳에 언덕이 등장합니다. 서버 전체에 15분 전 예고가 전달되고 탁 트인 땅에 원이 표시됩니다. 언덕은 30분 동안 활성화됩니다. 활성 원에 들어가면 공격대원을 포함해 일반 레벨 규칙에 따라 월드 PvP 깃발이 올라갑니다. 원 안의 참여 자격을 갖춘 인원이 가장 많은 파티가 1분 동안 계속 우세를 유지하면 언덕을 점령합니다. 혼자 있는 플레이어는 1인 파티로 보지만, 공격대원과 PvP 필요 레벨 미만인 플레이어는 점령하거나 언덕 명예를 받을 수 없습니다. 점령 파티의 원 안에 있는 각 구성원은 점점 빠른 속도로 명예를 얻습니다. 지급 주기와 보상 증가 속도가 빨라져 기존 45분 이벤트의 총 명예량을 유지합니다. 점령 주체가 바뀌면 보상 증가가 처음부터 시작됩니다. 원을 나가도 깃발은 유지됩니다. /pvp off는 일반적인 5분 대기를 사용하며 활성 언덕 안이나 전투 중에는 완료되지 않습니다. 언덕 막대는 점령 주체, 인원수와 점령 진행도를 보여 주며 /hill은 위치를 알려 줍니다.",
       "limitsBodyHour": "같은 플레이어를 거듭 쓰러뜨리면 보상은 매번 줄어 곧 사라지며, 그 플레이어에 대한 계수는 첫 처치로부터 약 한 시간이 지나야 비로소 다시 시작되므로 한 사람만 노리고 기다릴 값어치는 없습니다. 당신보다 훨씬 낮은 레벨의 대상은 아무것도 주지 않습니다. 전장과 투기장 안에서는 각자의 규칙이 적용되고 열린 세계보다 더 많은 명예를 주므로, 월드 PvP는 같은 상인에게 가는 느린 길입니다.",
       "hillBodyRamp": "2시간마다 드레이크랜드, 서리장막 봉우리, 호박빛 가을터 중 한 곳에 언덕이 등장합니다. 서버 전체에 15분 전 예고가 전달되고 탁 트인 땅에 원이 표시됩니다. 언덕은 30분 동안 활성화됩니다. 활성 원에 들어가면 공격대원을 포함해 일반 레벨 규칙에 따라 월드 PvP 깃발이 올라갑니다. 원 안의 참여 자격을 갖춘 인원이 가장 많은 파티가 1분 동안 계속 우세를 유지하면 언덕을 점령합니다. 혼자 있는 플레이어는 1인 파티로 보지만, 공격대원과 PvP 필요 레벨 미만인 플레이어는 점령하거나 언덕 명예를 받을 수 없습니다. 점령 파티의 원 안에 있는 각 구성원은 점점 빠른 속도로 명예를 얻습니다. 지급 주기와 보상 증가 속도가 빨라져 기존 45분 이벤트의 총 명예량을 유지합니다. 점령 주체가 바뀌면 보상 증가가 처음부터 시작됩니다. 원을 나가도 깃발은 유지됩니다. /pvp off는 일반적인 5분 대기를 사용하며 활성 언덕 안이나 전투 중에는 완료되지 않습니다. 언덕 막대는 점령 주체, 인원수와 점령 진행도를 보여 주며 /hill은 위치를 알려 줍니다.",
+      "hillBodyRanked": "2시간마다 드레이크랜드, 서리장막 봉우리, 호박빛 가을터 중 한 곳에 언덕이 등장합니다. 서버 전체에 15분 전 예고가 전달되고 탁 트인 땅에 원이 표시됩니다. 언덕은 30분 동안 활성화됩니다. 활성 원에 들어가면 공격대원을 포함해 일반 레벨 규칙에 따라 월드 PvP 깃발이 올라갑니다. 원 안의 참여 자격을 갖춘 인원이 가장 많은 파티가 1분 동안 계속 우세를 유지하면 언덕을 점령합니다. 혼자 있는 플레이어는 1인 파티로 보지만, 공격대원과 PvP 필요 레벨 미만인 플레이어는 점령하거나 언덕 명예를 받을 수 없습니다. 점령 파티의 원 안에 있는 각 구성원은 점점 빠른 속도로 명예를 얻고, 점령 주체가 바뀌면 보상 증가가 처음부터 시작됩니다. 언덕이 활성화된 동안 5분마다 위치와 각 그룹의 점령 시간 순위가 서버 전체에 알려집니다. 언덕이 끝날 때 총 점령 시간이 가장 긴 그룹이 총 10분 이상 점령했다면, 그 그룹이 점령한 동안 원 안에 적어도 1분간 서 있었고 종료 시에도 그룹에 남아 있는 플레이어는 주간 금고의 PvP 진행도에 1승을 얻습니다. 원을 나가도 깃발은 유지됩니다. /pvp off는 일반적인 5분 대기를 사용하며 활성 언덕 안이나 전투 중에는 완료되지 않습니다. 언덕 막대는 점령 주체, 인원수와 점령 진행도를 보여 주며 /hill은 위치를 알려 줍니다.",
       "limitsBodyRaids": "같은 플레이어를 거듭 쓰러뜨리면 보상은 매번 줄어 곧 사라지며, 그 플레이어에 대한 계수는 첫 처치로부터 약 한 시간이 지나야 비로소 다시 시작되므로 한 사람만 노리고 기다릴 값어치는 없습니다. 당신보다 훨씬 낮은 레벨의 대상은 아무것도 주지 않습니다. 전장과 투기장 안에서는 각자의 규칙이 적용되고 열린 세계보다 더 많은 명예를 주므로, 월드 PvP는 같은 상인에게 가는 느린 길입니다. 공격대는 월드 처치에서 아무것도 얻지 못합니다. 공격대원은 명예도 골드도 받지 않으며 다른 사람의 몫도 줄이지 않으니, 보상을 받으려면 파티로 싸우세요."
     },
     "thornhollowPage": {
@@ -9675,7 +9711,14 @@ export const ko_KR: EnTranslations = {
     "whitepaper": "백서",
     "terms": "서비스 이용약관",
     "privacy": "개인정보 처리방침",
-    "discordLabel": "Discord 참여하기"
+    "discordLabel": "Discord 참여하기",
+    "guidesLabel": "플레이어 가이드",
+    "guideFree": "무료 MMORPG",
+    "guideGamesLikeWow": "WoW 같은 게임",
+    "guideBest": "최고의 MMORPG",
+    "guideNew": "신작 MMORPG",
+    "guideBrowser": "브라우저 MMORPG",
+    "guideGamesLikeDiablo": "디아블로 같은 게임"
   },
   "settings": {
     "languageLoading": "언어를 불러오는 중...",
@@ -12772,6 +12815,7 @@ export const ko_KR: EnTranslations = {
       "dps": "(초당 피해 {dps})",
       "armorStat": "방어도 {value}",
       "stat": "+{value} {stat}",
+      "warfareMainHandOnly": "워페어는 주장비에서만 적용됩니다.",
       "useFood": "사용 효과: {seconds}초에 걸쳐 생명력 {amount} 회복. 먹는 동안 앉아 있어야 합니다.",
       "useDrink": "사용 효과: {seconds}초에 걸쳐 마나 {amount} 회복. 마시는 동안 앉아 있어야 합니다.",
       "useElixir": "사용: {stat}이(가) {value} 증가하며 {minutes}분 동안 지속됩니다. 같은 능력치의 다른 비약이나 두루마리를 대체합니다. 전투 중 사용 가능.",
@@ -18465,6 +18509,30 @@ export const ko_KR: EnTranslations = {
       },
       "vanguard_feral_staff": {
         "name": "선봉대의 야성 지팡이"
+      },
+      "vanguard_band_of_might": {
+        "name": "선봉대의 힘의 반지"
+      },
+      "vanguard_band_of_precision": {
+        "name": "선봉대의 정밀의 반지"
+      },
+      "vanguard_band_of_focus": {
+        "name": "선봉대의 집중의 반지"
+      },
+      "vanguard_band_of_mending": {
+        "name": "선봉대의 치유의 반지"
+      },
+      "vanguard_pendant_of_might": {
+        "name": "선봉대의 힘의 목걸이"
+      },
+      "vanguard_pendant_of_precision": {
+        "name": "선봉대의 정밀의 목걸이"
+      },
+      "vanguard_pendant_of_focus": {
+        "name": "선봉대의 집중의 목걸이"
+      },
+      "vanguard_pendant_of_mending": {
+        "name": "선봉대의 치유의 목걸이"
       },
       "conjured_water4": {
         "name": "창조된 샘물"

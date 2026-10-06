@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 import sharp from 'sharp';
 import { describe, expect, it } from 'vitest';
 import { validateAcceptedArtManifest } from '../scripts/lib/icon_asset_audit.mjs';
-import { SEASON2_SETS } from '../src/sim/content/pvp_honor_season2';
+import { SEASON2_JEWELRY_IDS, SEASON2_SETS } from '../src/sim/content/pvp_honor_season2';
 import { ITEMS } from '../src/sim/data';
 import type { ItemDef } from '../src/sim/types';
 import {
@@ -382,13 +382,17 @@ describe('item webp icons', () => {
     // set: no artless item can hide behind an open wave, and the next commissioned wave
     // re-pins its exact membership here when it stages. Open wave: the 135
     // Warfare Season 2 armor pieces (content/pvp_honor_season2.ts), painted in a
-    // follow-up art pass.
+    // follow-up art pass. The Season 2 jewelry ships its own icons.
     const season2Armor = SEASON2_SETS.flatMap((set) => set.itemIds);
     expect(season2Armor).toHaveLength(135);
     expect(
       [...ITEM_ART_PENDING].sort(),
       'art debt is enumerated and re-pinned deliberately, never grown quietly',
     ).toEqual([...season2Armor].sort());
+    for (const id of SEASON2_JEWELRY_IDS) {
+      expect(ITEM_ART_PENDING.has(id), `${id} ships painted art`).toBe(false);
+      expect(itemImageUrl(id), id).toBe(`/ui/items/${id}.webp`);
+    }
     // And the inverse: an id with committed art must still win the static url.
     expect(itemImageUrl('linen_pouch')).toBe('/ui/items/linen_pouch.webp');
   });

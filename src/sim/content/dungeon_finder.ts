@@ -9,6 +9,7 @@
 //
 // Data-as-code: plain exported records, no engine logic (content CLAUDE.md).
 
+import { NYTHRAXIS_BONE_STORM_ENABLED } from '../nythraxis_bone_storm';
 import { type DungeonDifficulty, NYTHRAXIS_ADDS_ENABLED, type PlayerClass } from '../types';
 import type { Role } from './talents';
 
@@ -166,7 +167,8 @@ const NYTHRAXIS_RAID_MECHANICS: readonly string[] = [
   'deathless_rage',
   'wardstones',
   'kings_wrath',
-  'bone_storm',
+  // Bone Storm is retired from play; the finder follows the same switch.
+  ...(NYTHRAXIS_BONE_STORM_ENABLED ? ['bone_storm'] : []),
   'crown_endures',
 ];
 

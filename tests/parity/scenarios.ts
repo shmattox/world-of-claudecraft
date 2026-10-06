@@ -3498,14 +3498,14 @@ function nythraxisFullPull(): Scenario {
       rec.snapshot('kings-wrath');
       parkRedoCadences();
 
-      // Bone Storm: hash-ranked charges (no shared rng), the whirl tick, a slam
-      // on arrival with its Gravefire line (no spike lands while he storms), then
-      // the top-threat pickup when it ends.
+      // Bone Storm is retired from play (NYTHRAXIS_BONE_STORM_ENABLED): the due
+      // timer starts nothing, and this window records phase 3 running on
+      // without a storm (the coverage test asserts none of it fires).
       nyx().boneStormTimer = DT;
-      step(1); // startNythraxisBoneStorm -> boneStormBegins + boneStormCharge callouts
-      step(20 * 8); // charges and slams, past the retired 6 s spike mark
-      rec.snapshot('bone-storm');
-      step(20 * 5); // the storm ends: pickup, Gravebreaker re-arm, the major gap
+      step(1);
+      step(20 * 8);
+      rec.snapshot('phase-three-no-storm');
+      step(20 * 5);
       parkRedoCadences();
       nyx().boneStormTimer = 999;
 

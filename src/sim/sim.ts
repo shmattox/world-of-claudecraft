@@ -678,6 +678,7 @@ import * as tradeMod from './social/trade';
 import {
   applyResurrectionSickness,
   applyUnstuckSickness,
+  pvpResurrect,
   RESURRECTION_SICKNESS_ID,
   releasePlayerSpirit,
   resurrectAtCorpse,
@@ -720,6 +721,7 @@ import { personalGliderLeaderboard as gliderRecordsPage } from './glider_persona
 import { spawnStaticWorldObjects } from './ground_object_spawns';
 import { chainPullInstanceOnBossAggro } from './instances/boss_chain_pull';
 import { buyCrucibleVendorItem as buyCrucibleVendorItemImpl } from './instances/crucible_vendor';
+import { setDungeonDifficulty as setDungeonDifficultyImpl } from './instances/difficulty_selection';
 import {
   awardHeroicMarks as awardHeroicMarksImpl,
   DEFAULT_RAID_LOCKOUT_MS,
@@ -869,7 +871,6 @@ import {
   type ItemInstancePayload,
   type ItemUseResult,
   isConsuming,
-  isDungeonDifficulty,
   isEquipSlot,
   isNonSpellCast,
   isPetClass,
@@ -5349,10 +5350,7 @@ export class Sim {
       summonPet: sim.summonPet.bind(sim),
       petOf: sim.petOf.bind(sim),
       completeTame: sim.completeTame.bind(sim),
-      // partyOf stays bound to Sim's thin delegate (it forwards to this.party);
-      // removeFromParty routes to the moved machine (points-at social/party, A1).
-      // clearEntityMarker + dropPartyMarkers now route to the moved marker store
-      // (points-at targeting, T1); lazy arrows since `sim.targeting` is built after ctx.
+      // Party and marker callbacks resolve lazily after their machines are built.
       clearEntityMarker: (id: number) => sim.targeting.clearEntityMarker(id),
       // P1b new shared-helper bindings; both STAY on Sim. error/playerGcdFor/
       // healingThreat/countItem are bound elsewhere in this host (C4a/C2/C3/Q1) - deduped.
@@ -5369,6 +5367,9 @@ export class Sim {
       pullTimerStart: (rawCommand: string, pid?: number) => sim.pullTimerStart(rawCommand, pid),
       pullTimerCancel: (pid?: number) => sim.pullTimerCancel(pid),
       removeFromParty: (pid: number, verb: string) => sim.party.removeFromParty(pid, verb),
+      hillPartyDisband: (partyId: number, survivorPid: number) =>
+        hillMod.hillPartyDisband(sim.ctx, partyId, survivorPid),
+      hillPartyJoin: (pid: number) => hillMod.hillPartyJoin(sim.ctx, pid),
       // Dungeon Finder formation seam (points at the party machine); lazy arrow
       // since `sim.party` is built after ctx.
       formDungeonFinderGroup: (units, opts) => sim.party.formDungeonFinderGroup(units, opts),
@@ -6147,7 +6148,7 @@ export class Sim {
     lap?.('battleground');
     worldPvpMod.updateWorldPvp(this.ctx); // the /pvp clock, zone pass + books sweep; zero rng
     lap?.('worldPvp');
-    hillMod.updateHill(this.ctx); // King of the Hill (pvp/hill.ts): spawns draw a PRIVATE rng
+    hillMod.updateHill(this.ctx, weeklyMod.recordWeeklyPvpWin); // King of the Hill (pvp/hill.ts): PRIVATE rng
     lap?.('hill');
     // The Dungeon Finder phase draws ZERO rng (queue bookkeeping + role
     // matching on the sim clock), so appending it here cannot fork the draw order.
@@ -9047,6 +9048,9 @@ export class Sim {
   resurrectAtSpiritHealer(pid?: number): boolean {
     return resurrectAtSpiritHealer(this.ctx, pid);
   }
+  pvpResurrect(pid?: number): void {
+    pvpResurrect(this.ctx, pid, (id) => this.releaseSpirit(id));
+  }
 
   respondToResurrection(accept: boolean, pid?: number): void {
     resurrectionOfferMod.respondToResurrection(this.ctx, accept, pid);
@@ -10594,30 +10598,9 @@ export class Sim {
     return this.dungeonDifficultyForPid(r.meta.entityId);
   }
 
+  // Owned by instances/difficulty_selection (a change also resets empty claims).
   setDungeonDifficulty(difficulty: DungeonDifficulty, pid?: number): void {
-    if (!isDungeonDifficulty(difficulty)) return;
-    const r = this.resolve(pid);
-    if (!r) return;
-    const party = this.partyOf(r.meta.entityId);
-    if (party && party.leader !== r.meta.entityId) {
-      this.error(r.meta.entityId, 'You are not the party leader.');
-      return;
-    }
-    // Only the SETTER's own preference is stamped: members mirror the party via
-    // dungeonDifficultyForPid while grouped and keep their own prior preference
-    // after leaving, so a stale stamp can never leak into another group.
-    if (difficulty === 'normal') delete r.meta.dungeonDifficulty;
-    else r.meta.dungeonDifficulty = difficulty;
-    if (party) {
-      if (difficulty === 'normal') delete party.dungeonDifficulty;
-      else party.dungeonDifficulty = difficulty;
-    }
-    this.error(
-      r.meta.entityId,
-      difficulty === 'heroic'
-        ? 'Dungeon difficulty set to Heroic.'
-        : 'Dungeon difficulty set to Normal.',
-    );
+    setDungeonDifficultyImpl(this.ctx, difficulty, pid);
   }
 
   // Owned by instances/dungeons (heroic final-boss reward + lockout settlement);

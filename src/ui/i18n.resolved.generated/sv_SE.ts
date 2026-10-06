@@ -438,7 +438,9 @@ export const sv_SE: EnTranslations = {
         "worldOne": "{count} världsuppdrag slutfört",
         "worldMany": "{count} världsuppdrag slutförda",
         "pvpOne": "{count} bedömd match vunnen",
-        "pvpMany": "{count} bedömda matcher vunna"
+        "pvpMany": "{count} bedömda matcher vunna",
+        "pvpWinOne": "{count} PvP-vinst",
+        "pvpWinMany": "{count} PvP-vinster"
       },
       "requiredTask": {
         "raidOne": "Rensa {count} raid-möte",
@@ -448,7 +450,9 @@ export const sv_SE: EnTranslations = {
         "worldOne": "Slutför {count} världsuppdrag",
         "worldMany": "Slutför {count} världsuppdrag",
         "pvpOne": "Vinna {count} bedömd match",
-        "pvpMany": "Vinna {count} bedömda matcher"
+        "pvpMany": "Vinna {count} bedömda matcher",
+        "pvpWinOne": "Ta {count} PvP-vinst",
+        "pvpWinMany": "Ta {count} PvP-vinster"
       },
       "readyWeeks": "Oinsamlade veckor: {count}. Hävda den äldsta slutförda veckan först.",
       "claimLastWeek": "Hävda förra veckans belöning",
@@ -594,6 +598,8 @@ export const sv_SE: EnTranslations = {
     },
     "death": {
       "resurrectAtCorpse": "Återuppstå vid liket",
+      "pvpResurrect": "PvP Återupplivning",
+      "pvpResurrectTitle": "Återuppstå vid närmaste kyrkogård med full hälsa, utan ny Väktartull.",
       "resurrectAtHealer": "Den bleka väktaren (Väktartullen)",
       "ghostHint": "Springa till platsen för din död eller tala med Den bleka väktaren för att återupplivas",
       "spiritHealerAlive": "Den bleka väktaren vakar över de döda. Du är fortfarande bland de levande.",
@@ -2786,8 +2792,10 @@ export const sv_SE: EnTranslations = {
     },
     "worldPvp": {
       "rewardBonus": "Ha världs-PvP aktiverat för att få {percent} mer erfarenhet och fraktionsrykte. Bonusarna upphör när du begär att stänga av det.",
-      "rewardTitles": "Få permanenta titlar efter {thresholds} speltid med världs-PvP aktiverat. Utloggning och besök på Prövostranden pausar räknaren. Avstängning nollställer den.",
+      "rewardTitles": "Få permanenta titlar efter {thresholds} speltid i den öppna världen med världs-PvP aktiverat. Utloggning, död, instanser och Prövostranden pausar räknaren. Avstängning nollställer den.",
       "rewardPaused": "Nuvarande PvP-svit: {time} spelat (pausad på Prövostranden)",
+      "rewardPausedDead": "Nuvarande PvP-svit: {time} spelat (pausad medan du är död)",
+      "rewardPausedInstance": "Nuvarande PvP-svit: {time} spelat (pausad i instanser)",
       "rewardProgress": "Nuvarande PvP-svit: {time} spelat",
       "tab": "Världskamp",
       "title": "Världskamp",
@@ -2843,6 +2851,15 @@ export const sv_SE: EnTranslations = {
       "falls": "Faller om {minutes}",
       "pvpEntry": "Världs-PvP aktiveras när du går in i den aktiva cirkeln.",
       "pvpBanner": "PvP",
+      "callout": {
+        "killingSpree": "{name} är på en mördarspree!",
+        "rampage": "{name} härjar!",
+        "unstoppable": "{name} är omöjlig att stoppa!",
+        "dominating": "{name} dominerar!",
+        "godlike": "{name} är gudalik!",
+        "legendary": "{name} är legendarisk!",
+        "shutDown": "{killer} har stoppat {victim}!"
+      },
       "standingRaid": "Rajdmedlemmar räknas inte: bara partier kan inneha kullen"
     },
     "warfareShop": {
@@ -2855,7 +2872,8 @@ export const sv_SE: EnTranslations = {
       "owned": "Ägd",
       "buyAria": "Köp {item} för {honor}",
       "buyOwnedAria": "Köp {item} för {honor}, redan ägd",
-      "buyConfirmBody": "Köp {item} för {honor}? Köp med heder kan inte återbetalas."
+      "buyConfirmBody": "Köp {item} för {honor}? Köp med heder kan inte återbetalas.",
+      "buyConfirmBodyGold": "Köp {item} för {price}? Detta köp kan inte återbetalas."
     },
     "charSheet": {
       "offense": "Anfall",
@@ -3878,8 +3896,8 @@ export const sv_SE: EnTranslations = {
         "boneSpikeHeroicSummary": "Var {everyHeroic} sek spetsar Nythraxis {victimsHeroic} raiddeltagare utom sitt nuvarande mål på Benspett. En spetsad raiddeltagare kan inte agera och förlorar {drainHeroic} av maximal hälsa varje sekund tills spettet förstörs. Ett spett splittras efter {hitsHeroic} träffar från vem som helst, oavsett hur mycket skada de gör. En spelare som redan har spetsats kan inte väljas igen på {cooldown} sek, så spetten fördelas över hela raiden.",
         "boneSpikeResponse": "Den som står närmast slår på Benspettet: några träffar från vem som helst splittrar det, oavsett skadan. Healers håller de spetsade vid liv medan spetten faller.",
         "graveEruptionName": "Gravutbrott",
-        "graveEruptionSummary": "Var {everyNormal} sek markerar skeletthänder {countNormal} cirklar på {radius} yd under raiddeltagare. Efter {warning} sek bryter varje cirkel ut för {burstNormal} av maximal hälsa som Skuggskada och brinner sedan som Gravflamma i {flameNormal} sek, vilket orsakar {tickNormal} av maximal hälsa varje sekund för alla som står i den.",
-        "graveEruptionHeroicSummary": "Var {everyHeroic} sek markerar skeletthänder {countHeroic} cirklar på {radius} yd under raiddeltagare. Efter {warning} sek bryter varje cirkel ut för {burstHeroic} av maximal hälsa som Skuggskada och brinner sedan som Gravflamma i {flameHeroic} sek, vilket orsakar {tickHeroic} av maximal hälsa varje sekund för alla som står i den.",
+        "graveEruptionSummary": "Var {everyNormal} sek markerar skeletthänder {countNormal} cirklar på {radius} yd under raiddeltagare. Efter {warning} sek bryter varje cirkel ut för {burstNormal} av maximal hälsa som Skuggskada och brinner sedan som Gravflamma i {flameNormal} sek, vilket orsakar {tickNormal} av maximal hälsa varje sekund för alla som står i den. Det sker aldrig medan Själsslitning-märken är aktiva, eller inom {gap} sek efter att de försvunnit.",
+        "graveEruptionHeroicSummary": "Var {everyHeroic} sek markerar skeletthänder {countHeroic} cirklar på {radius} yd under raiddeltagare. Efter {warning} sek bryter varje cirkel ut för {burstHeroic} av maximal hälsa som Skuggskada och brinner sedan som Gravflamma i {flameHeroic} sek, vilket orsakar {tickHeroic} av maximal hälsa varje sekund för alla som står i den. Det sker aldrig medan Själsslitning-märken är aktiva, eller inom {gap} sek efter att de försvunnit.",
         "graveEruptionResponse": "Kliv ut ur varje varningscirkel innan den bryter ut och håll er borta från brinnande mark. Tankar drar Nythraxis bort från lågorna så att närstrid har plats att arbeta.",
         "bindingSigilName": "Bindningssigill",
         "bindingSigilSummary": "Var {everyNormal} sek flammar ett sigill från de gamla värnen upp på en av de två plattformarna som flankerar tronen, {sideOffset} yd till vänster eller höger (sett från raiden) om platsen där Nythraxis stod vid pullen, växelvis för varje kast, och han börjar Dödslös Uppstigning, vilket ger honom {ascensionNormal} skada och anfallshastighet var {ascensionEvery} sek. Om han står på sigillet inom {bindNormal} sek blir han Bunden: Uppstigningen renas, han bedövas i {stunNormal} sek och han tar {vulnerability} mer skada i {boundNormal} sek. Annars tar varje raiddeltagare {unboundHitNormal} av maximal hälsa som Skuggskada och han behåller {unboundBonusNormal} mer skada tills nästa bindning.",
@@ -4194,6 +4212,7 @@ export const sv_SE: EnTranslations = {
       "mobLevel": "{level}",
       "mobEliteLevel": "{level}+",
       "afkTag": "BV",
+      "bountyTag": "Belöning {honor}",
       "pvpTag": "PvP",
       "cheaterTag": "< Fuskare >",
       "pledgeTag": "Trogen {guild}",
@@ -4579,12 +4598,11 @@ export const sv_SE: EnTranslations = {
       "memberSinceDays": "{days}d i Discord",
       "roleTag": {
         "levyst": "Levy St",
-        "admin": "Admin",
         "coredevs": "Kärnutvecklare",
         "devs": "Utvecklare",
-        "seniormods": "Senior-mod",
+        "seniormods": "Väktare",
         "mods": "Moderator",
-        "juniormods": "Junior-mod",
+        "juniormods": "Observatör",
         "artists": "Konstnär",
         "contentcreator": "Innehållsskapare",
         "legend": "LEGEND",
@@ -5049,6 +5067,13 @@ export const sv_SE: EnTranslations = {
       "offlineHeader": "Frånkopplade ({n})",
       "hideOffline": "Dölj frånkopplade",
       "hideOfflineTitle": "Dölj frånkopplade gillesmedlemmar",
+      "presence": {
+        "label": "Visa mig online för",
+        "everyone": "Alla",
+        "friends": "Endast vänner",
+        "none": "Ingen",
+        "title": "Vem som ser dig online i vännernas listor och gildsamlandet, med din zon och kartposition. Ditt lag ser alltid dig."
+      },
       "billboard": {
         "label": "Gillets anslagstavla",
         "empty": "Inget på anslagstavlan än.",
@@ -7037,7 +7062,14 @@ export const sv_SE: EnTranslations = {
       "discord": "Gå med i Discord",
       "communityWiki": "Community-wiki",
       "rights": "World of ClaudeCraft",
-      "linksLabel": "Spel- och communitylänkar"
+      "linksLabel": "Spel- och communitylänkar",
+      "guidesLabel": "Spelarguider",
+      "guideFree": "Gratis MMORPG:er",
+      "guideGamesLikeWow": "Spel som WoW",
+      "guideBest": "Bästa MMORPG:er",
+      "guideNew": "Nya MMORPG:er",
+      "guideBrowser": "Webbläsar-MMORPG:er",
+      "guideGamesLikeDiablo": "Spel som Diablo"
     },
     "language": {
       "label": "Språk",
@@ -7549,6 +7581,8 @@ export const sv_SE: EnTranslations = {
       "arena": "Din Coliseum-status i båda divisionerna: rankning, vinster, förluster och vinstprocent för 1v1 och 2v2.",
       "pvp": "World PvP flag: /pvp toggles it, /pvp on and /pvp off set it. Flagged players can fight each other anywhere; switching off takes 5 minutes.",
       "pvpZones": "Flagga för världs-PvP: /pvp växlar den, /pvp on slår på den och /pvp off stänger av den. Flaggade spelare kan slåss mot varandra på omstridd mark, fristäder tillåter inga världsstrider alls och din flagga aktiveras när du går in i en aktiv cirkel i Kullens kung; det tar 5 minuter att stänga av den.",
+      "presence": "Vem som ser dig online i vännernas listor, ditt gildsamlande och /who: /presence everyone (förval), /presence friends (endast spelare på din vännerlista) eller /presence none. Dold ser de ingen online-prick, zon eller kartposition för dig, dock når vissningar och inbjudningar dig ändå; ditt lag ser alltid dig. En enkel /presence talar om för dig vilken som är inställd.",
+      "flair": "Visar eller döljer din Discord-roll för andra spelare, alltså ditt färgade namn, din rolltagg och din verifierade chattagg: /flair on visar den, /flair off döljer den och bara /flair berättar vad som är inställt. Kräver ett kopplat Discord-konto.",
       "listings": "Dina egna listningar på Världsmarknaden, med begärt pris, tiden var och en har kvar, och hur mycket utrymme du har för fler.",
       "buyback": "Vad du nyligen sålt till en handlare och fortfarande kan köpa tillbaka.",
       "groupState": "Hur du har det just nu",
@@ -8311,7 +8345,8 @@ export const sv_SE: EnTranslations = {
       "warfareTradeBody": "Det är den medvetna avvägningen. Krigföringsutrustning är byggd för att slåss mot spelare, inte som en genväg förbi fängelsehålenivåerna: ett Krigföringsplagg bär aldrig de stridsvärden en episk fängelsehålepjäs i samma plats gör, och allt det faktiskt ger spenderas på andra spelare. Vill du hålla din egen i arenan, köp den. Vill du klara heroiska snabbare, förtjäna din utrustning i fängelsehålorna.",
       "warfareTradeBodyRatingSpent": "Det är den avsiktliga avvägningen. Krigföringsutrustning är byggd för att slåss mot spelare, inte som en genväg förbi fängelsehålornas nivåer: ett krigföringsföremål har aldrig de stridsvärden som en episk fängelsehåleutrustning på samma plats har, och krigföringsvärdet och setbonusarna det får i stället används helt mot andra spelare. Vill du hävda dig på arenan, köp den. Vill du klara hjältemodiga fängelsehålor snabbare, förtjäna din utrustning där.",
       "vanguardHeading": "Vanguard-utrustning: Warfare säsong 2",
-      "vanguardBody": "Vanguard-utrustning är andra säsongen Warfare-utrustning, såld av samma två intendenter över den ursprungliga nivån, som stannar till försäljning. Varje specialisering har sin egen Vanguard-uppsättning av fem delar, för huvudet, skuldror, bröstkorg, ben och händer, och butiken listar bara de tre uppsättningarna din klass kan bära, följt av de Vanguard-vapen du kan använda. En Vanguard-del bär samma Warfare-värderingar som den ursprungliga nivån på en högre föremålsnivå, och varje uppsättning har två bonusar, vid två och fyra delar, som ändrar en av din specialiserings förmågor. Till skillnad från de ursprungliga uppsättningarna fungerar dessa bonusar överallt, monster inkluderade, men de är byggda för att slåss mot spelare, så en raid-uppsättning förblir det bättre valet inne i en raid."
+      "vanguardBody": "Vanguard-utrustning är andra säsongen Warfare-utrustning, såld av samma två intendenter över den ursprungliga nivån, som stannar till försäljning. Varje specialisering har sin egen Vanguard-uppsättning av fem delar, för huvudet, skuldror, bröstkorg, ben och händer, och butiken listar bara de tre uppsättningarna din klass kan bära, följt av de Vanguard-vapen du kan använda. En Vanguard-del bär samma Warfare-värderingar som den ursprungliga nivån på en högre föremålsnivå, och varje uppsättning har två bonusar, vid två och fyra delar, som ändrar en av din specialiserings förmågor. Till skillnad från de ursprungliga uppsättningarna fungerar dessa bonusar överallt, monster inkluderade, men de är byggda för att slåss mot spelare, så en raid-uppsättning förblir det bättre valet inne i en raid.",
+      "vanguardStatsBody": "Till skillnad från den ursprungliga nivån bär Förtruppsutrustning även stridsvärden: varje förtruppspans rustning, vapen och halsband har antingen Kritvärde eller Snabbhetsvärde, och spellcaster- och läkardelarna lägger till Besvärjelsekraft eller Läkningskraft. Förtruppens ringar och halsband säljs vid sidan av vapnen, och alla klasser kan bära dem. Två av Förtruppens närkampingsringar ger exakt det Träffvärde som tar bort baschansen för att dina attacker missar en spelare på din egen nivå, och två spellcaster-ringar gör samma för dina besvärjelser att bli motverkade. Autoattacker medan dual-wielding behåller sin extra misschans. Läkarringen bär Snabbhetsvärde istället."
     },
     "worldPvpPage": {
       "heading": "Världens PvP",
@@ -8332,6 +8367,7 @@ export const sv_SE: EnTranslations = {
       "hillBody": "Varannan timme dyker en kulle upp i Drakländerna, Frostslöjans vidder eller Bärnstensfallet. Riket får en varning femton minuter i förväg och cirkeln markeras på öppen mark. Kullen är aktiv i trettio minuter. När du går in i den aktiva cirkeln aktiveras din flagga för världs-PvP enligt de vanliga nivåreglerna, även för raidmedlemmar. Gruppen med flest behöriga spelare i cirkeln tar kullen efter en minut med obruten majoritet; en ensam spelare räknas som en grupp på en, men raidmedlemmar och spelare under nivåkravet för PvP kan varken inta kullen eller tjäna Ära från den. Varje innehavare som står i cirkeln tjänar Ära i ökande takt. Utbetalningarna sker oftare och ökar snabbare, så att den totala Äran från det tidigare evenemanget på fyrtiofem minuter bevaras. När kullen byter innehavare börjar ökningen om från början. Din flagga förblir aktiv när du lämnar cirkeln; /pvp off använder den vanliga fördröjningen på fem minuter och kan inte slutföras på en aktiv kulle eller under strid. Kullens stapel visar kontroll, spelarantal och erövringsförlopp; /hill anger dess plats.",
       "limitsBodyHour": "Defeating the same player again and again pays less each time and soon nothing, and your count against that player only starts over about an hour after the first of those kills, so camping one victim is never worth the wait. A target far below your level pays nothing at all. Battlegrounds and Arenas run their own rules while you are inside them, and they pay more Honor than the open world, so world PvP is the slower road to the same vendor.",
       "hillBodyRamp": "Varannan timme dyker en kulle upp i Drakländerna, Frostslöjans vidder eller Bärnstensfallet. Riket får en varning femton minuter i förväg och cirkeln markeras på öppen mark. Kullen är aktiv i trettio minuter. När du går in i den aktiva cirkeln aktiveras din flagga för världs-PvP enligt de vanliga nivåreglerna, även för raidmedlemmar. Gruppen med flest behöriga spelare i cirkeln tar kullen efter en minut med obruten majoritet; en ensam spelare räknas som en grupp på en, men raidmedlemmar och spelare under nivåkravet för PvP kan varken inta kullen eller tjäna Ära från den. Varje innehavare som står i cirkeln tjänar Ära i ökande takt. Utbetalningarna sker oftare och ökar snabbare, så att den totala Äran från det tidigare evenemanget på fyrtiofem minuter bevaras. När kullen byter innehavare börjar ökningen om från början. Din flagga förblir aktiv när du lämnar cirkeln; /pvp off använder den vanliga fördröjningen på fem minuter och kan inte slutföras på en aktiv kulle eller under strid. Kullens stapel visar kontroll, spelarantal och erövringsförlopp; /hill anger dess plats.",
+      "hillBodyRanked": "Varannan timme dyker en kulle upp i Drakländerna, Frostslöjans vidder eller Bärnstensfallet. Riket får en varning femton minuter i förväg och cirkeln markeras på öppen mark. Kullen är aktiv i trettio minuter. När du går in i den aktiva cirkeln aktiveras din flagga för världs-PvP enligt de vanliga nivåreglerna, även för raidmedlemmar. Gruppen med flest behöriga spelare i cirkeln tar kullen efter en minut med obruten majoritet; en ensam spelare räknas som en grupp på en, men raidmedlemmar och spelare under nivåkravet för PvP kan varken inta kullen eller tjäna Ära från den. Varje innehavare som står i cirkeln tjänar Ära i ökande takt. Utbetalningarna sker oftare och ökar snabbare, så att den totala Äran från det tidigare evenemanget på fyrtiofem minuter bevaras. När kullen byter innehavare börjar ökningen om från början. Var femte minut medan berget står hör riket dess plats och grupperna rangordnade efter hur länge de har hållit det. När berget faller, om gruppen som höll det längst höll det i minst tio minuter totalt, får varje spelare som stod innanför i minst en minut för den gruppen, och fortfarande är i den, en vinst till Det veckovisa valvets PvP-rad. Din flagga förblir aktiv när du lämnar cirkeln; /pvp off använder den vanliga fördröjningen på fem minuter och kan inte slutföras på en aktiv kulle eller under strid. Kullens stapel visar kontroll, spelarantal och erövringsförlopp; /hill anger dess plats.",
       "limitsBodyRaids": "Att besegra samma spelare igen och igen betalar mindre varje gång och snart ingenting, och din räkning mot den spelaren börjar bara igen ungefär en timme efter den första av dessa dödningar, så att läger en offer är aldrig värt väntan. Ett mål långt under din nivå betalar ingenting alls. Slagfält och Arenor kör sina egna regler medan du är inne i dem, och de betalar mer Ära än den öppna världen, så världens PvP är den långsammare vägen till samma leverantör. Raid tjänar ingenting från världsdödningar: en raid-medlem tar ingen Ära eller guld och krymper inte någon annans andel, så slå som ett parti för att bli betald."
     },
     "thornhollowPage": {
@@ -9675,7 +9711,14 @@ export const sv_SE: EnTranslations = {
     "whitepaper": "Whitepaper",
     "terms": "Användarvillkor",
     "privacy": "Integritetspolicy",
-    "discordLabel": "Gå med i Discord"
+    "discordLabel": "Gå med i Discord",
+    "guidesLabel": "Spelarguider",
+    "guideFree": "Gratis MMORPG:er",
+    "guideGamesLikeWow": "Spel som WoW",
+    "guideBest": "Bästa MMORPG:er",
+    "guideNew": "Nya MMORPG:er",
+    "guideBrowser": "Webbläsar-MMORPG:er",
+    "guideGamesLikeDiablo": "Spel som Diablo"
   },
   "settings": {
     "languageLoading": "Laddar språk...",
@@ -12772,6 +12815,7 @@ export const sv_SE: EnTranslations = {
       "dps": "({dps} skada per sekund)",
       "armorStat": "{value} Rustning",
       "stat": "+{value} {stat}",
+      "warfareMainHandOnly": "Krigföring räknas endast i huvudhanden.",
       "useFood": "Använd: Återställer {amount} hälsa under {seconds} sek. Du måste förbli sittande medan du äter.",
       "useDrink": "Använd: Återställer {amount} mana under {seconds} sek. Du måste förbli sittande medan du dricker.",
       "useElixir": "Användning: Ökar din {stat} med {value} i {minutes} minuter. Ersätter annan elixir eller rulle med samma egenskap. Kan användas i strid.",
@@ -18465,6 +18509,30 @@ export const sv_SE: EnTranslations = {
       },
       "vanguard_feral_staff": {
         "name": "Förtruppens vilda stav"
+      },
+      "vanguard_band_of_might": {
+        "name": "Förtruppens ring av kraft"
+      },
+      "vanguard_band_of_precision": {
+        "name": "Förtruppens ring av precision"
+      },
+      "vanguard_band_of_focus": {
+        "name": "Förtruppens ring av fokus"
+      },
+      "vanguard_band_of_mending": {
+        "name": "Förtruppens ring av läkning"
+      },
+      "vanguard_pendant_of_might": {
+        "name": "Förtruppens hänge av kraft"
+      },
+      "vanguard_pendant_of_precision": {
+        "name": "Förtruppens hänge av precision"
+      },
+      "vanguard_pendant_of_focus": {
+        "name": "Förtruppens hänge av fokus"
+      },
+      "vanguard_pendant_of_mending": {
+        "name": "Förtruppens hänge av läkning"
       },
       "conjured_water4": {
         "name": "Frambesvärjt källvatten"

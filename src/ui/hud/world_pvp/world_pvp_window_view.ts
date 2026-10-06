@@ -17,7 +17,7 @@ import {
   WORLD_PVP_STAKE_FRACTION,
   worldPvpPairMultiplier,
 } from '../../../sim/pvp/world_pvp_rules';
-import type { WorldPvpInfo, WorldPvpZone } from '../../../world_api';
+import type { WorldPvpInfo, WorldPvpRewardPause, WorldPvpZone } from '../../../world_api';
 
 /** What the one action button does. `locked` renders the raise disabled with
  *  the level requirement; `keepUp` cancels a running disarm countdown;
@@ -62,6 +62,9 @@ export type WorldPvpWindowView =
       deaths: number;
       honor: number;
       rewardSeconds: number;
+      /** Why the armed streak is paused (dead, an instance, a sanctuary), or
+       *  null while it ticks. */
+      rewardPause: WorldPvpRewardPause | null;
       /** The ground under the player right now, for the status card's second
        *  line. Reported whatever the kill switch says, so `realmEnabled` is
        *  what decides whether it means anything. */
@@ -136,6 +139,13 @@ export function buildWorldPvpWindowView(input: WorldPvpWindowViewInput): WorldPv
     deaths: info.deaths,
     honor: input.honor,
     rewardSeconds: info.rewardSeconds ?? 0,
+    // An older server sends no cause; its only pause was the sanctuary.
+    rewardPause:
+      info.rewardPause !== undefined
+        ? info.rewardPause
+        : info.flagged && info.disarmRemaining === null && info.zone === 'sanctuary'
+          ? 'sanctuary'
+          : null,
     zone: info.zone,
     realmEnabled: info.enabled !== false,
     stakes: WORLD_PVP_STAKES,

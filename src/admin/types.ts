@@ -561,6 +561,9 @@ export interface AccountDetail {
   online: boolean;
   bannedAt: string | null;
   suspendedUntil: string | null;
+  // Set when the player deactivated the account themselves; the moderation
+  // actions offer the audited reactivate while it is non-null.
+  deactivatedAt: string | null;
   moderationReason: string;
   chatMutedUntil: string | null;
   chatMuteReason: string;

@@ -164,7 +164,8 @@ const STAT_DRIFT_ALLOWLIST_CEILING = 103;
 const UNTIERED_WITH_PROXY_FLOOR = 77;
 const GENERATED_ITEM_COUNT = 111;
 const WARFARE_STOCK_COUNT = 47;
-const SEASON2_STOCK_COUNT = 140;
+// 135 set pieces, 5 weapons and 8 jewelry pieces (the jewelry joined 2026-10-02).
+const SEASON2_STOCK_COUNT = 148;
 const HEROIC_VARIANT_COUNT = 78;
 
 // Items with no derivable source (vendor, starter and quest oddities) have no

@@ -227,8 +227,11 @@ describe('the jewelcrafting exclusion, recomputed: the amended census', () => {
     // feature/buried-hoards: the fifteen Buried Hoard jewels (content/hoard_loot.ts,
     // five neck and ring bases at the rare, epic and legendary tiers) all sell
     // above 600 (4950, 11000, 15400) and none sits inside the band, same amendment.
-    expect(jewelry.length, 'uncrafted neck and ring pool').toBe(62);
-    expect(jewelry.filter((d) => d.sellValue === 0).length, 'honor pieces at 0').toBe(9);
+    // 62 to 70 and the honor pieces 9 to 17 with the eight Warfare Season 2
+    // rings and necks (2026-10-02): honor purchases selling for 0, so none sits
+    // inside the band and the amendment holds.
+    expect(jewelry.length, 'uncrafted neck and ring pool').toBe(70);
+    expect(jewelry.filter((d) => d.sellValue === 0).length, 'honor pieces at 0').toBe(17);
     expect(jewelry.filter((d) => d.sellValue > 600).length, 'pieces above 600').toBe(52);
     // Exactly one row sits here, and the amended record names it.
     expect(

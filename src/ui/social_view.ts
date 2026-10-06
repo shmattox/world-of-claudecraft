@@ -67,7 +67,7 @@ export function socialStructSig(
     : 'solo';
   const rosterSig = `${g?.memberCap ?? 0}:${g?.nextRosterPrice ?? 'none'}`;
   const recruit = viewerGuildCan(g, 'invite') ? 1 : 0;
-  return `${tab}|${social !== null}|${g?.id ?? 0}|${g?.rank ?? ''}:${recruit}|${g?.pledges?.length ?? 0}|${rosterSig}|${raidSig}`;
+  return `${tab}|${social !== null}|${g?.id ?? 0}|${g?.rank ?? ''}:${recruit}|${g?.pledges?.length ?? 0}|${rosterSig}|${raidSig}|${social?.presenceMode ?? ''}`;
 }
 
 /** The status dot kind for a presence row: 'off' when offline, otherwise the

@@ -525,14 +525,16 @@ alone is the owner's stated shape.
   `combat/effect_dispatch.ts` at the `absorb` and `buffTarget` sites. Aid to an
   UNFLAGGED player marks nobody, so keeping a bystander alive stays free. Under
   `WORLD_PVP_MIN_LEVEL` the raise is refused like every other and the aid earns
-  nothing. The rule's consequence is deliberate and said out loud: once the
-  helper is flagged, they and the stranger they were keeping up are two flagged
-  strangers, enemies under the pair rule, and the next heal, shield or buff on
-  that stranger is REFUSED with `WORLD_PVP_AID_REFUSED_LINE` (the friendly
-  target resolution in `combat/casting_lifecycle.ts`) rather than self-cast in
-  silence. The way to keep aiding a flagged fighter is the exemption: a party.
-  Only the open-world arm refuses; a duel, arena or battleground opponent on
-  the target still self-casts, the habit those modes' healers rely on.
+  nothing. The rule's consequence is deliberate: once the helper is flagged,
+  they and the stranger they were keeping up are two flagged strangers,
+  enemies under the pair rule. A heal, shield or buff that NAMES that stranger
+  (a party-frame or focus hover, or a timed cast whose locked target turned
+  enemy mid-cast) is REFUSED with `WORLD_PVP_AID_REFUSED_LINE` (the friendly
+  target resolution in `combat/casting_lifecycle.ts`). The way to keep aiding a
+  flagged fighter is the exemption: a party. A World PvP enemy merely on the
+  TARGET never refuses: the press self-casts, so a healer fighting a flagged
+  player heals themselves without clearing the selection, the same habit a
+  duel, arena or battleground healer relies on.
 - The flag cannot be flapped: accepted changes are `WORLD_PVP_TOGGLE_COOLDOWN`
   (2 s) apart, refused with a notice in between.
 - Operator kill switch: `WORLD_PVP_DISABLED=1` on the realm refuses every raise
@@ -573,7 +575,12 @@ A hill has three moments, each announced to the whole realm:
 2. **The rise** (`hillRiseLine`), `HILL_WARNING_SECONDS` (15 minutes) after the
    warning. The contest and the payouts run from here.
 3. **The fall** (`hillFallenLine`), `HILL_DURATION_SECONDS` (30 minutes) after
-   the rise. Banked seconds short of a payout are lost with it.
+   the rise. Banked seconds short of a payout are lost with it. The final
+   standings follow (see below).
+
+While the hill stands, every `HILL_NOTICE_SECONDS` (five minutes; owner spec
+2026-09-29) after the rise the realm hears where it still stands and when it
+falls (`hillStillStandsLine`), followed by the hold standings.
 
 The realm's `WORLD_PVP_DISABLED` switch turns the hill off with the rest of
 world PvP. A realm that slept through whole windows plans the current one.
@@ -603,6 +610,36 @@ the same as the former 45-minute event. A capture resets the ramp and accruals;
 stepping out pauses personal accrual without erasing it. No diminishing returns
 apply to hill presence rewards.
 
+The hold ranking (`src/sim/pvp/hill_ranking.ts`, owner spec 2026-09-29): every
+group that takes the hill opens a record (`ActiveHill.holds`) that banks each
+pass it holds the hill WITH A MEMBER STANDING INSIDE (a group that walks away
+keeps the hill until beaten but banks no rank, so an empty hill on a quiet realm
+cannot be won from afar), summed across every separate hold of the same stand,
+and banks each member's own seconds inside while it held. A party is named by
+its leader, a lone player by their own name. The standings (`hillRanking`,
+longest first, a tie in first-held order, `HILL_RANKING_SHOWN` deep, each hold
+in whole minutes rounded up, `hillRankLine`) are announced with each five-minute
+reminder and once more after the fall line. When the hill falls on its own or
+through `/dev hill end`, and the longest hold lasted `HILL_VAULT_MIN_HOLD_SECONDS`
+(ten minutes) in total, every player who stood inside for
+`HILL_VAULT_MIN_INSIDE_SECONDS` (a minute) for the group that held it longest
+(every group tied at the top, `hillVaultPayees`, each player once) and is still
+in the realm and in that group earns one win on the Weekly Vault's PvP row
+(`recordWeeklyPvpWin`, capped at the row's five, the same credit a rated
+battleground or ranked arena win gives) and is told (`HILL_VAULT_LINE`, only
+when the row actually moved). Requiring membership at the fall caps the payees
+at a party's size: a player cycled through the party cannot carry a point away.
+The hold floor (owner decision 2026-10-05) closes the quiet-realm farm: a lone
+player who captures an empty hill and stands a minute still tops the standings,
+but five such visits must not fill the PvP row, so a hold under ten minutes pays
+nobody.
+Unlike a developer-ended battleground, `/dev hill end` does pay: it is the test
+lever for this award, on dev realms only. The credit is injected by the host
+(`HillVaultCredit`: the Sim passes it into `updateHill`, the dev arm into
+`endHillNow`) because the vault module reaches `entity.ts`, which imports the
+pvp barrel. A realm switched off mid-stand drops the hill silently: no
+standings, no credit.
+
 The readout (`IWorld.hillInfo`, the `hill` self key) carries the geometry, the
 phase, the holder from the viewer's seat, whether the viewer counts
 (`standing`) and the minutes to the next phase change for everyone, and the
@@ -618,6 +655,43 @@ central skull; warning circles are dashed and active circles are solid. The zone
 map and continent overview also show a skull at the hill location during both
 warning and active phases. All markers disappear when the hill ends. The state
 is session-only and never persisted.
+
+### Bounties (owner spec, 2026-10-02)
+
+A world kill while the hill stands risen, with the victim or the player who
+landed the killing blow inside the circle, is a HILL kill (`hill_bounty.ts`).
+It pays the victim's bounty in place of the plain 10 Honor world kill, split
+between contributors as usual. A bounty follows League of Legends' pre-2024
+champion bounty, scaled from its 300 gold base to 10 Honor
+(`hill_bounty_rules.ts`):
+
+| Kill streak (no deaths) | 0 to 1 | 2 | 3 | 4 | 5 | 6 | 7 and up |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| Bounty (Honor) | 10 | 15 | 20 | 23 | 27 | 30 | 33 |
+
+| Death streak (no kills) | 0 to 1 | 2 | 3 | 4 | 5 | 6 and up |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| Bounty (Honor) | 10 | 9 | 7 | 6 | 5 | 3 |
+
+League documents only the death-streak floor (a third of the base), so the
+steps between are this game's own. Streaks last the life of the hill: a hill
+kill adds one and ends the killer's death streak; ANY death while the hill
+stands (a hill kill, a kill away from the circle, a mob, a fall) ends the
+victim's kill streak, and a hill death also adds one death. Only a paid
+killing blow builds a streak (a grey or raid kill does not). Hill Honor ignores the hourly
+100/50/25/0 repeat decay: each contributor is paid in full for the first five
+kills of one victim on one hill (`HILL_BOUNTY_REPEAT_CAP`), then nothing. The
+gold stake keeps the normal decay.
+
+A running kill streak of two or more puts the bounty on the player's entity
+(`Entity.hillBounty`, the `hbn` entity wire bit), shown as `<Bounty 23>` on the
+nameplate and the target frame. A death streak is never advertised. The
+announcer calls each kill from three on (Killing Spree, Rampage, Unstoppable,
+Dominating, Godlike, then Legendary from eight), and a kill of a player on a
+streak of three or more is a Shut Down instead. The latest call rides the hill
+readout (`HillInfo.callout`) for `HILL_CALLOUT_SECONDS` (6), so everyone in the
+hill's zone sees the same banner once. Every badge comes down when the hill
+ends, however it ends.
 
 Test levers (dev realms only, `ALLOW_DEV_COMMANDS`; also buttons in the dev
 command window's Scenarios tab): `/dev hill [zone]` raises a hill at once and
@@ -637,11 +711,18 @@ sale unchanged. Full design, the 54 set bonuses and their PvE ceilings:
 - **Four season weapons:** a strength two-hander, a strength one-hander, an agility dagger and
   a caster staff.
 - **Item level 35**, level with the Ignivar raid tier, on the honor discount: 0.9 of the line
-  budget, the full-budget stamina floor, no hit, crit or haste rating, and 0.9 of raid armor.
-  The Warfare ratings are 2.2x (Offense) and 3.4x (Defense) the slot budget, so a Season 2
-  kit reaches the 30 percent caps and the +80 percent Vitality cap where a full entry-tier
-  kit stops at about +50: about 10 percent more health in PvP (14 for casters), and nothing
-  in dungeons or raids.
+  budget, the full-budget stamina floor, one combat rating at a third of the raid piece's
+  (since 2026-10-02, with Spell Power or Healing Power on caster and healer pieces), and 0.9
+  of raid armor.
+- **Season 2 jewelry** (2026-10-02): one ring and one neck per role; the rings carry the PvP
+  hit cap (two melee rings 50 Hit, two caster rings 40, haste on the healer ring); dual-wield
+  auto-attacks keep their extra 10 percent miss.
+  The Warfare ratings are 1.8x (Offense) and 2.9x (Defense) the slot budget (rebalanced
+  2026-10-02 from 2.2x and 3.4x), so only the full Season 2 kit, weapon included, reaches
+  the 30 percent caps and the +80 percent Vitality cap, where a full entry-tier kit stops at
+  about +50: 6 to 15 percent more health in PvP, and nothing in dungeons or raids. Only the
+  main hand's weapon carries Warfare rating; an offhand weapon adds none (see
+  `docs/design/warfare-season-2.md`).
 - **Prices:** 1.5 times the entry tier per slot, 6,600 Honor for a full set, 1,800 per weapon.
 - **Pins:** `tests/warfare_season2.test.ts` (stock shape, stat, armor and weapon rules, set
   rows, and the tank effective-health guard).
@@ -666,6 +747,33 @@ currently supports. Prices are per purchase:
 
 - The seven-piece armor set, the capstone: **5,400 honor**.
 - A complete 11-slot kit: **7,550 honor**.
+
+**Season 1 sells for gold (owner rule, 2026-10-02):** with Warfare Season 2 as
+the honor tier, the entry tier above moved to gold: "make the last season of PvP
+sets just worth gold, perhaps 100g for the set". Each family's seven armor
+pieces cost exactly 100 gold, split in proportion to the honor prices above and
+rounded to whole gold; jewelry and weapons follow the same rate
+(`WARFARE_SEASON1_PRICE_COPPER` in `src/sim/content/pvp_honor.ts`). The two
+Warfare trinkets stay on honor (800 each). Still soulbound with no sell value.
+
+| Slot | Gold |
+| --- | ---: |
+| Main hand | 22 |
+| Chest | 22 |
+| Legs | 19 |
+| Helmet | 17 |
+| Shoulder | 13 |
+| Gloves | 10 |
+| Feet | 10 |
+| Waist | 9 |
+| Neck | 7 |
+| Ring | 5 |
+
+- The seven-piece armor set: **100 gold**. A complete 11-slot kit (armor,
+  neck, two rings, main hand): **139 gold**.
+- A repeat gold purchase climbs only the relic's Reliquary obtain count, which is
+  information and never a score, so the Reliquary's copper-vendor guard names
+  Season 1 as its one deliberate exemption (`tests/reliquary_content.test.ts`).
 
 Roughly 1.75x the schedule the tier launched with. It is now genuinely
 best-in-slot for PvP armor and should be earned. The main hand comes down to the
@@ -753,14 +861,19 @@ Keeping `/pvp` on grants 20% more XP (including lifetime XP) and faction reputat
 before rested kill XP; reputation multiplies before the existing level cap.
 Positive boosted awards round down to whole points. Turning PvP off stops
 both bonuses immediately, even while the five-minute disarm runs. Automatically
-raised flags receive the same rewards while armed. The Proving Shore pauses played-time progress without clearing the flag.
+raised flags receive the same rewards while armed. Played-time progress counts only while alive in
+the open world: death (a corpse or a released ghost), every instance (dungeons, raids, delves, rifts,
+mazes, the arena and battlegrounds) and the Proving Shore pause it without clearing the flag, so the
+titles cannot be banked out of every rival's reach.
 
 The played-time streak grants permanent titles: Bold at 1 hour, Defiant at
 3 hours, Dauntless at 6 hours, Unyielding at 24 hours, and Indomitable at
 168 hours (7 days). Logout pauses the streak; `/pvp off` resets it, including
 when that countdown is later cancelled. Earned titles survive resets.
 This requested played-time reward is an explicit exception to the general
-Book of Deeds rule against attendance rewards. AFK time counts; tutorial island time does not. Leaving the island resumes the streak.
+Book of Deeds rule against attendance rewards. AFK time alive in the open world counts; time spent
+dead, in an instance or on the tutorial island does not. Resurrecting or returning to open-world
+ground resumes the streak.
 
 The existing character JSONB stores optional `worldPvp.rewardTicks`, an integer
 capped at 168 hours at `TICK_RATE`. Only simulation ticks accrue, and leaving or disconnected

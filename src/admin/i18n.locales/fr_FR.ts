@@ -403,6 +403,8 @@ export const fr_FR: Record<string, string> = {
   'detail.accountActions': 'Actions de modération du compte',
   'detail.banReason': "Raison de l'interdiction :{value}",
   'detail.suspensionReason': 'Motif de la suspension :{value}',
+  'detail.deactivatedNotice': 'Le joueur a désactivé ce compte le {value}.',
+  'detail.reactivate': 'Réactiver',
   'detail.notePlaceholder': 'Note du modérateur / motif',
   'detail.suspend1h': 'Suspendre 1 h',
   'detail.suspend24h': 'Suspendre 24 h',
@@ -501,6 +503,7 @@ export const fr_FR: Record<string, string> = {
   'dialog.confirmBan': 'Confirmer le bannissement',
   'dialog.confirmUnban': 'Confirmer le débannissement',
   'dialog.confirmUnsuspension': 'Confirmer la levée de la suspension',
+  'dialog.confirmReactivation': 'Confirmer la réactivation',
   'dialog.character': 'Personnage',
   'dialog.account': 'Compte',
   'dialog.action': 'Action',
@@ -514,6 +517,8 @@ export const fr_FR: Record<string, string> = {
   'dialog.actionUnban': "Rétablir l'accès au compte",
   'dialog.actionUnsuspend':
     "Restaurer l'accès à la connexion au compte avant l'expiration de la suspension",
+  'dialog.actionReactivate':
+    "Annuler la désactivation faite par le joueur et rétablir l'accès au compte",
   'dialog.confirm': 'Confirmer',
   'dialog.cancel': 'Annuler',
   'dialog.warning': 'Avertissement',

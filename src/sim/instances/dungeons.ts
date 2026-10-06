@@ -1102,7 +1102,15 @@ export function freeInstance(ctx: SimContext, inst: InstanceSlot): void {
 // unit: a member three rooms deep blocks resetting the lift, and a difficulty
 // transition abandons deeper checkpoints instead of preserving them at the new
 // difficulty.
-export function resetDungeonInstances(ctx: SimContext, pid?: number): void {
+//
+// `onDifficultyChange` is the classic implicit reset a difficulty change runs
+// (instances/difficulty_selection.ts): every gate below still applies, but having
+// nothing to reset is silent, since the player asked for a difficulty, not a reset.
+export function resetDungeonInstances(
+  ctx: SimContext,
+  pid?: number,
+  opts: { onDifficultyChange?: boolean } = {},
+): void {
   const r = ctx.resolve(pid);
   if (!r) return;
   const party = ctx.partyOf(r.meta.entityId);
@@ -1114,7 +1122,7 @@ export function resetDungeonInstances(ctx: SimContext, pid?: number): void {
   const key = instanceKeyFor(ctx, r.meta.entityId);
   const owned = ctx.instances.filter((inst) => inst.partyKey === key);
   if (owned.length === 0) {
-    ctx.error(r.meta.entityId, 'You have no instances to reset.');
+    if (!opts.onDifficultyChange) ctx.error(r.meta.entityId, 'You have no instances to reset.');
     return;
   }
   // Reset is a difficulty-transition escape hatch, not a same-difficulty farming
@@ -1136,6 +1144,7 @@ export function resetDungeonInstances(ctx: SimContext, pid?: number): void {
   }
   const resettable = owned.filter((inst) => resettableSet.has(inst));
   if (resettable.length === 0) {
+    if (opts.onDifficultyChange) return;
     ctx.error(
       r.meta.entityId,
       'Change dungeon difficulty before resetting these instances. Empty instances reset on their own after 5 minutes.',

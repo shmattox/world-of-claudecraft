@@ -112,13 +112,30 @@ ratings.
   `nextId` nor the shared rng stream moves
   (`tests/warfare_vendor_npc.test.ts` asserts both). His stock is the one
   canonical `content/pvp_honor.ts` table, shared with FURY.
+- `pvp_resurrect.ts` owns the PvP Resurrect RULE (owner rule 2026-10-02): a
+  player death outside the instance plane, not jailed, whose killing blow came
+  from a hostile player or that took a hostile player's hit within
+  `PVP_RESURRECT_WINDOW_SECONDS` (10), offers a raise at the graveyard Release
+  picks at full health and mana with no Keeper's Toll. `worldPvpOnPlayerDeath`
+  stamps `Entity.pvpResurrect` at every player death from the same hostile-hit
+  books the kill credit reads; the raise is `spirit.ts` `pvpResurrect` (refused
+  to a ghost). A living player's death resets the stamp before deciding it
+  (`combat/damage.ts` `handleDeath`), so a revive that skips `reviveAt`
+  (battleground seating, the delve respawn) can never carry an offer into a
+  later death; `reviveAt` clears it too. The self record carries it as `pvr`,
+  lit only when the raise would be honored (`server/self_scalar_wire.ts`); the death screen's button is
+  `src/ui/hud/death`. Imported by path from `world_pvp.ts` and `spirit.ts` (it
+  imports neither, so no cycle). Pinned by `tests/pvp_resurrect.test.ts`.
 - `world_pvp_rewards_rules.ts` owns the pure 20% XP/reputation bonus, five
   played-time title thresholds and bounded tick normalization. XP includes
   lifetime XP. XP, faction and UI consumers import this leaf directly to avoid
   the barrel runtime graph (a second deliberate direct-import exception).
 - `world_pvp_rewards.ts` accrues connected, armed played ticks and grants deeds
-  only at threshold crossings. Tutorial island pauses progress; logout preserves
-  it; requesting disarm resets it. Save full ticks, publish whole minutes.
+  only at threshold crossings. Only a living player on open-world ground ticks;
+  `worldPvpRewardPause` names the cause otherwise (dead, the instance plane, the
+  tutorial island sanctuary) and feeds both the tick and the IWorld readout.
+  Logout preserves progress; requesting disarm resets it. Save full ticks,
+  publish whole minutes.
 - Import the directory's public API through `src/sim/pvp/index.ts`, with the rewards leaf exception above and another
   deliberate exception: `warfare_quartermaster.ts` is NOT re-exported there
   (see the comment in `index.ts`). It needs `createNpc` from `../entity` at
@@ -133,6 +150,16 @@ ratings.
 
 ## King of the Hill
 
+- `hill_bounty_rules.ts` owns the PURE bounty tables (League of Legends'
+  champion bounty scaled to 10 Honor, `hillBountyHonor`), the per-hill repeat
+  cap (`hillRepeatHonorMultiplier`) and the announcer's calls
+  (`hillStreakCallout`). `hill_bounty.ts` owns the per-hill books on
+  `ActiveHill.bounty`: which world kills are hill kills (`hillKillFor`, called
+  from `worldPvpOnPlayerDeath`), the streaks, the `Entity.hillBounty` badge,
+  the readout's `callout` (`hillCalloutFor`) and the teardown at every way a
+  hill ends (`clearHillBounties`). It imports neither hill.ts nor world_pvp.ts
+  at runtime (ActiveHill is a type import), so both can call in. Pinned by
+  `tests/hill_bounty.test.ts`; docs/design/warfare.md "Bounties".
 - `hill_rules.ts` owns the PURE rules: who counts (`hillStanding`: parties
   only, so a raid member does not; level 10 or above), the group key (`hillGroupKey`: a party, or a lone
   player as a group of one; null for a raid), the strict-maximum leader
@@ -143,6 +170,7 @@ ratings.
   `hillTimes` from a window and a warning offset, `hillMinutesUntil`) and the
   circle test. No ctx, no rng, no clock. Every tuning literal (`HILL_RADIUS`,
   `HILL_WINDOW_SECONDS`, `HILL_WARNING_SECONDS`, `HILL_DURATION_SECONDS`,
+  `HILL_NOTICE_SECONDS`, `HILL_VAULT_MIN_INSIDE_SECONDS`, `HILL_VAULT_MIN_HOLD_SECONDS`,
   `HILL_CAPTURE_SECONDS`, `HILL_ACCRUAL_SECONDS`, the payout ramp `hillHonorPerPayout` with `HILL_RAMP_STEP_SECONDS` and `HILL_RAMP_MAX_HONOR`) lives
   here and the copy resolves from it. Hills last 30 minutes; payout and ramp
   intervals are compressed by 29/44 to preserve 388 Honor for a full uncontested
@@ -165,6 +193,20 @@ ratings.
   and during the warning for the map markers), the
   `/hill` readout line, and the notice lines the client matcher re-localizes
   (`hillWarningLine`, `hillRiseLine`, `hillFallenLine` with the zone name,
-  `HILL_TAKEN_LINE`, `HILL_LOST_LINE`). The realm switch
-  (`ctx.worldPvpDisabled`) drops a standing hill and announces none. Pinned by
-  `tests/hill.test.ts` and `tests/hill_rules.test.ts`.
+  `HILL_TAKEN_LINE`, `HILL_LOST_LINE`, `hillStillStandsLine`, `hillRankLine`,
+  `HILL_VAULT_LINE`). While risen it re-announces the hill every
+  `HILL_NOTICE_SECONDS` with the hold standings; the fall (`fallHill`, shared by
+  the schedule and `/dev hill end`) announces the final standings and, when the
+  longest hold lasted `HILL_VAULT_MIN_HOLD_SECONDS`, pays its holders one Weekly
+  Vault PvP win through the host-injected
+  `HillVaultCredit` (`updateHill(ctx, credit)`, `endHillNow(ctx, credit)`): this
+  barrel must never import `weekly_rewards.ts`, which reaches `entity.ts`. The
+  realm switch (`ctx.worldPvpDisabled`) drops a standing hill and announces none
+  (no standings, no credit). Pinned by `tests/hill.test.ts`,
+  `tests/hill_rules.test.ts` and `tests/hill_ranking.test.ts`.
+- `hill_ranking.ts` owns the PURE hold ranking over the per-group records on
+  `ActiveHill.holds` (`HillHoldRecord`: seconds held over the whole stand, the
+  leader's or lone player's name, the payees): `hillRanking` (longest first,
+  first-held order on a tie), `hillLongestHolds` (every group tied at the top)
+  and `hillVaultPayees` (their holders, each once; nobody when the longest hold
+  is under the floor). No ctx, no rng, no clock.

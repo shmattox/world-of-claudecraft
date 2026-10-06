@@ -7,6 +7,7 @@
 // accepting (the feature's default), no open pledges, tier 0, no standing
 // pledge. The friend/block/ignore lists default to empty for the same reason.
 import type { SocialInfo } from '../world_api';
+import { PRESENCE_MODES } from '../world_api/social_graph';
 import { decodeGuildPledgeSettings } from './guild_board_wire';
 
 /** The `social` frame as it arrives (loosely typed at the trust boundary). */
@@ -19,6 +20,7 @@ export interface SocialFrameLike {
         Partial<Pick<NonNullable<SocialInfo['guild']>, 'pledgeSettings' | 'pledges' | 'tier'>>)
     | null;
   myPledge?: SocialInfo['myPledge'];
+  presenceMode?: unknown;
 }
 
 export function socialInfoFromFrame(msg: SocialFrameLike): SocialInfo {
@@ -36,5 +38,9 @@ export function socialInfoFromFrame(msg: SocialFrameLike): SocialInfo {
     ignores: msg.ignores ?? [],
     guild,
     myPledge: msg.myPledge ?? null,
+    // The viewer's presence setting, only when it is one of the three known values.
+    ...(PRESENCE_MODES.find((m) => m === msg.presenceMode)
+      ? { presenceMode: msg.presenceMode as NonNullable<SocialInfo['presenceMode']> }
+      : {}),
   };
 }

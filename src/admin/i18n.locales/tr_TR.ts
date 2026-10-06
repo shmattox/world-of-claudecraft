@@ -397,6 +397,8 @@ export const tr_TR: Record<string, string> = {
   'detail.accountActions': 'Hesap denetleme eylemleri',
   'detail.banReason': 'Yasaklama nedeni:{value}',
   'detail.suspensionReason': 'Askıya alınma nedeni:{value}',
+  'detail.deactivatedNotice': 'Oyuncu bu hesabı {value} tarihinde devre dışı bıraktı.',
+  'detail.reactivate': 'Yeniden etkinleştir',
   'detail.notePlaceholder': 'Moderatör notu / gerekçe',
   'detail.suspend1h': '1s Askıya Al',
   'detail.suspend24h': '24s Askıya Al',
@@ -495,6 +497,7 @@ export const tr_TR: Record<string, string> = {
   'dialog.confirmBan': 'Yasağı onayla',
   'dialog.confirmUnban': 'Yasak kaldırmayı onayla',
   'dialog.confirmUnsuspension': 'Askıya alma işleminin kaldırılmasını onaylayın',
+  'dialog.confirmReactivation': 'Yeniden etkinleştirmeyi onaylayın',
   'dialog.character': 'Karakter',
   'dialog.account': 'Hesap',
   'dialog.action': 'Eylem',
@@ -507,6 +510,8 @@ export const tr_TR: Record<string, string> = {
   'dialog.actionUnban': 'Hesabın oturum açma erişimini geri yükle',
   'dialog.actionUnsuspend':
     'Askıya alma süresi sona ermeden önce hesaba giriş erişimini geri yükleyin',
+  'dialog.actionReactivate':
+    'Oyuncunun kendi yaptığı devre dışı bırakmayı geri al ve hesabın oturum açma erişimini geri yükle',
   'dialog.confirm': 'Onayla',
   'dialog.cancel': 'İptal',
   'dialog.warning': 'Uyarı',

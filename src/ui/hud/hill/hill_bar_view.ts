@@ -8,7 +8,13 @@
 // painter (hill_bar_painter.ts) only paints; every decision is here.
 
 import { HILL_CAPTURE_SECONDS } from '../../../sim/pvp';
-import type { HillInfo, HillPhaseInfo, HillSide, HillStandingInfo } from '../../../world_api';
+import type {
+  HillCalloutInfo,
+  HillInfo,
+  HillPhaseInfo,
+  HillSide,
+  HillStandingInfo,
+} from '../../../world_api';
 
 export interface HillBarLive {
   visible: true;
@@ -34,6 +40,8 @@ export interface HillBarLive {
   distanceYards: number;
   /** Whole minutes to the rise (warning) or the fall (risen). */
   minutesLeft: number;
+  /** The latest fresh announcer call (src/sim/pvp/hill_bounty.ts), or null. */
+  callout: HillCalloutInfo | null;
 }
 
 export interface HillBarHidden {
@@ -100,5 +108,16 @@ export function buildHillBarView(
     inside: info.inside,
     distanceYards,
     minutesLeft: info.minutesLeft,
+    callout: info.callout ?? null,
   };
+}
+
+/** The call to announce this frame: a fresh callout the bar has not shown
+ *  yet (each id exactly once), else null. */
+export function hillCalloutToShow(
+  shownId: string | null,
+  view: HillBarView,
+): HillCalloutInfo | null {
+  if (!view.visible || !view.callout || view.callout.id === shownId) return null;
+  return view.callout;
 }

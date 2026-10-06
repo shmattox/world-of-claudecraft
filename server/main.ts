@@ -430,6 +430,7 @@ import {
   requestedSfxVersion,
   sfxBlobIntegrityMatches,
 } from './static_cache';
+import { STATIC_PAGE_ALIASES, spaFallbackStatus } from './static_fallback';
 import { readStaticSfxSnapshot, type StaticSfxSnapshot } from './static_sfx';
 import { stopSteamMirror } from './steam/mirror';
 import {
@@ -462,7 +463,6 @@ import {
   assetsListMineCore,
   assetUploadCore,
 } from './user_assets_routes';
-import { createVaultRewardsDb } from './vault_rewards_db';
 import {
   configureWalletRuntime,
   handleDesktopWalletHandoffClaim,
@@ -547,35 +547,6 @@ const STATIC_DIR = path.join(__dirname, '..', 'dist');
 const SFX_PACK_DIR = process.env.SFX_PACK_DIR?.trim()
   ? path.resolve(process.env.SFX_PACK_DIR.trim())
   : null;
-// Pretty URLs that serve standalone static HTML pages.
-const STATIC_PAGE_ALIASES = new Map([
-  ['/links', '/links.html'],
-  ['/links/', '/links.html'],
-  ['/social', '/links.html'],
-  ['/social/', '/links.html'],
-  ['/social-media-links', '/links.html'],
-  ['/social-media-links/', '/links.html'],
-  ['/play', '/play.html'],
-  ['/play/', '/play.html'],
-  ['/wallet-handoff', '/wallet-handoff.html'],
-  ['/wallet-handoff/', '/wallet-handoff.html'],
-  ['/privacy', '/privacy.html'],
-  ['/privacy/', '/privacy.html'],
-  ['/terms', '/terms.html'],
-  ['/terms/', '/terms.html'],
-  ['/merch', '/merch.html'],
-  ['/merch/', '/merch.html'],
-  ['/press', '/press.html'],
-  ['/press/', '/press.html'],
-  ['/data-deletion', '/data-deletion.html'],
-  ['/data-deletion/', '/data-deletion.html'],
-  ['/support', '/support.html'],
-  ['/support/', '/support.html'],
-  ['/wiki', '/guide.html'],
-  ['/wiki/', '/guide.html'],
-  ['/editor', '/editor.html'],
-  ['/editor/', '/editor.html'],
-]);
 // Chat-log and perf-report retention days (0 = forever) plus the Turnstile secret
 // and the hard per-IP WS cap now live on the boot Config (see activeConfig above):
 // startServer reads config.chatLogRetentionDays / .perfReportRetentionDays /
@@ -1467,6 +1438,8 @@ function serveStatic(req: http.IncomingMessage, res: http.ServerResponse): void 
     return;
   }
   let urlPath = requestUrl.pathname;
+  // The raw pathname, kept for the SPA fallback's status (urlPath is rewritten below).
+  const requestPath = urlPath;
   // The curated Guide is the site wiki: a client-routed SPA served at /wiki with its
   // own shell, so deep paths (/wiki/classes/...) fall back to guide.html rather than the
   // game's index.html. (It previously 302'd to a standalone MediaWiki; that is retired.)
@@ -1513,10 +1486,13 @@ function serveStatic(req: http.IncomingMessage, res: http.ServerResponse): void 
       res.end('not found');
       return;
     }
-    // SPA fallback
+    // SPA fallback. Known client routes answer 200; any other path gets the same shell
+    // with a 404 status, so invented URLs are not soft-404 copies of the homepage
+    // (server/static_fallback.ts).
     const index = path.join(STATIC_DIR, shell);
     if (fs.existsSync(index)) {
-      res.writeHead(200, { 'Content-Type': 'text/html', 'Cache-Control': 'no-cache' });
+      const status = spaFallbackStatus(requestPath, isAdminRequest(req), STATIC_PAGE_ALIASES);
+      res.writeHead(status, { 'Content-Type': 'text/html', 'Cache-Control': 'no-cache' });
       streamStaticFile(index, res);
     } else {
       res.writeHead(404);
@@ -2946,7 +2922,8 @@ configureLeaderboardRuntime({
   perfProfile: () => liveGame().perfProfile(),
   getLeaderboard,
   getGuildLeaderboard,
-  isCharacterOnline: (id) => liveGame().hasSessionForCharacter(id),
+  // Officers online on the PUBLIC guild board: a hidden officer reads offline.
+  isCharacterOnline: (id) => liveGame().social.shownOnlinePublicly(id),
   getDevLeaderboard: () => topContributors(),
   getDeedsLeaderboard,
   deedsSelfRank,
@@ -3822,7 +3799,6 @@ export async function startServer(): Promise<http.Server> {
   // command; without this the ws default (~100 MiB) lets one socket force a
   // huge allocation + parse before any field-level validation runs
   const wss = new WebSocketServer({ noServer: true, maxPayload: WS_MAX_PAYLOAD_BYTES });
-  const vaultRewardsDb = createVaultRewardsDb(pool, REALM);
   const wsAuth = createWsAuth({
     game,
     accountAndScopeForToken,
@@ -3843,7 +3819,6 @@ export async function startServer(): Promise<http.Server> {
     acquireCharacterLease,
     releaseCharacterLease,
     bankBonusForAccount: async (id) => computeBankBonus(await bankBonusFactsForAccount(id)),
-    guestPayoutsForCycle: (id, cycle) => vaultRewardsDb.guestPayoutsForCycle(id, cycle),
   });
   wsAuth.attachUpgrade(server, wss);
 

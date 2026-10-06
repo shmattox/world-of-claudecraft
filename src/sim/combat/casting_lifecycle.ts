@@ -944,13 +944,14 @@ export function castAbilityBySlot(
 // else-self rule, byte-identical to the pre-override behavior when null.
 //
 // One refusal, returned as null for the caller to voice (WORLD_PVP_AID_REFUSED_LINE):
-// a live PLAYER the open world has made an enemy (src/sim/pvp/world_pvp.ts
-// isWorldPvpHostile). The aid rule flags a helper who keeps a flagged stranger
-// standing, and from that moment the two are flagged strangers whom the self
-// fallback would otherwise lock apart in silence: every later heal, shield or
-// buff would land on the helper instead, with no word about why. Only the WORLD
-// arm refuses: a duel, arena or battleground opponent on the target still self-casts,
-// the classic habit those modes' healers rely on.
+// an explicitly NAMED unit (the hover override at the press, or the locked cast
+// target at a timed cast's finish) that is a live PLAYER the open world has made
+// an enemy (src/sim/pvp/world_pvp.ts isWorldPvpHostile). Naming one is a
+// deliberate attempt to aid them, so it is said out loud; a target that turns
+// into an enemy mid-cast fails the finish rather than landing on the caster.
+// An enemy merely SELECTED is the classic self-cast: a healer fighting a flagged
+// player presses a heal with that player still targeted to heal themselves,
+// exactly as a duel, arena or battleground healer does.
 function resolveFriendlyTarget(
   ctx: SimContext,
   p: Entity,
@@ -963,7 +964,6 @@ function resolveFriendlyTarget(
   }
   const cur = p.targetId !== null ? (ctx.entities.get(p.targetId) ?? null) : null;
   if (cur && !cur.dead && ctx.isFriendlyTo(p, cur)) return cur;
-  if (cur && !cur.dead && cur.kind === 'player' && isWorldPvpHostile(ctx, p, cur)) return null;
   return p;
 }
 
@@ -1473,7 +1473,7 @@ export function castAbility(
     target = dead;
   } else if (ability.requiresTarget && ability.targetType === 'friendly') {
     // heals/buffs: the mouseover override when given, else the current
-    // friendly target, else yourself; a World PvP enemy on the target refuses
+    // friendly target, else yourself; a hovered World PvP enemy refuses
     const friendly = resolveFriendlyTarget(ctx, p, castTargetId);
     if (!friendly) {
       ctx.error(p.id, WORLD_PVP_AID_REFUSED_LINE);
@@ -2845,7 +2845,7 @@ function applyAbility(
   } else if (ability.requiresTarget && ability.targetType === 'friendly') {
     // Keep the branch's mouseover-cast resolution (Clique-style): the explicit
     // override wins while valid, else current-friendly-target-else-self; a
-    // target the open world made an enemy during the cast refuses the finish.
+    // locked target the open world made an enemy during the cast refuses the finish.
     const friendly = resolveFriendlyTarget(ctx, p, castTarget);
     if (!friendly) {
       ctx.error(p.id, WORLD_PVP_AID_REFUSED_LINE);

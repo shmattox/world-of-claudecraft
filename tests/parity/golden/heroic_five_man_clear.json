@@ -771,7 +771,7 @@
       "tick": 1,
       "time": 0.05,
       "nextId": 1037,
-      "state": "87fecd66",
+      "state": "c09424d1",
       "events": "cf99e425",
       "rng": {
         "draws": 63,
@@ -977,7 +977,10 @@
               0,
               0
             ],
-            "resetAtMs": 604800000
+            "resetAtMs": 604800000,
+            "weeklyBossUnlocks": {
+              "korzul_the_gravewyrm": 2
+            }
           },
           "worldQuestReplacements": {},
           "wyrmfallDaily": {
@@ -1185,7 +1188,10 @@
               0,
               0
             ],
-            "resetAtMs": 604800000
+            "resetAtMs": 604800000,
+            "weeklyBossUnlocks": {
+              "korzul_the_gravewyrm": 2
+            }
           },
           "worldQuestReplacements": {},
           "wyrmfallDaily": {
@@ -1386,7 +1392,10 @@
               0,
               0
             ],
-            "resetAtMs": 604800000
+            "resetAtMs": 604800000,
+            "weeklyBossUnlocks": {
+              "korzul_the_gravewyrm": 2
+            }
           },
           "worldQuestReplacements": {},
           "wyrmfallDaily": {
@@ -1587,7 +1596,10 @@
               0,
               0
             ],
-            "resetAtMs": 604800000
+            "resetAtMs": 604800000,
+            "weeklyBossUnlocks": {
+              "korzul_the_gravewyrm": 2
+            }
           },
           "worldQuestReplacements": {},
           "wyrmfallDaily": {
@@ -1788,7 +1800,10 @@
               0,
               0
             ],
-            "resetAtMs": 604800000
+            "resetAtMs": 604800000,
+            "weeklyBossUnlocks": {
+              "korzul_the_gravewyrm": 2
+            }
           },
           "worldQuestReplacements": {},
           "wyrmfallDaily": {
@@ -2149,7 +2164,7 @@
       "tick": 1,
       "time": 0.05,
       "nextId": 1037,
-      "state": "87fecd66",
+      "state": "c09424d1",
       "events": "741638a5",
       "rng": {
         "draws": 63,
@@ -2355,7 +2370,10 @@
               0,
               0
             ],
-            "resetAtMs": 604800000
+            "resetAtMs": 604800000,
+            "weeklyBossUnlocks": {
+              "korzul_the_gravewyrm": 2
+            }
           },
           "worldQuestReplacements": {},
           "wyrmfallDaily": {
@@ -2563,7 +2581,10 @@
               0,
               0
             ],
-            "resetAtMs": 604800000
+            "resetAtMs": 604800000,
+            "weeklyBossUnlocks": {
+              "korzul_the_gravewyrm": 2
+            }
           },
           "worldQuestReplacements": {},
           "wyrmfallDaily": {
@@ -2764,7 +2785,10 @@
               0,
               0
             ],
-            "resetAtMs": 604800000
+            "resetAtMs": 604800000,
+            "weeklyBossUnlocks": {
+              "korzul_the_gravewyrm": 2
+            }
           },
           "worldQuestReplacements": {},
           "wyrmfallDaily": {
@@ -2965,7 +2989,10 @@
               0,
               0
             ],
-            "resetAtMs": 604800000
+            "resetAtMs": 604800000,
+            "weeklyBossUnlocks": {
+              "korzul_the_gravewyrm": 2
+            }
           },
           "worldQuestReplacements": {},
           "wyrmfallDaily": {
@@ -3166,7 +3193,10 @@
               0,
               0
             ],
-            "resetAtMs": 604800000
+            "resetAtMs": 604800000,
+            "weeklyBossUnlocks": {
+              "korzul_the_gravewyrm": 2
+            }
           },
           "worldQuestReplacements": {},
           "wyrmfallDaily": {

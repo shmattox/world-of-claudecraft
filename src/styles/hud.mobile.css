@@ -6048,6 +6048,7 @@
     display: none;
   }
   body.mobile-touch .soc-add input,
+  body.mobile-touch .soc-presence select,
   body.mobile-touch .soc-billboard-edit input,
   body.mobile-touch .soc-pledge-note-row input,
   body.mobile-touch .soc-pledge-minlvl input,

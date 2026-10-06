@@ -22,10 +22,14 @@ through `IWorld.hillInfo`), behind the `index.ts` barrel:
   rows (the counts and the fill only exist once it has risen); a `.hill-note`
   row always explains ineligibility or warns that entry enables PvP. The pure
   `shouldAnnounceHillPvp(previous, next)` helper detects eligible entry or
-  activation while inside; the painter forwards it through `onPvpEntry` to
-  the HUD banner. Under-level viewers do not receive the banner; raid members
+  activation while inside; the painter forwards it through `banner` (with
+  `hudChrome.hill.pvpBanner`) to the HUD banner. Under-level viewers do not receive the banner; raid members
   do because they are flagged even though they cannot capture. The banner uses
-  its own `hudChrome.hill.pvpBanner` key. ONE innerHTML write per sig
+  its own `hudChrome.hill.pvpBanner` key. The announcer's call
+  (`HillInfo.callout`, src/sim/pvp/hill_bounty.ts) rides the same view as
+  `callout`; the pure `hillCalloutToShow(shownId, view)` picks each call id
+  exactly once and the painter forwards `hillCalloutText(call)` through
+  the same `banner` dependency to the HUD banner (`hudChrome.hill.callout.*`). ONE innerHTML write per sig
   change; every per-second
   value (the counts, the contest text and fill width, the distance, the
   minutes) rides the `PainterHost` elided writers, so an idle second writes
@@ -38,6 +42,6 @@ through `IWorld.hillInfo`), behind the `index.ts` barrel:
   counts through `formatNumber`. The numbers the copy quotes resolve from
   `src/sim/pvp/hill_rules.ts`, never literals.
 - The circle itself is drawn by the renderer (`src/render/hill_ring.ts`; still
-  and faint while announced); the `/hill` chat readout and the warning, rise
-  and fall announcements come from the sim through the matcher
-  (`src/ui/sim_i18n.ts`, `hill.*`).
+  and faint while announced); the `/hill` chat readout and the warning, rise,
+  five-minute reminder, standings, fall and Weekly Vault announcements come
+  from the sim through the matcher (`src/ui/sim_i18n.ts`, `hill.*`).

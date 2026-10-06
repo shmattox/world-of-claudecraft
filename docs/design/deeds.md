@@ -129,7 +129,8 @@ server store always canonical.
    a passenger riding the kill is the group's own choice, not open-world AFK.
    Approved exception: the opt-in played-time deeds `pvp_flag_1h`,
    `pvp_flag_3h`, `pvp_flag_6h`, `pvp_flag_24h`, and `pvp_flag_168h`
-   count connected flagged time, including AFK, but pause on the Proving Shore.
+   count connected flagged time alive in the open world, including AFK, but
+   pause while dead, inside every instance and on the Proving Shore.
    Logout preserves progress; requesting PvP off resets it. Earned titles remain.
 7. **Thresholds sit where natural play lands.** Most of the catalog is
    reachable in the first two-thirds of a character's journey; sub-1%

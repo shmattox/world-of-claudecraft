@@ -8,6 +8,7 @@
 // fractions and preformatted text, the "Dead" readout, the classic empty resource
 // rail for a resource-less or dead target, the pre-localized title decoration
 // (memoized by the caller behind a language + title signature), the Cheater tag,
+// the King of the Hill bounty tag leading the name,
 // the player-kind-gated Book of Deeds border slug, the id-keyed portrait gate,
 // and the party-scoped raid marker read from IWorld.markerFor at the call site
 // (so a marked mob shows the same symbol on the frame as on its nameplate).
@@ -17,6 +18,7 @@ import { cheaterTagLabel } from './cheater_tag';
 import { deedTargetBorderSlug } from './deed_border_view';
 import type { TitledNameDecoration } from './deed_i18n';
 import { entityDisplayName } from './entity_display_core';
+import { hillBountyTagLabel } from './hill_bounty_tag';
 import { type HealthTextMode, unitFrameCurrentMaxText, unitFrameHealthText } from './hud_frames';
 import { t } from './i18n';
 import type { UnitFrameDescriptor } from './unit_frame';
@@ -82,7 +84,9 @@ export function fillTargetFrameDescriptor(
     ? ''
     : unitFrameCurrentMaxText(Math.round(target.resource), target.maxResource);
   d.levelText = String(target.level);
-  d.name = entityDisplayName(target);
+  // The King of the Hill bounty leads the name, as on the nameplate (one helper).
+  const bounty = hillBountyTagLabel(target);
+  d.name = bounty ? `${bounty} ${entityDisplayName(target)}` : entityDisplayName(target);
   d.titlePre = title.pre;
   d.titlePost = title.post;
   // The operator-applied Cheater tag (src/sim/moderation/). Resolved every

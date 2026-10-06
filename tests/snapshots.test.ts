@@ -5764,6 +5764,7 @@ const ALL_DELTA_KEYS = [
   'prk',
   'prof',
   'ptime',
+  'pvr',
   'qdone',
   'qlog',
   'reliq',
@@ -5898,6 +5899,7 @@ const TERSE_TO_IWORLD: Record<string, string> = {
   prk: 'prestigeRank',
   prof: 'professionsState',
   ptime: 'playtimeSeconds',
+  pvr: 'pvpResurrect',
   qdone: 'questsDone',
   qlog: 'questLog',
   res: 'resource',
@@ -6554,6 +6556,7 @@ describe('full self-state snapshot delta fixture', () => {
       kills: 2,
       deaths: 1,
       zone: 'contested', // the fixture leader stands on contested ground
+      rewardPause: 'instance', // inside the delve the armed streak is paused
       enabled: true,
     });
     expect(client.player.pvpFlag).toBe(true);
@@ -7153,7 +7156,7 @@ describe('gather node cooldown wire round trip (ncd)', () => {
 });
 
 describe('delta-key contract pins (anti-drift)', () => {
-  it('ALL_DELTA_KEYS contains exactly 113 unique keys in sorted order', () => {
+  it('ALL_DELTA_KEYS contains exactly 114 unique keys in sorted order', () => {
     // 109 plus the release batch's pending Town Focus and Spell Crit core keys.
     // +1: guildBank (Guild Bank Phase 2), +1: the battleground bg key, +1: the
     // commission order board's corder key (issue #1298), +1: the character
@@ -7210,9 +7213,11 @@ describe('delta-key contract pins (anti-drift)', () => {
     // base merge, for 109.
     // The release batch's pending Town Focus and the Spell Crit sheet cell's
     // shared crit core scb (server/self_scalar_wire.ts), at the third
-    // release/v0.44.0 base merge, for 111.
-    expect(ALL_DELTA_KEYS).toHaveLength(113);
-    expect(new Set(ALL_DELTA_KEYS).size).toBe(113);
+    // release/v0.44.0 base merge, for 111. (The keys reaching 113 landed
+    // without a note here.) The PvP Resurrect offer pvr
+    // (server/self_scalar_wire.ts, src/sim/pvp/pvp_resurrect.ts), for 114.
+    expect(ALL_DELTA_KEYS).toHaveLength(114);
+    expect(new Set(ALL_DELTA_KEYS).size).toBe(114);
     expect([...ALL_DELTA_KEYS]).toEqual([...ALL_DELTA_KEYS].sort());
   });
 
@@ -7382,7 +7387,7 @@ describe('delta-key contract pins (anti-drift)', () => {
     // The Weekly Vault's weeklyRewards self key (PR 4052) makes 107.
     // The World PvP readout wpvp and the King of the Hill readout hill make 109.
     // The release batch's pending Town Focus and Spell Crit core keys make 111.
-    expect(scraped.size).toBe(113);
+    expect(scraped.size).toBe(114);
     expect([...scraped].sort()).toEqual([...ALL_DELTA_KEYS].sort());
   });
 

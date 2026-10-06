@@ -1199,27 +1199,27 @@ export const table: DeedLocaleTable = {
   },
   pvp_flag_1h: {
     name: 'Cesur',
-    desc: 'Dünya PvP’sini 1 saat oynama süresi boyunca açık tut. Çıkış yapmak ilerlemeyi duraklatır; kapatmak sıfırlar. Kazanılan unvanlar kalıcıdır.',
+    desc: 'Dünya PvP’sini açık dünyada 1 saat oynama süresi boyunca açık tut. Çıkış yapmak, ölü olmak ve örneklerde bulunmak ilerlemeyi duraklatır; kapatmak sıfırlar. Kazanılan unvanlar kalıcıdır.',
     title: 'Cesur',
   },
   pvp_flag_3h: {
     name: 'Meydan Okuyan',
-    desc: 'Dünya PvP’sini 3 saat oynama süresi boyunca açık tut. Çıkış yapmak ilerlemeyi duraklatır; kapatmak sıfırlar. Kazanılan unvanlar kalıcıdır.',
+    desc: 'Dünya PvP’sini açık dünyada 3 saat oynama süresi boyunca açık tut. Çıkış yapmak, ölü olmak ve örneklerde bulunmak ilerlemeyi duraklatır; kapatmak sıfırlar. Kazanılan unvanlar kalıcıdır.',
     title: 'Meydan Okuyan',
   },
   pvp_flag_6h: {
     name: 'Korkusuz',
-    desc: 'Dünya PvP’sini 6 saat oynama süresi boyunca açık tut. Çıkış yapmak ilerlemeyi duraklatır; kapatmak sıfırlar. Kazanılan unvanlar kalıcıdır.',
+    desc: 'Dünya PvP’sini açık dünyada 6 saat oynama süresi boyunca açık tut. Çıkış yapmak, ölü olmak ve örneklerde bulunmak ilerlemeyi duraklatır; kapatmak sıfırlar. Kazanılan unvanlar kalıcıdır.',
     title: 'Korkusuz',
   },
   pvp_flag_24h: {
     name: 'Boyun Eğmez',
-    desc: 'Dünya PvP’sini 24 saat oynama süresi boyunca açık tut. Çıkış yapmak ilerlemeyi duraklatır; kapatmak sıfırlar. Kazanılan unvanlar kalıcıdır.',
+    desc: 'Dünya PvP’sini açık dünyada 24 saat oynama süresi boyunca açık tut. Çıkış yapmak, ölü olmak ve örneklerde bulunmak ilerlemeyi duraklatır; kapatmak sıfırlar. Kazanılan unvanlar kalıcıdır.',
     title: 'Boyun Eğmez',
   },
   pvp_flag_168h: {
     name: 'Yılmaz',
-    desc: 'Dünya PvP’sini 7 gün oynama süresi boyunca açık tut. Çıkış yapmak ilerlemeyi duraklatır; kapatmak sıfırlar. Kazanılan unvanlar kalıcıdır.',
+    desc: 'Dünya PvP’sini açık dünyada 7 gün oynama süresi boyunca açık tut. Çıkış yapmak, ölü olmak ve örneklerde bulunmak ilerlemeyi duraklatır; kapatmak sıfırlar. Kazanılan unvanlar kalıcıdır.',
     title: 'Yılmaz',
   },
 };

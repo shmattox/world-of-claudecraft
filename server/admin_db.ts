@@ -1328,6 +1328,10 @@ export interface AccountDetail {
   isAdmin: boolean;
   bannedAt: string | null;
   suspendedUntil: string | null;
+  // When the player locked the account through POST /api/account/deactivate
+  // (accounts.deactivated_at); null for a live account. Independent of a ban or
+  // suspension, so the dashboard offers the audited reactivate action on it alone.
+  deactivatedAt: string | null;
   moderationReason: string;
   chatMutedUntil: string | null;
   chatMuteReason: string;
@@ -1649,6 +1653,7 @@ export async function accountDetail(accountId: number): Promise<AccountDetail | 
     runWithStatementTimeout(DB_HEAVY_STATEMENT_TIMEOUT_MS, (query) =>
       query(
         `SELECT id, username, created_at, last_login, is_admin, banned_at, suspended_until,
+                deactivated_at,
                 COALESCE(moderation_reason, '') AS moderation_reason,
                 chat_muted_until,
                 COALESCE(chat_mute_reason, '') AS chat_mute_reason,
@@ -1748,6 +1753,7 @@ export async function accountDetail(accountId: number): Promise<AccountDetail | 
     isAdmin: a.is_admin,
     bannedAt: a.banned_at,
     suspendedUntil: a.suspended_until,
+    deactivatedAt: a.deactivated_at ?? null,
     moderationReason: a.moderation_reason,
     chatMutedUntil: a.chat_muted_until,
     chatMuteReason: a.chat_mute_reason,

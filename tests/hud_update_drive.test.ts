@@ -847,23 +847,9 @@ const HUD_UPDATE_DRIVES: readonly DriveRow[] = [
     call: 'this.setDisplay',
     band: 'frame',
     gate: '',
-    sites: 2,
+    sites: 4,
     surface: 'chrome',
-    why: 'the full-screen death overlay and the standing ghost hint line, through the elided writer',
-  },
-  {
-    call: 'this.setDisplay',
-    band: 'frame',
-    gate: 'ghost && !ghostInBgMatch',
-    surface: 'chrome',
-    why: 'the ghost prompt (its one corpse button) while the spirit is in reach of its body; a battleground spirit is exempt because the respawn wave is its only way back',
-  },
-  {
-    call: 'this.setDisplay',
-    band: 'frame',
-    gate: '!(ghost && !ghostInBgMatch)',
-    surface: 'chrome',
-    why: 'hides the ghost prompt while not a corpse-running ghost',
+    why: 'the death screens through the elided writer: the full-screen death overlay, its PvP Resurrect button, the standing ghost hint line and the ghost prompt (its one corpse button), each shown or hidden by the pure death view core (src/ui/hud/death; a battleground spirit gets neither ghost surface because the respawn wave is its only way back)',
   },
   {
     call: 'syncDeathControllerHints',
@@ -1872,7 +1858,9 @@ describe('Hud.update() drives exactly the registered set, on the registered band
       // surface (51 / 96 measured on the merged tree). The release's Eastbrook
       // ferry countdown panel (hud ferryHud) is one more chrome surface at the
       // fourth release/v0.44.0 base merge (97 measured on the merged tree).
-    ).toEqual({ window: 51, chrome: 97, none: 18 });
+      // The death screens' four writes folded into one row behind the pure
+      // death view core (src/ui/hud/death, PvP Resurrect): two fewer rows, 95.
+    ).toEqual({ window: 51, chrome: 95, none: 18 });
     const windows = HUD_UPDATE_DRIVES.filter((r) => r.surface === 'window');
     expect(windows.map((r) => r.call)).toContain('this.spellbookWindow.tickOpen');
     expect(windows.map((r) => r.call)).toContain('this.refreshOpenTownFocusIfChanged');

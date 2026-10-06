@@ -5831,6 +5831,11 @@ export interface Entity extends ClientMirroredEntityFields {
    *  unflagged, so an unflagged character samples and serializes exactly as
    *  before the flag existed. */
   pvpFlag?: boolean;
+  /** King of the Hill bounty (src/sim/pvp/hill_bounty.ts): the Honor this
+   *  player is worth while a kill streak on the risen hill lifts it above the
+   *  plain world kill. Rides the entity wire (`hbn`) so every nearby client tags
+   *  the nameplate and target frame; absent otherwise. */
+  hillBounty?: number;
   /** Host-only disconnect grace marker; absent for offline/headless players. Never persisted. */
   pvpRewardsPaused?: boolean;
   /** WARFARE Vitality switch (src/sim/pvp/vitality.ts): false while the player
@@ -5927,7 +5932,7 @@ export interface Entity extends ClientMirroredEntityFields {
   riftTier?: RiftTier;
   // Treasure vault portals (src/sim/treasure_vault.ts): the character whose map
   // opened it (only they and their party may enter), the map's rarity, and the
-  // sim time the unentered portal closes.
+  // Host lockout-clock deadline (epoch ms online), shared with the vault attempt.
   vaultOwnerPid?: number;
   /** Stable owner identity across disconnect/reconnect; runtime pid may change. */
   vaultOwnerCharacterId?: number;
@@ -6047,6 +6052,12 @@ export interface Entity extends ClientMirroredEntityFields {
   // Null for world corpses and saved ghosts. Instance exits are recreated on
   // every claim, so stale corpse coordinates cannot match a recycled slot.
   corpseInstanceId: number | null;
+  // PvP Resurrect (src/sim/pvp/pvp_resurrect.ts): true while this corpse may stand
+  // up at the nearest graveyard at full health with no Keeper's Toll, because a
+  // hostile player had a hand in the death. Reset when a living player dies
+  // (combat/damage.ts handleDeath), stamped by that death, and cleared by the
+  // shared revive (spirit.ts reviveAt); absent on everyone else.
+  pvpResurrect?: boolean;
   scale: number;
   color: number;
   skinCatalog: SkinCatalog; // player appearance catalog: class texture set or cosmetic body.
@@ -6280,6 +6291,9 @@ export interface NythraxisEncounterState {
   // Seconds left before Bone Storm may begin after a Soul Rend detonation
   // (nythraxis_soul_rend.ts); 0 when no detonation is settling.
   soulRendSettleTimer?: number;
+  // Seconds left before a Grave Eruption may begin after the Soul Rend marks
+  // detonate or are released (nythraxis_soul_rend.ts); 0 when no gap runs.
+  soulRendFireGapTimer?: number;
   // The Crown Endures: seconds since the first encounter tick (the clock runs
   // through the transition) and the enrage stack the boss carries once it has
   // run out (nythraxis_enrage_clock.ts).
@@ -6981,6 +6995,7 @@ export type SimEvent = { pid?: number } & (
   /** Server-only durable settlement input, never forwarded to clients. */
   | {
       type: 'treasureVaultOutcomePending';
+      bossKilledAtMs?: number;
       attemptId: string;
       ownerCharacterId: number;
       claims: {

@@ -230,6 +230,7 @@ export const IWORLD_MEMBERS = [
   { name: 'releaseSpirit', kind: 'method' },
   { name: 'resurrectAtCorpse', kind: 'method' },
   { name: 'resurrectAtSpiritHealer', kind: 'method' },
+  { name: 'pvpResurrect', kind: 'method' },
   { name: 'respondToResurrection', kind: 'method' },
   { name: 'chat', kind: 'method' },
   { name: 'playEmote', kind: 'method' },
@@ -941,9 +942,10 @@ describe('IWORLD_MEMBERS is the pinned IWorld contract (anti-loosening)', () => 
     // method) at the fourth release/v0.44.0 base merge: 421/124/297.
     // Plus PlaceSchema's online-only carryItem method (PLACE-276): 425/126/299.
     // Plus PlaceSchema's online-only linkPlaceSchema method (PLACE-479): 426/126/300.
-    expect(IWORLD_MEMBERS.length).toBe(426);
+    // Plus upstream v0.44.4's method at the PLACE-611 resync: 427/126/301.
+    expect(IWORLD_MEMBERS.length).toBe(427);
     expect(DATA_MEMBERS.length).toBe(126);
-    expect(METHOD_MEMBERS.length).toBe(300);
+    expect(METHOD_MEMBERS.length).toBe(301);
   });
   it('has no duplicate member names', () => {
     const names = IWORLD_MEMBERS.map((m) => m.name);
@@ -1243,6 +1245,7 @@ describe('IWORLD_MEMBERS is the pinned IWorld contract (anti-loosening)', () => 
       'prestige',
       'prestigeRank',
       'professionsState',
+      'pvpResurrect',
       'questLog',
       'questState',
       'questsDone',
@@ -1719,6 +1722,7 @@ describe('IWORLD_MEMBERS is the pinned IWorld contract (anti-loosening)', () => 
       'playCardInDuel',
       'playEmote',
       'prestige',
+      'pvpResurrect',
       'questState',
       'raidLockouts',
       'reactiveAbilityWindowRemaining',
@@ -1942,6 +1946,7 @@ const FACET_COMBAT = [
   'releaseSpirit',
   'resurrectAtCorpse',
   'resurrectAtSpiritHealer',
+  'pvpResurrect',
   'respondToResurrection',
 ] as const satisfies readonly (keyof IWorldCombat)[];
 type _ExhaustCombat = AssertNever<Exclude<keyof IWorldCombat, (typeof FACET_COMBAT)[number]>>;
@@ -2631,8 +2636,8 @@ describe('W1: aggregate IWorld member set equals the disjoint union of the facet
     const union = Object.values(FACET_MEMBER_ARRAYS).flatMap((arr) => [...arr]);
     // Mirrors the IWORLD_MEMBERS.length pin above (411); this pin and the one above
     // must always agree.
-    expect(union.length, 'union size before dedup (catches a duplicated member)').toBe(426);
-    expect(new Set(union).size, 'union size after dedup (catches a duplicated member)').toBe(426);
+    expect(union.length, 'union size before dedup (catches a duplicated member)').toBe(427);
+    expect(new Set(union).size, 'union size after dedup (catches a duplicated member)').toBe(427);
     const sortedUnion = [...union].sort();
     const pinned = IWORLD_MEMBERS.map((m) => m.name).sort();
     expect(sortedUnion).toEqual(pinned);

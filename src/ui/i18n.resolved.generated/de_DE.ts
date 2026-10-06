@@ -438,7 +438,9 @@ export const de_DE: EnTranslations = {
         "worldOne": "{count} Weltquest abgeschlossen",
         "worldMany": "{count} Weltquests abgeschlossen",
         "pvpOne": "{count} gewertetes Match gewonnen",
-        "pvpMany": "{count} gewertete Matches gewonnen"
+        "pvpMany": "{count} gewertete Matches gewonnen",
+        "pvpWinOne": "{count} PvP-Sieg",
+        "pvpWinMany": "{count} PvP-Siege"
       },
       "requiredTask": {
         "raidOne": "Bereinige {count} Schlachtzugsbegegnung",
@@ -448,7 +450,9 @@ export const de_DE: EnTranslations = {
         "worldOne": "Schließe {count} Weltquest ab",
         "worldMany": "Schließe {count} Weltquests ab",
         "pvpOne": "Gewinne {count} gewertetes Match",
-        "pvpMany": "Gewinne {count} gewertete Matches"
+        "pvpMany": "Gewinne {count} gewertete Matches",
+        "pvpWinOne": "Erringe {count} PvP-Sieg",
+        "pvpWinMany": "Erringe {count} PvP-Siege"
       },
       "readyWeeks": "Nicht abgeholte Wochen: {count}. Hole zuerst die älteste abgeschlossene Woche ab.",
       "claimLastWeek": "Belohnung der letzten Woche abholen",
@@ -594,6 +598,8 @@ export const de_DE: EnTranslations = {
     },
     "death": {
       "resurrectAtCorpse": "Am Leichnam wiederbeleben",
+      "pvpResurrect": "PvP-Wiederbelebung",
+      "pvpResurrectTitle": "Belebe dich auf dem nächsten Friedhof mit voller Gesundheit wieder, ohne einen neuen Zoll des Hüters.",
       "resurrectAtHealer": "Der Bleiche Hüter (Zoll des Hüters)",
       "ghostHint": "Laufe zum Ort deines Todes oder sprich mit dem Bleichen Hüter, um wiederbelebt zu werden",
       "spiritHealerAlive": "Der Bleiche Hüter wacht über die Toten. Du weilst noch unter den Lebenden.",
@@ -2786,8 +2792,10 @@ export const de_DE: EnTranslations = {
     },
     "worldPvp": {
       "rewardBonus": "Lasse Welt-PvP aktiv, um {percent} mehr Erfahrung und Fraktionsruf zu erhalten. Die Boni enden, sobald du die Deaktivierung anforderst.",
-      "rewardTitles": "Erhalte nach {thresholds} Spielzeit mit aktivem Welt-PvP dauerhafte Titel. Ausloggen und Besuche an der Bewährungsküste pausieren den Zähler. Deaktivieren setzt ihn zurück.",
+      "rewardTitles": "Erhalte nach {thresholds} Spielzeit mit aktivem Welt-PvP in der offenen Welt dauerhafte Titel. Ausloggen, Tod, Instanzen und die Bewährungsküste pausieren den Zähler. Deaktivieren setzt ihn zurück.",
       "rewardPaused": "Aktuelle PvP-Serie: {time} Spielzeit (an der Bewährungsküste pausiert)",
+      "rewardPausedDead": "Aktuelle PvP-Serie: {time} Spielzeit (pausiert, solange du tot bist)",
+      "rewardPausedInstance": "Aktuelle PvP-Serie: {time} Spielzeit (in Instanzen pausiert)",
       "rewardProgress": "Aktuelle PvP-Serie: {time} Spielzeit",
       "tab": "Welt-PvP",
       "title": "Welt-PvP",
@@ -2843,6 +2851,15 @@ export const de_DE: EnTranslations = {
       "falls": "Sinkt in {minutes}",
       "pvpEntry": "Das Betreten des aktiven Kreises aktiviert Welt-PvP.",
       "pvpBanner": "PvP",
+      "callout": {
+        "killingSpree": "{name} befindet sich in einem Tötungsrausch!",
+        "rampage": "{name} begeht ein Massaker!",
+        "unstoppable": "{name} ist unaufhaltsam!",
+        "dominating": "{name} dominiert!",
+        "godlike": "{name} ist göttlich!",
+        "legendary": "{name} ist legendär!",
+        "shutDown": "{killer} hat {victim} ausgeschaltet!"
+      },
       "standingRaid": "Schlachtzugsmitglieder zählen nicht: Nur Gruppen können den Hügel halten"
     },
     "warfareShop": {
@@ -2855,7 +2872,8 @@ export const de_DE: EnTranslations = {
       "owned": "Im Besitz",
       "buyAria": "{item} für {honor} kaufen",
       "buyOwnedAria": "{item} für {honor} kaufen, bereits im Besitz",
-      "buyConfirmBody": "{item} für {honor} kaufen? Käufe mit Ehre können nicht erstattet werden."
+      "buyConfirmBody": "{item} für {honor} kaufen? Käufe mit Ehre können nicht erstattet werden.",
+      "buyConfirmBodyGold": "{item} für {price} kaufen? Diesen Kauf kannst du nicht rückgängig machen."
     },
     "charSheet": {
       "offense": "Angriff",
@@ -3878,8 +3896,8 @@ export const de_DE: EnTranslations = {
         "boneSpikeHeroicSummary": "Alle {everyHeroic} Sek. spießt Nythraxis {victimsHeroic} Schlachtzügler außer seinem aktuellen Ziel auf Knochenspieße. Ein aufgespießter Schlachtzügler kann nicht handeln und verliert jede Sekunde {drainHeroic} der maximalen Gesundheit, bis sein Spieß zerstört ist. Ein Spieß zerbricht nach {hitsHeroic} Treffern von irgendjemandem, egal wie viel Schaden sie anrichten. Ein bereits aufgespießter Schlachtzügler kann {cooldown} Sek. lang nicht erneut gewählt werden, sodass sich die Spieße über den ganzen Schlachtzug verteilen.",
         "boneSpikeResponse": "Wer am nächsten steht, schlägt auf den Knochenspieß: ein paar Treffer von irgendjemandem zerbrechen ihn, egal wie viel Schaden sie machen. Heiler halten die Aufgespießten am Leben, bis die Spieße fallen.",
         "graveEruptionName": "Graberuption",
-        "graveEruptionSummary": "Alle {everyNormal} Sek. markieren Skeletthände {countNormal} Kreise von {radius} yd unter Schlachtzüglern. Nach {warning} Sek. bricht jeder Kreis für {burstNormal} der maximalen Gesundheit als Schattenschaden aus und brennt dann {flameNormal} Sek. lang als Grabflamme, die jedem darin Stehenden jede Sekunde {tickNormal} der maximalen Gesundheit zufügt.",
-        "graveEruptionHeroicSummary": "Alle {everyHeroic} Sek. markieren Skeletthände {countHeroic} Kreise von {radius} yd unter Schlachtzüglern. Nach {warning} Sek. bricht jeder Kreis für {burstHeroic} der maximalen Gesundheit als Schattenschaden aus und brennt dann {flameHeroic} Sek. lang als Grabflamme, die jedem darin Stehenden jede Sekunde {tickHeroic} der maximalen Gesundheit zufügt.",
+        "graveEruptionSummary": "Alle {everyNormal} Sek. markieren Skeletthände {countNormal} Kreise von {radius} yd unter Schlachtzüglern. Nach {warning} Sek. bricht jeder Kreis für {burstNormal} der maximalen Gesundheit als Schattenschaden aus und brennt dann {flameNormal} Sek. lang als Grabflamme, die jedem darin Stehenden jede Sekunde {tickNormal} der maximalen Gesundheit zufügt. Das geschieht nie, solange Seelenriss-Markierungen aktiv sind, oder innerhalb von {gap} Sek. nach ihrem Ende.",
+        "graveEruptionHeroicSummary": "Alle {everyHeroic} Sek. markieren Skeletthände {countHeroic} Kreise von {radius} yd unter Schlachtzüglern. Nach {warning} Sek. bricht jeder Kreis für {burstHeroic} der maximalen Gesundheit als Schattenschaden aus und brennt dann {flameHeroic} Sek. lang als Grabflamme, die jedem darin Stehenden jede Sekunde {tickHeroic} der maximalen Gesundheit zufügt. Das geschieht nie, solange Seelenriss-Markierungen aktiv sind, oder innerhalb von {gap} Sek. nach ihrem Ende.",
         "graveEruptionResponse": "Tretet aus jedem Warnkreis, bevor er ausbricht, und bleibt vom brennenden Boden weg. Tanks ziehen Nythraxis aus den Flammen, damit Nahkämpfer Platz zum Arbeiten behalten.",
         "bindingSigilName": "Bindungssiegel",
         "bindingSigilSummary": "Alle {everyNormal} Sek. flammt ein Siegel der alten Schutzzauber auf einer der beiden Plattformen neben dem Thron auf, {sideOffset} yd links oder rechts (aus Sicht des Schlachtzugs) von der Stelle, an der Nythraxis beim Pull stand, bei jedem Wirken auf der anderen Seite, und er beginnt Todlose Erhebung, wodurch er alle {ascensionEvery} Sek. {ascensionNormal} Schaden und Angriffstempo erhält. Steht er innerhalb von {bindNormal} Sek. auf dem Siegel, wird er gebunden: Die Erhebung wird gebannt, er ist {stunNormal} Sek. betäubt und er erleidet {boundNormal} Sek. lang {vulnerability} mehr Schaden. Andernfalls erleidet jeder Schlachtzügler {unboundHitNormal} der maximalen Gesundheit als Schattenschaden, und er behält bis zur nächsten Bindung {unboundBonusNormal} mehr Schaden.",
@@ -4194,6 +4212,7 @@ export const de_DE: EnTranslations = {
       "mobLevel": "{level}",
       "mobEliteLevel": "{level}+",
       "afkTag": "AFK",
+      "bountyTag": "Kopfgeld {honor}",
       "pvpTag": "PvP",
       "cheaterTag": "< Schummler >",
       "pledgeTag": "Gelöbnis: {guild}",
@@ -4579,12 +4598,11 @@ export const de_DE: EnTranslations = {
       "memberSinceDays": "{days}T im Discord",
       "roleTag": {
         "levyst": "Levy St",
-        "admin": "Admin",
         "coredevs": "Kernentwickler",
         "devs": "Entwickler",
-        "seniormods": "Senior-Moderator",
+        "seniormods": "Wächter",
         "mods": "Mod",
-        "juniormods": "Junior-Moderator",
+        "juniormods": "Beobachter",
         "artists": "Künstler",
         "contentcreator": "Ersteller von Inhalten",
         "legend": "LEGENDE",
@@ -5049,6 +5067,13 @@ export const de_DE: EnTranslations = {
       "offlineHeader": "Offline ({n})",
       "hideOffline": "Offline ausblenden",
       "hideOfflineTitle": "Offline-Gildenmitglieder ausblenden",
+      "presence": {
+        "label": "Online sichtbar für",
+        "everyone": "Jeder",
+        "friends": "Nur Freunde",
+        "none": "Niemand",
+        "title": "Wer sieht dich online in Freundeslisten und der Gildenliste, mit deiner Zone und Kartenposition. Deine Gruppe sieht dich immer."
+      },
       "billboard": {
         "label": "Gildenpinnwand",
         "empty": "Noch nichts an der Pinnwand.",
@@ -7037,7 +7062,14 @@ export const de_DE: EnTranslations = {
       "discord": "Tritt dem Discord bei",
       "communityWiki": "Community-Wiki",
       "rights": "World of ClaudeCraft",
-      "linksLabel": "Spiel- und Community-Links"
+      "linksLabel": "Spiel- und Community-Links",
+      "guidesLabel": "Spieler-Guides",
+      "guideFree": "Kostenlose MMORPGs",
+      "guideGamesLikeWow": "Spiele wie WoW",
+      "guideBest": "Die besten MMORPGs",
+      "guideNew": "Neue MMORPGs",
+      "guideBrowser": "Browser-MMORPGs",
+      "guideGamesLikeDiablo": "Spiele wie Diablo"
     },
     "language": {
       "label": "Sprache",
@@ -7549,6 +7581,8 @@ export const de_DE: EnTranslations = {
       "arena": "Dein Stand im Aschenen Kolosseum in beiden Wertungsklassen: Wertung, Siege, Niederlagen und Gewinnrate für 1v1 und für 2v2.",
       "pvp": "World PvP flag: /pvp toggles it, /pvp on and /pvp off set it. Flagged players can fight each other anywhere; switching off takes 5 minutes.",
       "pvpZones": "Welt-PvP-Flagge: /pvp schaltet sie um, /pvp on und /pvp off setzen den Zustand. Geflaggte Spieler können auf umkämpftem Boden gegeneinander kämpfen; in Schutzgebieten gibt es kein Welt-PvP. Das Betreten des aktiven Kreises von König des Hügels setzt deine Flagge. Das Ausschalten dauert 5 Minuten.",
+      "presence": "Wer sieht dich online in Freundeslisten, deiner Gildenliste und /who: /presence everyone (der Standard), /presence friends (nur Spieler auf deiner Freundesliste), oder /presence none. Versteckt sehen sie keinen Online-Punkt, keine Zone und keine Kartenposition für dich, obwohl Flüstern und Einladungen dich immer noch erreichen; deine Gruppe sieht dich immer. Ein einfaches /presence sagt dir, was eingestellt ist.",
+      "flair": "Zeigt oder verbirgt deine Discord-Rolle für andere Spieler, also deinen farbigen Namen, dein Rollenabzeichen und dein verifiziertes Chat-Abzeichen: /flair on zeigt sie an, /flair off blendet sie aus, und /flair allein sagt dir, was eingestellt ist. Erfordert ein verknüpftes Discord-Konto.",
       "listings": "Deine eigenen Angebote auf dem Weltmarkt, mit dem geforderten Preis, der verbleibenden Zeit für jedes und wie viel Platz du für weitere hast.",
       "buyback": "Was du kürzlich an einen Händler verkauft hast und noch zurückkaufen könntest.",
       "groupState": "Wie es dir gerade geht",
@@ -8311,7 +8345,8 @@ export const de_DE: EnTranslations = {
       "warfareTradeBody": "Das ist der bewusste Kompromiss. Kriegsführungsausrüstung ist für den Kampf gegen Spieler gebaut, nicht als Abkürzung an den Dungeon-Stufen vorbei: Ein Kriegsführungsteil trägt niemals die Kampfwertungen, die ein Dungeon-Epic im selben Slot bietet, und alles, was es mitbringt, ist für andere Spieler bestimmt. Willst du dich in der Arena behaupten, kauf sie dir. Willst du heroische Dungeons schneller schaffen, verdiene dir deine Ausrüstung in den Dungeons.",
       "warfareTradeBodyRatingSpent": "Kriegsführungsausrüstung ist für Spieler gegen Spieler gedacht und überspringt keine Dungeonstufen. Sie trägt nicht die Kampfbewertungen eines Dungeonepics, sondern investiert ihre Bewertungen und Setboni vollständig in Kämpfe gegen Spieler. Für die Arena kaufst du sie, für schnellere heroische Dungeons verdienst du deine Ausrüstung dort.",
       "vanguardHeading": "Vorhut-Ausrüstung: Kriegsführung Saison 2",
-      "vanguardBody": "Vorhut-Ausrüstung ist die zweite Saison der Kriegsführungsausrüstung, verkauft von denselben zwei Quartiermeistern, oberhalb der ursprünglichen Stufe, die weiterhin im Angebot bleibt. Jede Spezialisierung hat ihr eigenes Vorhut-Set aus fünf Teilen, für Kopf, Schultern, Brust, Beine und Hände, und der Laden listet nur die drei Sets, die deine Klasse tragen kann, gefolgt von den Vorhut-Waffen, die du führen kannst. Ein Vorhut-Teil trägt dieselben Kriegsführungswertungen wie die ursprüngliche Stufe, jedoch bei einer höheren Gegenstandsstufe, und jedes Set hat zwei Boni, bei zwei und vier Teilen, die eine Fähigkeit deiner Spezialisierung verändern. Anders als die ursprünglichen Sets wirken diese Boni überall, auch gegen Monster, doch sie sind für den Kampf gegen Spieler gebaut, sodass ein Schlachtzug-Set innerhalb eines Schlachtzugs die bessere Wahl bleibt."
+      "vanguardBody": "Vorhut-Ausrüstung ist die zweite Saison der Kriegsführungsausrüstung, verkauft von denselben zwei Quartiermeistern, oberhalb der ursprünglichen Stufe, die weiterhin im Angebot bleibt. Jede Spezialisierung hat ihr eigenes Vorhut-Set aus fünf Teilen, für Kopf, Schultern, Brust, Beine und Hände, und der Laden listet nur die drei Sets, die deine Klasse tragen kann, gefolgt von den Vorhut-Waffen, die du führen kannst. Ein Vorhut-Teil trägt dieselben Kriegsführungswertungen wie die ursprüngliche Stufe, jedoch bei einer höheren Gegenstandsstufe, und jedes Set hat zwei Boni, bei zwei und vier Teilen, die eine Fähigkeit deiner Spezialisierung verändern. Anders als die ursprünglichen Sets wirken diese Boni überall, auch gegen Monster, doch sie sind für den Kampf gegen Spieler gebaut, sodass ein Schlachtzug-Set innerhalb eines Schlachtzugs die bessere Wahl bleibt.",
+      "vanguardStatsBody": "Anders als die ursprüngliche Stufe trägt die Vorhut-Ausrüstung auch Kampfwertungen: Jedes Vorhut-Rüstungsteil, jede Waffe und jede Halskette hat Kritische Trefferwertung oder Tempowertung, und die Teile für Zauberer und Heiler fügen Zaubermacht oder Heilkraft hinzu. Die Vorhut-Ringe und Halsketten werden neben den Waffen verkauft, und jede Klasse kann sie tragen. Zwei der Vorhut-Nahkampfringe geben genau die Trefferwertung, die deine Attacken von einem Spieler deiner Stufe garantiert trifft, und zwei Zaubererringe machen das Gleiche für deine Zauber, die nicht widerstanden werden. Automatische Angriffe beim Doppelwielding behalten ihre zusätzliche Verfehlungschance. Der Heiler-Ring trägt stattdessen Tempowertung."
     },
     "worldPvpPage": {
       "heading": "Welt-PvP",
@@ -8332,6 +8367,7 @@ export const de_DE: EnTranslations = {
       "hillBody": "Alle zwei Stunden erscheint ein Hügel in einem der Gebiete Die Drakenlande, Der Frostschleier oder Der Bernsteinfall. Der Realm erhält fünfzehn Minuten vorher eine Warnung, und der Kreis wird auf offenem Boden markiert. Der Hügel bleibt dreißig Minuten aktiv. Das Betreten des aktiven Kreises setzt nach den üblichen Stufenregeln die Welt-PvP-Flagge, auch bei Schlachtzugsmitgliedern. Die Gruppe mit den meisten berechtigten Spielern im Kreis erobert den Hügel nach einer Minute ununterbrochener Mehrheit. Ein Einzelspieler zählt als Einpersonengruppe; Schlachtzugsmitglieder und Spieler unter der PvP-Mindeststufe können weder erobern noch Hügelehre verdienen. Jedes Mitglied der haltenden Gruppe im Kreis erhält Ehre mit steigender Rate. Auszahlungen und ihre Steigerung erfolgen schneller, sodass die Gesamtehre des früheren fünfundvierzigminütigen Ereignisses erhalten bleibt. Ein Besitzerwechsel setzt die Steigerung zurück. Beim Verlassen bleibt die Flagge bestehen. /pvp off nutzt die üblichen fünf Minuten und kann innerhalb eines aktiven Hügels oder im Kampf nicht abgeschlossen werden. Die Hügelleiste zeigt Kontrolle, Spielerzahlen und Eroberungsfortschritt; /hill meldet den Standort.",
       "limitsBodyHour": "Defeating the same player again and again pays less each time and soon nothing, and your count against that player only starts over about an hour after the first of those kills, so camping one victim is never worth the wait. A target far below your level pays nothing at all. Battlegrounds and Arenas run their own rules while you are inside them, and they pay more Honor than the open world, so world PvP is the slower road to the same vendor.",
       "hillBodyRamp": "Alle zwei Stunden erscheint ein Hügel in einem der Gebiete Die Drakenlande, Der Frostschleier oder Der Bernsteinfall. Der Realm erhält fünfzehn Minuten vorher eine Warnung, und der Kreis wird auf offenem Boden markiert. Der Hügel bleibt dreißig Minuten aktiv. Das Betreten des aktiven Kreises setzt nach den üblichen Stufenregeln die Welt-PvP-Flagge, auch bei Schlachtzugsmitgliedern. Die Gruppe mit den meisten berechtigten Spielern im Kreis erobert den Hügel nach einer Minute ununterbrochener Mehrheit. Ein Einzelspieler zählt als Einpersonengruppe; Schlachtzugsmitglieder und Spieler unter der PvP-Mindeststufe können weder erobern noch Hügelehre verdienen. Jedes Mitglied der haltenden Gruppe im Kreis erhält Ehre mit steigender Rate. Auszahlungen und ihre Steigerung erfolgen schneller, sodass die Gesamtehre des früheren fünfundvierzigminütigen Ereignisses erhalten bleibt. Ein Besitzerwechsel setzt die Steigerung zurück. Beim Verlassen bleibt die Flagge bestehen. /pvp off nutzt die üblichen fünf Minuten und kann innerhalb eines aktiven Hügels oder im Kampf nicht abgeschlossen werden. Die Hügelleiste zeigt Kontrolle, Spielerzahlen und Eroberungsfortschritt; /hill meldet den Standort.",
+      "hillBodyRanked": "Alle zwei Stunden erscheint ein Hügel in einem der Gebiete Die Drakenlande, Der Frostschleier oder Der Bernsteinfall. Der Realm erhält fünfzehn Minuten vorher eine Warnung, und der Kreis wird auf offenem Boden markiert. Der Hügel bleibt dreißig Minuten aktiv. Das Betreten des aktiven Kreises setzt nach den üblichen Stufenregeln die Welt-PvP-Flagge, auch bei Schlachtzugsmitgliedern. Die Gruppe mit den meisten berechtigten Spielern im Kreis erobert den Hügel nach einer Minute ununterbrochener Mehrheit. Ein Einzelspieler zählt als Einpersonengruppe; Schlachtzugsmitglieder und Spieler unter der PvP-Mindeststufe können weder erobern noch Hügelehre verdienen. Jedes Mitglied der haltenden Gruppe im Kreis erhält Ehre mit steigender Rate. Auszahlungen und ihre Steigerung erfolgen schneller, sodass die Gesamtehre des früheren fünfundvierzigminütigen Ereignisses erhalten bleibt. Ein Besitzerwechsel setzt die Steigerung zurück. Alle fünf Minuten, solange der Hügel steht, erfährt der ganze Realm seine Position und die Gruppen, geordnet nach ihrer Haltezeit. Fällt der Hügel und hat die Gruppe mit der längsten Haltezeit ihn insgesamt mindestens zehn Minuten gehalten, erhält jeder Spieler, der mindestens eine Minute für diese Gruppe im Kreis stand und ihr noch angehört, einen Sieg für die PvP-Reihe des Wöchentlichen Tresors. Beim Verlassen bleibt die Flagge bestehen. /pvp off nutzt die üblichen fünf Minuten und kann innerhalb eines aktiven Hügels oder im Kampf nicht abgeschlossen werden. Die Hügelleiste zeigt Kontrolle, Spielerzahlen und Eroberungsfortschritt; /hill meldet den Standort.",
       "limitsBodyRaids": "Denselben Spieler immer wieder zu besiegen zahlt jedes Mal weniger und bald nichts mehr, und deine Zählung gegen diesen Spieler beginnt erst etwa eine Stunde nach der ersten dieser Tötungen von Neuem, sodass das Campen eines einzelnen Opfers nie das Warten wert ist. Ein Ziel weit unter deiner Stufe zahlt überhaupt nichts. Schlachtfelder und Arenen folgen ihren eigenen Regeln, solange du dich darin befindest, und sie zahlen mehr Ehre als die offene Welt, sodass Welt-PvP der langsamere Weg zu demselben Händler ist. Schlachtzüge verdienen nichts an Welttötungen: Ein Schlachtzugsmitglied erhält keine Ehre oder kein Gold und verkleinert auch niemandes Anteil, kämpfe also als Gruppe, um bezahlt zu werden."
     },
     "thornhollowPage": {
@@ -9675,7 +9711,14 @@ export const de_DE: EnTranslations = {
     "whitepaper": "Whitepaper",
     "terms": "Nutzungsbedingungen",
     "privacy": "Datenschutzerklärung",
-    "discordLabel": "Tritt dem Discord bei"
+    "discordLabel": "Tritt dem Discord bei",
+    "guidesLabel": "Spieler-Guides",
+    "guideFree": "Kostenlose MMORPGs",
+    "guideGamesLikeWow": "Spiele wie WoW",
+    "guideBest": "Die besten MMORPGs",
+    "guideNew": "Neue MMORPGs",
+    "guideBrowser": "Browser-MMORPGs",
+    "guideGamesLikeDiablo": "Spiele wie Diablo"
   },
   "settings": {
     "languageLoading": "Sprache wird geladen...",
@@ -12772,6 +12815,7 @@ export const de_DE: EnTranslations = {
       "dps": "({dps} Schaden pro Sekunde)",
       "armorStat": "{value} Rüstung",
       "stat": "+{value} {stat}",
+      "warfareMainHandOnly": "Kriegsführung zählt nur in der Haupthand.",
       "useFood": "Benutzen: Stellt über {seconds} Sek. {amount} Gesundheit wieder her. Ihr müsst beim Essen sitzen bleiben.",
       "useDrink": "Benutzen: Stellt über {seconds} Sek. {amount} Mana wieder her. Ihr müsst beim Trinken sitzen bleiben.",
       "useElixir": "Benutzen: Erhöht deine {stat} für {minutes} Min. um {value}. Ersetzt jedes andere Elixier oder jede Schriftrolle desselben Werts. Im Kampf verwendbar.",
@@ -18465,6 +18509,30 @@ export const de_DE: EnTranslations = {
       },
       "vanguard_feral_staff": {
         "name": "Wildheitsstab der Vorhut"
+      },
+      "vanguard_band_of_might": {
+        "name": "Vorhut-Ring der Macht"
+      },
+      "vanguard_band_of_precision": {
+        "name": "Vorhut-Ring der Präzision"
+      },
+      "vanguard_band_of_focus": {
+        "name": "Vorhut-Ring des Fokus"
+      },
+      "vanguard_band_of_mending": {
+        "name": "Vorhut-Ring der Heilung"
+      },
+      "vanguard_pendant_of_might": {
+        "name": "Vorhut-Amulett der Macht"
+      },
+      "vanguard_pendant_of_precision": {
+        "name": "Vorhut-Amulett der Präzision"
+      },
+      "vanguard_pendant_of_focus": {
+        "name": "Vorhut-Amulett des Fokus"
+      },
+      "vanguard_pendant_of_mending": {
+        "name": "Vorhut-Amulett der Heilung"
       },
       "conjured_water4": {
         "name": "Herbeigezaubertes Quellwasser"

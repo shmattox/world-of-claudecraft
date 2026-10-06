@@ -1164,27 +1164,27 @@ export const table: DeedLocaleTable = {
   },
   pvp_flag_1h: {
     name: 'Dristig',
-    desc: 'Hold verdens-PvP aktiveret i 1 time spilletid. Udlogning sætter fremskridt på pause; deaktivering nulstiller dem. Optjente titler er permanente.',
+    desc: 'Hold verdens-PvP aktiveret i 1 time spilletid i den åbne verden. Udlogning, død og instanser sætter fremskridt på pause; deaktivering nulstiller dem. Optjente titler er permanente.',
     title: 'Dristig',
   },
   pvp_flag_3h: {
     name: 'Trodsig',
-    desc: 'Hold verdens-PvP aktiveret i 3 timer spilletid. Udlogning sætter fremskridt på pause; deaktivering nulstiller dem. Optjente titler er permanente.',
+    desc: 'Hold verdens-PvP aktiveret i 3 timer spilletid i den åbne verden. Udlogning, død og instanser sætter fremskridt på pause; deaktivering nulstiller dem. Optjente titler er permanente.',
     title: 'Trodsig',
   },
   pvp_flag_6h: {
     name: 'Frygtløs',
-    desc: 'Hold verdens-PvP aktiveret i 6 timer spilletid. Udlogning sætter fremskridt på pause; deaktivering nulstiller dem. Optjente titler er permanente.',
+    desc: 'Hold verdens-PvP aktiveret i 6 timer spilletid i den åbne verden. Udlogning, død og instanser sætter fremskridt på pause; deaktivering nulstiller dem. Optjente titler er permanente.',
     title: 'Frygtløs',
   },
   pvp_flag_24h: {
     name: 'Ubøjelig',
-    desc: 'Hold verdens-PvP aktiveret i 24 timer spilletid. Udlogning sætter fremskridt på pause; deaktivering nulstiller dem. Optjente titler er permanente.',
+    desc: 'Hold verdens-PvP aktiveret i 24 timer spilletid i den åbne verden. Udlogning, død og instanser sætter fremskridt på pause; deaktivering nulstiller dem. Optjente titler er permanente.',
     title: 'Ubøjelig',
   },
   pvp_flag_168h: {
     name: 'Ukuelig',
-    desc: 'Hold verdens-PvP aktiveret i 7 dage spilletid. Udlogning sætter fremskridt på pause; deaktivering nulstiller dem. Optjente titler er permanente.',
+    desc: 'Hold verdens-PvP aktiveret i 7 dage spilletid i den åbne verden. Udlogning, død og instanser sætter fremskridt på pause; deaktivering nulstiller dem. Optjente titler er permanente.',
     title: 'Ukuelig',
   },
 };

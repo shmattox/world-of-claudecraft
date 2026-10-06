@@ -162,6 +162,75 @@ describe('weekly boss-table eligibility', () => {
     expect(state.vaults[0].bossUnlocks).toEqual({ morthen: 1 });
   });
 
+  it('limits raid and dungeon batches to bosses killed in the earned week', () => {
+    const { sim, meta } = setup();
+    const state = sanitizeWeeklyRewards({
+      ...emptyWeeklyRewards(1000),
+      raidClears: [2],
+      dungeons: [2],
+      bossUnlocks: {
+        ignivar_herald_of_the_last_flame: 2,
+        nythraxis_scourge_of_thornpeak: 2,
+        morthen: 2,
+        ysolei: 2,
+      },
+      weeklyBossUnlocks: { nythraxis_scourge_of_thornpeak: 2, ysolei: 2 },
+    })!;
+    meta.weeklyRewards = state;
+    stateFor(sim.ctx, meta);
+    const batch = state.vaults[0];
+    expect(batch.choices.map((choice) => choice.pool)).toEqual(['raid_heroic', 'dungeon_heroic']);
+    expect(weeklyAvailableBossTables(batch, batch.choices[0], 'mage').map((t) => t.bossId)).toEqual(
+      ['nythraxis_scourge_of_thornpeak'],
+    );
+    expect(weeklyAvailableBossTables(batch, batch.choices[1], 'mage').map((t) => t.bossId)).toEqual(
+      ['ysolei'],
+    );
+    expect(
+      prepareWeeklyRewardOpen(
+        sim.ctx,
+        '1000:0',
+        meta.entityId,
+        undefined,
+        'ignivar_herald_of_the_last_flame',
+      ),
+    ).toBeNull();
+    expect(
+      prepareWeeklyRewardOpen(sim.ctx, '1000:1', meta.entityId, undefined, 'hollow_crypt'),
+    ).toBeNull();
+    const saved = sim.serializeCharacter(meta.entityId)!;
+    expect(saved.weeklyRewards?.weeklyBossUnlocks).toEqual({});
+  });
+
+  it('fills only the deploy week from lifetime unlocks and clears the map at rollover', () => {
+    const { sim, meta } = setup();
+    const state = sanitizeWeeklyRewards({
+      ...emptyWeeklyRewards(1000),
+      dungeons: [1],
+      bossUnlocks: { morthen: 1 },
+    })!;
+    meta.weeklyRewards = state;
+    state.resetAtMs = 604800000;
+    stateFor(sim.ctx, meta);
+    expect(state.weeklyBossUnlocks).toEqual({ morthen: 1 });
+    const saved = sim.serializeCharacter(meta.entityId)!;
+    const restoredPid = sim.addPlayer('mage', 'AfterDeploySave', { state: saved });
+    expect(sim.players.get(restoredPid)?.weeklyRewards?.weeklyBossUnlocks).toEqual({ morthen: 1 });
+    state.resetAtMs = 1000;
+    stateFor(sim.ctx, meta);
+    expect(state.vaults[0].choices).toEqual([{ pool: 'dungeon' }]);
+    expect(state.vaults[0].bossUnlocks).toEqual({ morthen: 1 });
+    expect(state.weeklyBossUnlocks).toEqual({});
+    expect(state.bossUnlocks).toEqual({ morthen: 1 });
+    expect(sanitizeWeeklyRewards(JSON.parse(JSON.stringify(state)))?.weeklyBossUnlocks).toEqual({});
+    stateFor(sim.ctx, meta);
+    expect(state.weeklyBossUnlocks).toEqual({});
+    state.weeklyBossUnlocks = { ysolei: 1 };
+    state.dungeons = [1];
+    advanceWeeklyRewards(state, 604800000, () => 1209600000);
+    expect(state.vaults[1].bossUnlocks).toEqual({ ysolei: 1 });
+  });
+
   it('migrates only proven final bosses and preserves empty snapshots and legacy fixed items', () => {
     const { sim, meta, state } = setup();
     delete state.bossUnlocks;
@@ -184,6 +253,8 @@ describe('weekly boss-table eligibility', () => {
     const boss = createMob(90001, MOBS.sexton_marrow, 20, { x: 0, y: 0, z: 0 });
     recordWeeklyBossKill(sim.ctx, boss, [meta], inst);
     expect(state.bossUnlocks!.sexton_marrow).toBe(2);
+    expect(state.weeklyBossUnlocks!.sexton_marrow).toBe(2);
+    expect(weeklyRewardInfoFor(sim.ctx, pid)?.state.weeklyBossUnlocks?.sexton_marrow).toBe(2);
     expect(state.dungeons).toEqual([]);
     expect(sim.players.has(pid)).toBe(true);
   });

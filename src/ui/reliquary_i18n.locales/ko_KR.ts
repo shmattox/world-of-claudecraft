@@ -165,11 +165,11 @@ export const table: ReliquaryLocaleTable = {
   // (wocStore.armoryTitle 무기고).
   conquerors_warfare_gallery: {
     name: '워페어 갤러리',
-    desc: '다섯 가지 전쟁 전투 장비. 명예로 한 점씩 얻습니다.',
+    desc: '첫 번째 시즌의 다섯 가지 전쟁 전투 장비. 이제 금으로 한 점씩 판매됩니다.',
   },
   conquerors_warfare_armory: {
     name: '워페어 무기고',
-    desc: '힘겹게 모은 명예로 구입하는 전쟁 장신구와 무기.',
+    desc: '첫 번째 시즌의 전쟁 장신구와 무기. 금으로 구입하고 두 개의 장신구는 명예로 구입합니다.',
   },
   conquerors_vanguard_gallery: {
     name: '선봉대 갤러리',

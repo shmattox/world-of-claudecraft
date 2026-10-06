@@ -10,7 +10,12 @@
 // ClientWorld mirrors the server's `wpvp` and `hill` self keys (delta-omitted:
 // an absent key keeps the prior readout, null before the first snapshot).
 
+import type { HillCalloutKind } from '../sim/pvp/hill_bounty_rules';
+
 export type WorldPvpZone = 'sanctuary' | 'contested' | 'ffa';
+
+/** Why an armed World PvP streak is not ticking (src/sim/pvp/world_pvp_rewards.ts). */
+export type WorldPvpRewardPause = 'dead' | 'instance' | 'sanctuary';
 
 export interface WorldPvpInfo {
   /** Attackable by, and able to attack, other flagged players right now.
@@ -18,6 +23,11 @@ export interface WorldPvpInfo {
   flagged: boolean;
   /** Played seconds rounded down to whole minutes; absent on older servers. */
   rewardSeconds?: number;
+  /** Why the armed streak is paused right now: dead (a corpse or a ghost),
+   *  inside an instance, or on sanctuary ground (world_pvp_rewards.ts
+   *  worldPvpRewardPause). Null while it ticks or while no flag is armed, so
+   *  always null on a realm with the kill switch set. Absent on older servers. */
+  rewardPause?: WorldPvpRewardPause | null;
   /** Seconds until the flag drops after /pvp off, or null when it is not
    *  switching off (armed for good, or not flagged). */
   disarmRemaining: number | null;
@@ -47,6 +57,20 @@ export type HillPhaseInfo = 'warning' | 'active';
 /** Whether the viewer counts on the hill: no raid members or players below
  *  the ordinary World PvP level requirement. */
 export type HillStandingInfo = 'counted' | 'raid' | 'level';
+
+/** The latest King of the Hill announcer call (src/sim/pvp/hill_bounty.ts),
+ *  for everyone in the hill's zone while it is fresh. */
+export interface HillCalloutInfo {
+  /** Unique within the realm's session, so the HUD shows each call exactly once. */
+  id: string;
+  kind: HillCalloutKind;
+  /** The streaking killer, or the one who shut a streak down. */
+  killer: string;
+  /** The player shut down; '' for a streak call. */
+  victim: string;
+  /** The killer's new streak, or the streak that was shut down. */
+  streak: number;
+}
 
 /** The announced or standing hill (src/sim/pvp/hill.ts), from one viewer's
  *  seat. The geometry, the phase and the holder are realm facts; `inZone`,
@@ -80,6 +104,9 @@ export interface HillInfo {
   /** Whole seconds of unbroken majority the challenger has banked, of
    *  HILL_CAPTURE_SECONDS; 0 when nobody is challenging. */
   contest: number;
+  /** The latest announcer call, for a viewer in the zone while it is risen;
+   *  absent or null when there is none fresh. */
+  callout?: HillCalloutInfo | null;
 }
 
 export interface IWorldWorldPvp {

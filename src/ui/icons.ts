@@ -5545,7 +5545,8 @@ export const ITEM_ART_PENDING = new Set<string>([
   ...NYTHRAXIS_GAP_ART_PENDING_ITEM_IDS,
   // Warfare Season 2 armor: painted icons owned by a follow-up art pass; the
   // procedural icon stands in until then. The season weapons never park here:
-  // an unpainted weapon already draws its procedural icon.
+  // an unpainted weapon already draws its procedural icon, and the season
+  // jewelry ships its own (vanguard-jewelry-icons-2026-10-03).
   ...SEASON2_SETS.flatMap((set) => set.itemIds),
 ]);
 

@@ -140,11 +140,11 @@ export const table: ReliquaryLocaleTable = {
   },
   conquerors_warfare_gallery: {
     name: 'Krigföringsgalleri',
-    desc: 'De fem stridsutrustningarna för Krigföring, förtjänade del för del med ära.',
+    desc: 'De fem Krigsförings stridsutrustningarna från första säsongen, nu sålda bit för bit för guld.',
   },
   conquerors_warfare_armory: {
     name: 'Krigföringens vapenkammare',
-    desc: 'Smycken och vapen för Krigföring, köpta för hårt vunnen ära.',
+    desc: 'Krigsförings smycken och vapen, första säsongen för guld och två talismaner för ära.',
   },
   conquerors_vanguard_gallery: {
     name: 'Förtruppsgalleri',

@@ -1,12 +1,39 @@
 // One bounded counter per connected character, driven only by simulation ticks.
+import { DUNGEON_X_THRESHOLD } from '../data';
 import type { SimContext } from '../sim_context';
+import type { Entity } from '../types';
 import { TICK_RATE } from '../types';
 import {
   WORLD_PVP_MAX_REWARD_TICKS,
   WORLD_PVP_TITLE_THRESHOLDS,
   worldPvpRewardsActive,
 } from './world_pvp_rewards_rules';
+import type { WorldPvpZonePolicy } from './world_pvp_rules';
 import { worldPvpZonePolicyAt } from './world_pvp_zones';
+
+/** Why a flagged player banks no streak time right now. */
+export type WorldPvpRewardPauseCause = 'dead' | 'instance' | 'sanctuary';
+
+/**
+ * Why the armed streak does not tick for this player where they are now, or
+ * null when it does. The streak rewards time spent where a flagged rival can
+ * reach you, so it pauses wherever nobody can: dead (a corpse, or a released
+ * ghost, which keeps `dead`), inside any instance (dungeon, raid, delve, rift,
+ * maze, arena, battleground: all on the far-east plane past
+ * DUNGEON_X_THRESHOLD, the same line Vitality reads in vitality.ts), and on
+ * sanctuary ground. Without these a flagged player could lie dead or park in
+ * a private dungeon copy and bank the titles risk-free. `zone` is the policy
+ * at the player's position when the caller already holds it; otherwise it is
+ * read only for a living player on open-world ground.
+ */
+export function worldPvpRewardPause(
+  e: Pick<Entity, 'dead' | 'pos'>,
+  zone?: WorldPvpZonePolicy,
+): WorldPvpRewardPauseCause | null {
+  if (e.dead) return 'dead';
+  if (e.pos.x > DUNGEON_X_THRESHOLD) return 'instance';
+  return (zone ?? worldPvpZonePolicyAt(e.pos.x, e.pos.z)) === 'sanctuary' ? 'sanctuary' : null;
+}
 
 export function updateWorldPvpRewards(ctx: SimContext): void {
   if (ctx.worldPvpDisabled) return;
@@ -21,7 +48,7 @@ export function updateWorldPvpRewards(ctx: SimContext): void {
     )
       continue;
     const player = ctx.entities.get(meta.entityId)!;
-    if (worldPvpZonePolicyAt(player.pos.x, player.pos.z) === 'sanctuary') continue;
+    if (worldPvpRewardPause(player) !== null) continue;
     const before = state.rewardTicks ?? 0;
     if (before >= WORLD_PVP_MAX_REWARD_TICKS) continue;
     const ticks = before + 1;

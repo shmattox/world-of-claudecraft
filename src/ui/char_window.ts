@@ -415,7 +415,11 @@ export class CharWindow {
       else this.markDropTargets(drag.itemId, named);
     }
 
-    for (const cell of el.querySelectorAll<HTMLElement>('.stat-panels [data-stat]')) {
+    // Every stat row on the sheet: the Offense/Defense rail and the attribute
+    // row under the paperdoll. Keyed on the cell itself, never on a wrapper: the
+    // bottom tab strip restructure renamed the old `.stat-panels` wrapper and
+    // silently left every stat without its tooltip (live report).
+    for (const cell of el.querySelectorAll<HTMLElement>('.stat-cell[data-stat]')) {
       const stat = cell.dataset.stat as StatId;
       // Resolve the tooltip lazily, on show, so the breakdown reflects the
       // player's current stats at the moment they hover, not at render time.

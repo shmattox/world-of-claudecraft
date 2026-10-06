@@ -1,8 +1,19 @@
 import { describe, expect, it } from 'vitest';
 import { grantXp } from '../src/sim/combat/damage';
-import { BUILTIN_WORLD } from '../src/sim/data';
+import {
+  ARENA_X,
+  BG_X,
+  BUILTIN_WORLD,
+  DELVE_X_MIN,
+  DUNGEON_X_THRESHOLD,
+  DUNGEONS,
+  instanceOrigin,
+  RIFT_X_MIN,
+  YUMI_MAZE_X,
+} from '../src/sim/data';
 import { awardFactionReputation, maxStandingForLevel } from '../src/sim/factions';
 import { worldPvpInfoFor } from '../src/sim/pvp/world_pvp';
+import { worldPvpRewardPause } from '../src/sim/pvp/world_pvp_rewards';
 import {
   sanitizeWorldPvpRewardTicks,
   WORLD_PVP_MAX_REWARD_TICKS,
@@ -58,6 +69,83 @@ describe('World PvP rewards', () => {
     sim.tick();
     expect(restored.worldPvp!.rewardTicks).toBe(3600 * TICK_RATE);
     expect(restored.deedsEarned.has('pvp_flag_1h')).toBe(true);
+  });
+
+  it('pauses inside a dungeon, granting no title there, and resumes back in the open world', () => {
+    const { sim, pid, meta } = fixture();
+    sim.setWorldPvpFlag(true, pid);
+    meta.worldPvp!.rewardTicks = 3600 * TICK_RATE - 1;
+    expect(worldPvpInfoFor(sim.ctx, pid)!.rewardPause).toBeNull();
+    expect(sim.enterDungeon('hollow_crypt', pid)).toBe(true);
+    expect(sim.entities.get(pid)!.pos.x).toBeGreaterThan(DUNGEON_X_THRESHOLD);
+    for (let tick = 0; tick < 5 * TICK_RATE; tick++) sim.tick();
+    expect(meta.worldPvp!.flagged).toBe(true);
+    expect(meta.worldPvp!.rewardTicks).toBe(3600 * TICK_RATE - 1);
+    expect(meta.deedsEarned.has('pvp_flag_1h')).toBe(false);
+    expect(worldPvpInfoFor(sim.ctx, pid)!.rewardPause).toBe('instance');
+    expect(sim.leaveDungeon(pid)).toBe(true);
+    expect(sim.entities.get(pid)!.pos.x).toBeLessThanOrEqual(DUNGEON_X_THRESHOLD);
+    sim.tick();
+    expect(meta.worldPvp!.rewardTicks).toBe(3600 * TICK_RATE);
+    expect(meta.deedsEarned.has('pvp_flag_1h')).toBe(true);
+    expect(worldPvpInfoFor(sim.ctx, pid)!.rewardPause).toBeNull();
+  });
+
+  it('ticks only on open-world ground: every instance band and the sanctuary pause', () => {
+    const dawnhold = instanceOrigin(DUNGEONS.dawnhold_castle.index, 2);
+    const paused: Array<[string, number, number]> = [
+      ['first dungeon band', instanceOrigin(0, 0).x, instanceOrigin(0, 0).z],
+      ['overflow dungeon band (Dawnhold Castle)', dawnhold.x, dawnhold.z],
+      ['delve', DELVE_X_MIN, -1250],
+      ['arena', ARENA_X, -1250],
+      ['rift', RIFT_X_MIN, -1250],
+      ['maze', YUMI_MAZE_X, -1250],
+      ['battleground', BG_X, -1250],
+      ['Proving Shore sanctuary', -360, 0],
+    ];
+    const at = (x: number, z: number, dead = false) =>
+      worldPvpRewardPause({ dead, pos: { x, y: 0, z } });
+    for (const [where, x, z] of paused) {
+      expect(at(x, z), where).toBe(where.includes('sanctuary') ? 'sanctuary' : 'instance');
+    }
+    expect(at(0, 0), 'Eastbrook Vale').toBeNull();
+    expect(at(DUNGEON_X_THRESHOLD, 0), 'the plane edge').toBeNull();
+    // Death outranks the ground: a corpse is never reachable, wherever it lies.
+    expect(at(0, 0, true), 'dead in Eastbrook Vale').toBe('dead');
+    expect(at(dawnhold.x, dawnhold.z, true), 'dead inside a dungeon').toBe('dead');
+    const { sim, pid, meta } = fixture();
+    sim.setWorldPvpFlag(true, pid);
+    const player = sim.entities.get(pid)!;
+    player.pos.x = dawnhold.x;
+    player.pos.z = dawnhold.z;
+    sim.tick();
+    expect(meta.worldPvp!.rewardTicks ?? 0).toBe(0);
+  });
+
+  it('pauses while dead, as a corpse and as a released ghost, and resumes on resurrection', () => {
+    const { sim, pid, meta } = fixture();
+    sim.setWorldPvpFlag(true, pid);
+    meta.worldPvp!.rewardTicks = 3600 * TICK_RATE - 1;
+    const player = sim.entities.get(pid)!;
+    sim.ctx.dealDamage(null, player, 9_999_999, false, 'physical', null, 'hit');
+    expect(player.dead).toBe(true);
+    for (let tick = 0; tick < 5 * TICK_RATE; tick++) sim.tick();
+    expect(meta.worldPvp!.flagged).toBe(true);
+    expect(meta.worldPvp!.rewardTicks).toBe(3600 * TICK_RATE - 1);
+    expect(meta.deedsEarned.has('pvp_flag_1h')).toBe(false);
+    expect(worldPvpInfoFor(sim.ctx, pid)!.rewardPause).toBe('dead');
+    sim.releaseSpirit(pid);
+    expect(player.ghost).toBe(true);
+    for (let tick = 0; tick < 5 * TICK_RATE; tick++) sim.tick();
+    expect(meta.worldPvp!.rewardTicks).toBe(3600 * TICK_RATE - 1);
+    expect(worldPvpInfoFor(sim.ctx, pid)!.rewardPause).toBe('dead');
+    player.pos = { ...player.corpsePos! };
+    sim.resurrectAtCorpse(pid);
+    expect(player.dead).toBe(false);
+    sim.tick();
+    expect(meta.worldPvp!.rewardTicks).toBe(3600 * TICK_RATE);
+    expect(meta.deedsEarned.has('pvp_flag_1h')).toBe(true);
+    expect(worldPvpInfoFor(sim.ctx, pid)!.rewardPause).toBeNull();
   });
 
   it('refuses enabling or cancelling disarm on tutorial island', () => {
@@ -225,5 +313,9 @@ describe('World PvP rewards', () => {
     expect(meta.lifetimeXp - before).toBe(100);
     expect(awardFactionReputation(meta, 'rift_watch', 100, 20).gained).toBe(100);
     expect(meta.worldPvp?.rewardTicks ?? 0).toBe(0);
+    // No flag is ever armed under the kill switch, so even inside an instance
+    // the readout never claims a paused streak.
+    disabled.entities.get(restoredPid)!.pos.x = instanceOrigin(0, 0).x;
+    expect(disabled.worldPvpInfoFor(restoredPid)!.rewardPause).toBeNull();
   });
 });

@@ -60,25 +60,31 @@ export const TREASURE_MAP_UPGRADE_INKS: Readonly<Record<TreasureMapRarity, numbe
 export const HOARD_MIN_LEVEL = 16;
 /** How close (yards) the reader must stand to the X to dig. */
 export const TREASURE_DIG_RADIUS = 12;
-/** A vault portal nobody entered closes after this long (seconds). */
-export const VAULT_PORTAL_LIFETIME = 600;
-/** Vaults a character may be paid for as a GUEST (not the map's owner) per
- *  world-quest cycle. The owner's own maps are never capped. */
-export const VAULT_GUEST_PAYOUTS_PER_CYCLE = 3;
+/** Maximum vault lifetime from digging (seconds), regardless of occupancy. */
+export const VAULT_PORTAL_LIFETIME = 6 * 60 * 60;
 /** Copper bonus the map's owner earns on top of the shared payout. */
 export const VAULT_OWNER_COPPER_BONUS = 0.5;
 
-/** Mob scaling by head count (1 to 5), applied on top of the Rift rank tuning,
- *  which is balanced for a full party: a solo reader fights roughly open-world
- *  strength, a full party the rank as authored. */
-export function vaultHealthFactor(headCount: number): number {
-  return 0.4 + 0.15 * (clampHeadCount(headCount) - 1);
+/** Fixed encounter sizes, independent of the players who enter or remain alive. */
+export const HOARD_SUGGESTED_PLAYERS: Readonly<Record<TreasureMapRarity, 1 | 5>> = Object.freeze({
+  common: 1,
+  rare: 5,
+  epic: 5,
+  legendary: 5,
+});
+
+/** Common keeps the former solo baseline; group tiers keep full-party health. */
+export function vaultHealthFactor(rarity: TreasureMapRarity): number {
+  return rarity === 'common' ? 0.4 : 1;
 }
-export function vaultDamageFactor(headCount: number): number {
-  return 0.3 + 0.175 * (clampHeadCount(headCount) - 1);
+
+/** Group reductions apply to weapon attacks and scripted mechanics alike. */
+export function hoardDamageReduction(rarity: TreasureMapRarity, role: 'boss' | 'add'): number {
+  return rarity === 'common' ? 1 : role === 'boss' ? 0.7 : 0.5;
 }
-function clampHeadCount(headCount: number): number {
-  return Math.max(1, Math.min(5, Math.floor(headCount) || 1));
+
+export function vaultDamageFactor(rarity: TreasureMapRarity, role: 'boss' | 'add'): number {
+  return rarity === 'common' ? 0.3 : hoardDamageReduction(rarity, role);
 }
 
 export interface VaultPayoutDef {
@@ -99,7 +105,7 @@ export interface VaultPayoutDef {
 }
 
 /** What a cleared vault pays each entrant, by the map's rarity. The mount odds
- *  average about 1.3% across the drop weights above. */
+ *  average 0.475% across the drop weights above. */
 export const VAULT_PAYOUTS: Readonly<Record<TreasureMapRarity, VaultPayoutDef>> = Object.freeze({
   common: {
     copperMult: 0.3,
@@ -107,7 +113,7 @@ export const VAULT_PAYOUTS: Readonly<Record<TreasureMapRarity, VaultPayoutDef>> 
     gearChance: 0.1,
     markChance: 0.05,
     marks: 2,
-    mountChance: 0.01,
+    mountChance: 0.0025,
     nextMapChance: 0.15,
   },
   rare: {
@@ -116,7 +122,7 @@ export const VAULT_PAYOUTS: Readonly<Record<TreasureMapRarity, VaultPayoutDef>> 
     gearChance: 0.3,
     markChance: 0.1,
     marks: 2,
-    mountChance: 0.015,
+    mountChance: 0.005,
     nextMapChance: 0.1,
   },
   epic: {
@@ -125,7 +131,7 @@ export const VAULT_PAYOUTS: Readonly<Record<TreasureMapRarity, VaultPayoutDef>> 
     gearChance: 0.5,
     markChance: 0.25,
     marks: 3,
-    mountChance: 0.025,
+    mountChance: 0.0075,
     nextMapChance: 0.05,
   },
   legendary: {
@@ -134,7 +140,7 @@ export const VAULT_PAYOUTS: Readonly<Record<TreasureMapRarity, VaultPayoutDef>> 
     gearChance: 1,
     markChance: 1,
     marks: 5,
-    mountChance: 0.05,
+    mountChance: 0.01,
     nextMapChance: 0,
   },
 });

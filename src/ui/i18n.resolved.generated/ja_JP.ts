@@ -438,7 +438,9 @@ export const ja_JP: EnTranslations = {
         "worldOne": "ワールドクエスト{count}件完了",
         "worldMany": "ワールドクエスト{count}件完了",
         "pvpOne": "レート戦{count}勝",
-        "pvpMany": "レート戦{count}勝"
+        "pvpMany": "レート戦{count}勝",
+        "pvpWinOne": "PvPで{count}勝",
+        "pvpWinMany": "PvPで{count}勝"
       },
       "requiredTask": {
         "raidOne": "レイドボスを{count}体撃破する",
@@ -448,7 +450,9 @@ export const ja_JP: EnTranslations = {
         "worldOne": "ワールドクエストを{count}件完了する",
         "worldMany": "ワールドクエストを{count}件完了する",
         "pvpOne": "レート戦で{count}勝する",
-        "pvpMany": "レート戦で{count}勝する"
+        "pvpMany": "レート戦で{count}勝する",
+        "pvpWinOne": "PvPで{count}勝する",
+        "pvpWinMany": "PvPで{count}勝する"
       },
       "readyWeeks": "未受領の週：{count}。完了した最も古い週から受け取ってください。",
       "claimLastWeek": "先週の報酬を受け取る",
@@ -594,6 +598,8 @@ export const ja_JP: EnTranslations = {
     },
     "death": {
       "resurrectAtCorpse": "亡骸で復活",
+      "pvpResurrect": "PvP復活",
+      "pvpResurrectTitle": "最寄りの墓地でHP全快の状態で復活し、新たな復活の後遺症は付かない。",
       "resurrectAtHealer": "霊魂の癒し手（復活の後遺症）",
       "ghostHint": "死亡した場所まで走るか、霊魂の癒し手に話しかけて復活しよう",
       "spiritHealerAlive": "霊魂の癒し手は死者を見守っている。あなたはまだ生者だ。",
@@ -2786,8 +2792,10 @@ export const ja_JP: EnTranslations = {
     },
     "worldPvp": {
       "rewardBonus": "ワールドPvPを有効にしている間、経験値と勢力の評判の獲得量が{percent}増加します。無効化を要求した時点でボーナスは終了します。",
-      "rewardTitles": "ワールドPvPを有効にしたプレイ時間が{thresholds}に達すると、永続的な称号を獲得します。ログアウト中と修練の浜ではタイマーが停止します。PvPを無効にするとリセットされます。",
+      "rewardTitles": "オープンワールドでワールドPvPを有効にしたプレイ時間が{thresholds}に達すると、永続的な称号を獲得します。ログアウト中、死亡中、インスタンス内、修練の浜ではタイマーが停止します。PvPを無効にするとリセットされます。",
       "rewardPaused": "現在のPvP継続時間：{time}（修練の浜で一時停止中）",
+      "rewardPausedDead": "現在のPvP継続時間：{time}（死亡中のため一時停止中）",
+      "rewardPausedInstance": "現在のPvP継続時間：{time}（インスタンス内で一時停止中）",
       "rewardProgress": "現在のPvP継続時間：{time}",
       "tab": "ワールドPvP",
       "title": "ワールドPvP",
@@ -2843,6 +2851,15 @@ export const ja_JP: EnTranslations = {
       "falls": "{minutes}後に消滅",
       "pvpEntry": "開催中の円に入るとワールドPvPが有効になります。",
       "pvpBanner": "PvP",
+      "callout": {
+        "killingSpree": "{name}：キリングスプリー！",
+        "rampage": "{name}：ランペイジ！",
+        "unstoppable": "{name}：アンストッパブル！",
+        "dominating": "{name}：ドミネイティング！",
+        "godlike": "{name}：ゴッドライク！",
+        "legendary": "{name}：レジェンダリー！",
+        "shutDown": "{killer}が{victim}をシャットダウン！"
+      },
       "standingRaid": "レイドメンバーはカウントされません：丘を保持できるのはパーティのみです"
     },
     "warfareShop": {
@@ -2855,7 +2872,8 @@ export const ja_JP: EnTranslations = {
       "owned": "所有済み",
       "buyAria": "{item}を{honor}で購入",
       "buyOwnedAria": "{item}を{honor}で購入、所有済み",
-      "buyConfirmBody": "{item}を{honor}で購入しますか？名誉での購入は返金できません。"
+      "buyConfirmBody": "{item}を{honor}で購入しますか？名誉での購入は返金できません。",
+      "buyConfirmBodyGold": "{item}を{price}で購入しますか？この購入は返金できません。"
     },
     "charSheet": {
       "offense": "攻撃",
@@ -3878,8 +3896,8 @@ export const ja_JP: EnTranslations = {
         "boneSpikeHeroicSummary": "{everyHeroic}秒ごとに、ナイスラクシスは現在の対象以外のレイドメンバー{victimsHeroic}人を骨の棘で串刺しにする。串刺しにされたレイドメンバーは行動不能になり、棘が破壊されるまで毎秒最大体力の{drainHeroic}を失う。棘は誰の攻撃でも{hitsHeroic}回当たれば砕け、ダメージ量は問わない。一度串刺しにされたレイドメンバーは{cooldown}秒間は再び選ばれないため、棘はレイド全体に分散する。",
         "boneSpikeResponse": "最も近い者が骨の棘を攻撃する。誰の攻撃でも数回当てれば砕け、ダメージ量は問わない。ヒーラーは棘が砕けるまで串刺しにされた味方を生かし続ける。",
         "graveEruptionName": "墓所の噴出",
-        "graveEruptionSummary": "{everyNormal}秒ごとに、骸骨の手がレイドメンバーの足元に{radius}ヤードの円を{countNormal}個描く。{warning}秒後、各円は最大体力の{burstNormal}を闇ダメージとして噴出させ、その後{flameNormal}秒間墓炎として燃え続け、中に立つ者へ毎秒最大体力の{tickNormal}を与える。",
-        "graveEruptionHeroicSummary": "{everyHeroic}秒ごとに、骸骨の手がレイドメンバーの足元に{radius}ヤードの円を{countHeroic}個描く。{warning}秒後、各円は最大体力の{burstHeroic}を闇ダメージとして噴出させ、その後{flameHeroic}秒間墓炎として燃え続け、中に立つ者へ毎秒最大体力の{tickHeroic}を与える。",
+        "graveEruptionSummary": "{everyNormal}秒ごとに、骸骨の手がレイドメンバーの足元に{radius}ヤードの円を{countNormal}個描く。{warning}秒後、各円は最大体力の{burstNormal}を闇ダメージとして噴出させ、その後{flameNormal}秒間墓炎として燃え続け、中に立つ者へ毎秒最大体力の{tickNormal}を与える。魂の裂傷のマークが有効な間と、マークが消えてから{gap}秒以内には発生しない。",
+        "graveEruptionHeroicSummary": "{everyHeroic}秒ごとに、骸骨の手がレイドメンバーの足元に{radius}ヤードの円を{countHeroic}個描く。{warning}秒後、各円は最大体力の{burstHeroic}を闇ダメージとして噴出させ、その後{flameHeroic}秒間墓炎として燃え続け、中に立つ者へ毎秒最大体力の{tickHeroic}を与える。魂の裂傷のマークが有効な間と、マークが消えてから{gap}秒以内には発生しない。",
         "graveEruptionResponse": "噴出する前にすべての警告円から外へ出て、燃える地面を避け続ける。タンクはナイスラクシスを炎から引き離し、近接が動ける余地を確保する。",
         "bindingSigilName": "拘束の印",
         "bindingSigilSummary": "{everyNormal}秒ごとに、旧き結界の印が、玉座の両脇にある2つの足場のどちらか（戦闘開始時にナイスラクシスが立っていた位置から、レイドから見て左右{sideOffset}ヤード）に、発動ごとに左右を入れ替えて光り、彼は不死の高揚を開始し、{ascensionEvery}秒ごとにダメージと攻撃速度が{ascensionNormal}上昇していく。{bindNormal}秒以内に印の上に立てば拘束状態になる：高揚は解除され、{stunNormal}秒間スタンし、{boundNormal}秒間受けるダメージが{vulnerability}増加する。立たなければレイド全員が最大体力の{unboundHitNormal}を闇ダメージとして受け、彼は次の拘束まで{unboundBonusNormal}多いダメージを保つ。",
@@ -4194,6 +4212,7 @@ export const ja_JP: EnTranslations = {
       "mobLevel": "{level}",
       "mobEliteLevel": "{level}+",
       "afkTag": "退席",
+      "bountyTag": "賞金 {honor}",
       "pvpTag": "PvP",
       "cheaterTag": "< チーター >",
       "pledgeTag": "{guild}への誓約者",
@@ -4579,12 +4598,11 @@ export const ja_JP: EnTranslations = {
       "memberSinceDays": "Discord加入{days}日",
       "roleTag": {
         "levyst": "Levy St",
-        "admin": "管理者",
         "coredevs": "コア開発者",
         "devs": "開発者",
-        "seniormods": "シニアモデレーター",
+        "seniormods": "センチネル",
         "mods": "モデレーター",
-        "juniormods": "ジュニアモデレーター",
+        "juniormods": "オブザーバー",
         "artists": "アーティスト",
         "contentcreator": "コンテンツクリエイター",
         "legend": "レジェンド",
@@ -5049,6 +5067,13 @@ export const ja_JP: EnTranslations = {
       "offlineHeader": "オフライン ({n})",
       "hideOffline": "オフラインを非表示",
       "hideOfflineTitle": "オフラインのギルドメンバーを非表示",
+      "presence": {
+        "label": "オンライン表示の相手",
+        "everyone": "全員",
+        "friends": "フレンドのみ",
+        "none": "なし",
+        "title": "フレンドリストとギルド名簿で誰にオンライン状態、ゾーン、マップ上の位置を見せるか。パーティーメンバーには常に表示されます。"
+      },
       "billboard": {
         "label": "ギルド掲示板",
         "empty": "掲示板にはまだ何もありません。",
@@ -7037,7 +7062,14 @@ export const ja_JP: EnTranslations = {
       "discord": "Discordに参加",
       "communityWiki": "コミュニティWiki",
       "rights": "World of ClaudeCraft",
-      "linksLabel": "プレイとコミュニティのリンク"
+      "linksLabel": "プレイとコミュニティのリンク",
+      "guidesLabel": "プレイヤーガイド",
+      "guideFree": "無料MMORPG",
+      "guideGamesLikeWow": "WoWに似たゲーム",
+      "guideBest": "最高のMMORPG",
+      "guideNew": "新作MMORPG",
+      "guideBrowser": "ブラウザMMORPG",
+      "guideGamesLikeDiablo": "ディアブロに似たゲーム"
     },
     "language": {
       "label": "言語",
@@ -7549,6 +7581,8 @@ export const ja_JP: EnTranslations = {
       "arena": "灰の闘技場での両ブラケットの戦績です。1対1と2対2それぞれのレーティング、勝敗数、勝率が表示されます。",
       "pvp": "ワールドPvPフラグ: /pvp で切り替え、/pvp on と /pvp off で直接設定します。フラグを立てたプレイヤー同士はどこでも戦えます。解除には5分かかります。",
       "pvpZones": "ワールドPvPフラグ：/pvpで切り替え、/pvp onと/pvp offで有効・無効にします。係争地域ではフラグを立てたプレイヤー同士が戦えますが、聖域ではワールドPvPはできません。開催中の「丘の王」の円に入るとフラグが立ちます。解除には5分かかります。",
+      "presence": "フレンドリスト、ギルド名簿、/who で誰にオンライン状態を見せるかを設定します。/presence everyone（初期設定）、/presence friends（自分のフレンドリストにいるプレイヤーのみ）、/presence none。非表示にすると、相手にはオンライン表示、ゾーン、マップ上の位置が見えなくなりますが、ウィスパーや招待は届きます。パーティーメンバーには常に表示されます。/presence だけで現在の設定を確認できます。",
+      "flair": "他のプレイヤーに見える Discord ロール（色付きの名前、ロールタグ、チャットの認証タグ）の表示を切り替えます。/flair on で表示、/flair off で非表示になり、/flair だけで現在の設定を確認できます。Discord アカウントの連携が必要です。",
       "listings": "世界市場に出している自分の出品を、希望価格、それぞれの残り時間、そしてあとどれだけ出せるかとあわせて表示します。",
       "buyback": "最近商人に売った品のうち、まだ買い戻せるものを表示します。",
       "groupState": "今のあなたの状態",
@@ -8311,7 +8345,8 @@ export const ja_JP: EnTranslations = {
       "warfareTradeBody": "それは意図された取り引きです。ウォーフェア装備はプレイヤーと戦うために作られたものであって、ダンジョンの段階を飛び越える近道ではありません。ウォーフェアの品が、同じ部位のダンジョン産エピックほどの戦闘レーティングを備えることは決してなく、備えているものはすべて他のプレイヤーに向けて費やされます。アリーナで渡り合いたいなら買いましょう。ヒロイックをより速く駆け抜けたいなら、装備はダンジョンで勝ち取りましょう。",
       "warfareTradeBodyRatingSpent": "それは意図された取り引きです。ウォーフェア装備はプレイヤーと戦うために作られたものであって、ダンジョンの段階を飛び越える近道ではありません。ウォーフェアの品が、同じ部位のダンジョン産エピックほどの戦闘レーティングを備えることは決してなく、その代わりに備えているウォーフェアのレーティングとセットボーナスは、すべて他のプレイヤーに向けて費やされます。アリーナで渡り合いたいなら買いましょう。ヒロイックをより速く駆け抜けたいなら、装備はダンジョンで勝ち取りましょう。",
       "vanguardHeading": "ヴァンガード装備：ウォーフェアシーズン2",
-      "vanguardBody": "ヴァンガード装備はウォーフェア装備の第2シーズンで、同じ二人の補給官が元の階層に加えて販売し続けます。元の階層も販売終了にはなりません。どのスペックにも頭、肩、胸、脚、手の五部位からなる専用のヴァンガードセットがあり、ショップにはあなたのクラスが装備できる三つのセットだけが並び、続けて装備できるヴァンガードの武器が並びます。ヴァンガードの部位は元の階層と同じウォーフェアレーティングを、より高いアイテムレベルで備えており、各セットには2点と4点でスペックのアビリティの一つを変化させる二つのボーナスがあります。元のセットと違い、それらのボーナスはモンスター相手を含めどこでも機能しますが、対プレイヤー戦向けに作られているため、レイド内ではレイドセットの方が依然として優れた選択です。"
+      "vanguardBody": "ヴァンガード装備はウォーフェア装備の第2シーズンで、同じ二人の補給官が元の階層に加えて販売し続けます。元の階層も販売終了にはなりません。どのスペックにも頭、肩、胸、脚、手の五部位からなる専用のヴァンガードセットがあり、ショップにはあなたのクラスが装備できる三つのセットだけが並び、続けて装備できるヴァンガードの武器が並びます。ヴァンガードの部位は元の階層と同じウォーフェアレーティングを、より高いアイテムレベルで備えており、各セットには2点と4点でスペックのアビリティの一つを変化させる二つのボーナスがあります。元のセットと違い、それらのボーナスはモンスター相手を含めどこでも機能しますが、対プレイヤー戦向けに作られているため、レイド内ではレイドセットの方が依然として優れた選択です。",
+      "vanguardStatsBody": "元のティアと違い、ヴァンガード装備には戦闘レーティングも付いています。ヴァンガードの防具、武器、ペンダントにはそれぞれクリティカルレーティングかヘイストレーティングがあり、呪文使いとヒーラー向けの装備には呪文威力か治癒力も付きます。ヴァンガードの指輪とペンダントは武器と並んで販売され、どのクラスでも装備できます。ヴァンガードの近接用の指輪を2つ着けると、同じレベルのプレイヤーへの攻撃の基本ミス率をちょうど打ち消す命中レーティングになり、呪文用の指輪を2つ着けると呪文が抵抗される確率も同様に打ち消せます。二刀流のオートアタックには追加のミス率が残ります。ヒーラー用の指輪には代わりにヘイストレーティングが付きます。"
     },
     "worldPvpPage": {
       "heading": "ワールドPvP",
@@ -8332,6 +8367,7 @@ export const ja_JP: EnTranslations = {
       "hillBody": "2時間ごとにドレイクランド、フロストヴェイルの果て、アンバーフォールのいずれかに丘が出現します。レルム全体に15分前の予告が届き、開けた地面に円が表示されます。丘は30分間有効です。開催中の円に入ると、レイドメンバーも含め、通常のレベル条件に従ってワールドPvPフラグが立ちます。円内の参加資格を持つ人数が最も多いパーティーが、1分間連続で優勢を保つと丘を占領します。単独プレイヤーは1人パーティーとして扱われますが、レイドメンバーとPvP必要レベル未満のプレイヤーは占領も丘の名誉獲得もできません。占領側の円内の各メンバーは、次第に高まる割合で名誉を得ます。報酬の支給頻度と増加速度が上がり、以前の45分間のイベントと同じ名誉総量が保たれます。占領側が変わると増加は最初から始まります。円から出てもフラグは残ります。/pvp offは通常の5分待ちを使い、開催中の丘の中や戦闘中には完了しません。丘のバーには占領側、人数、占領進捗が表示され、/hillで場所を確認できます。",
       "limitsBodyHour": "同じプレイヤーを繰り返し倒すと報酬は毎回減り、すぐにゼロになります。そのプレイヤーに対するカウントは最初の撃破からおよそ1時間後にようやく元に戻るため、一人を狙い続けて待つ価値はありません。自分よりはるかに低いレベルの相手からは何も得られません。バトルグラウンドとアリーナの中では独自のルールが適用され、オープンワールドより多くの名誉を支払うため、ワールドPvPは同じ商人へ向かう遠回りの道です。",
       "hillBodyRamp": "2時間ごとにドレイクランド、フロストヴェイルの果て、アンバーフォールのいずれかに丘が出現します。レルム全体に15分前の予告が届き、開けた地面に円が表示されます。丘は30分間有効です。開催中の円に入ると、レイドメンバーも含め、通常のレベル条件に従ってワールドPvPフラグが立ちます。円内の参加資格を持つ人数が最も多いパーティーが、1分間連続で優勢を保つと丘を占領します。単独プレイヤーは1人パーティーとして扱われますが、レイドメンバーとPvP必要レベル未満のプレイヤーは占領も丘の名誉獲得もできません。占領側の円内の各メンバーは、次第に高まる割合で名誉を得ます。報酬の支給頻度と増加速度が上がり、以前の45分間のイベントと同じ名誉総量が保たれます。占領側が変わると増加は最初から始まります。円から出てもフラグは残ります。/pvp offは通常の5分待ちを使い、開催中の丘の中や戦闘中には完了しません。丘のバーには占領側、人数、占領進捗が表示され、/hillで場所を確認できます。",
+      "hillBodyRanked": "2時間ごとにドレイクランド、フロストヴェイルの果て、アンバーフォールのいずれかに丘が出現します。レルム全体に15分前の予告が届き、開けた地面に円が表示されます。丘は30分間有効です。開催中の円に入ると、レイドメンバーも含め、通常のレベル条件に従ってワールドPvPフラグが立ちます。円内の参加資格を持つ人数が最も多いパーティーが、1分間連続で優勢を保つと丘を占領します。単独プレイヤーは1人パーティーとして扱われますが、レイドメンバーとPvP必要レベル未満のプレイヤーは占領も丘の名誉獲得もできません。占領側の円内の各メンバーは次第に高まる割合で名誉を得て、占領側が変わると増加は最初から始まります。丘の開催中は5分ごとに場所と各グループの占領時間ランキングがレルム全体に告知されます。丘が終わると、合計占領時間が最も長いグループが合計10分以上占領していた場合、そのグループの占領中に円内に1分以上立ち、終了時にもグループに残っているプレイヤーは、週間宝物庫のPvP進捗に1勝を獲得します。円から出てもフラグは残ります。/pvp offは通常の5分待ちを使い、開催中の丘の中や戦闘中には完了しません。丘のバーには占領側、人数、占領進捗が表示され、/hillで場所を確認できます。",
       "limitsBodyRaids": "同じプレイヤーを繰り返し倒すと報酬は毎回減り、すぐにゼロになります。そのプレイヤーに対するカウントは最初の撃破からおよそ1時間後にようやく元に戻るため、一人を狙い続けて待つ価値はありません。自分よりはるかに低いレベルの相手からは何も得られません。バトルグラウンドとアリーナの中では独自のルールが適用され、オープンワールドより多くの名誉を支払うため、ワールドPvPは同じ商人へ向かう遠回りの道です。レイドはワールドでの撃破から何も得られません。レイドのメンバーは名誉もゴールドも受け取らず、他の人の取り分も減らさないため、報酬を得るにはパーティで戦いましょう。"
     },
     "thornhollowPage": {
@@ -9675,7 +9711,14 @@ export const ja_JP: EnTranslations = {
     "whitepaper": "ホワイトペーパー",
     "terms": "利用規約",
     "privacy": "プライバシーポリシー",
-    "discordLabel": "Discordに参加する"
+    "discordLabel": "Discordに参加する",
+    "guidesLabel": "プレイヤーガイド",
+    "guideFree": "無料MMORPG",
+    "guideGamesLikeWow": "WoWに似たゲーム",
+    "guideBest": "最高のMMORPG",
+    "guideNew": "新作MMORPG",
+    "guideBrowser": "ブラウザMMORPG",
+    "guideGamesLikeDiablo": "ディアブロに似たゲーム"
   },
   "settings": {
     "languageLoading": "言語を読み込んでいます...",
@@ -12772,6 +12815,7 @@ export const ja_JP: EnTranslations = {
       "dps": "（秒間 {dps} ダメージ）",
       "armorStat": "防御力 {value}",
       "stat": "+{value} {stat}",
+      "warfareMainHandOnly": "ウォーフェアはメインハンドでのみ有効です。",
       "useFood": "使用: {seconds}秒かけて体力を{amount}回復します。食事中は座ったままでいる必要があります。",
       "useDrink": "使用: {seconds}秒かけてマナを{amount}回復します。飲んでいる間は座ったままでいる必要があります。",
       "useElixir": "使用: {stat}が{value}上昇し、{minutes}分間持続します。同じ能力値の他のエリクサーや巻物の効果を上書きします。戦闘中に使用可能。",
@@ -18465,6 +18509,30 @@ export const ja_JP: EnTranslations = {
       },
       "vanguard_feral_staff": {
         "name": "先陣の野性の杖"
+      },
+      "vanguard_band_of_might": {
+        "name": "ヴァンガードの力の指輪"
+      },
+      "vanguard_band_of_precision": {
+        "name": "ヴァンガードの精密の指輪"
+      },
+      "vanguard_band_of_focus": {
+        "name": "ヴァンガードの集中の指輪"
+      },
+      "vanguard_band_of_mending": {
+        "name": "ヴァンガードの癒しの指輪"
+      },
+      "vanguard_pendant_of_might": {
+        "name": "ヴァンガードの力のペンダント"
+      },
+      "vanguard_pendant_of_precision": {
+        "name": "ヴァンガードの精密のペンダント"
+      },
+      "vanguard_pendant_of_focus": {
+        "name": "ヴァンガードの集中のペンダント"
+      },
+      "vanguard_pendant_of_mending": {
+        "name": "ヴァンガードの癒しのペンダント"
       },
       "conjured_water4": {
         "name": "魔法の湧き水"

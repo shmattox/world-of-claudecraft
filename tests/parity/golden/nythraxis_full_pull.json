@@ -16,8 +16,8 @@
     "Grave Eruption hash-placed warning + impact damage + Grave Flame residue tick",
     "class:warrior"
   ],
-  "draws": 11388,
-  "drawDigest": "86f2eea8",
+  "draws": 11409,
+  "drawDigest": "d092bcca",
   "frames": [
     {
       "tick": 0,
@@ -8231,7 +8231,7 @@
       "tick": 460,
       "time": 23,
       "nextId": 1023,
-      "state": "6e51dad8",
+      "state": "68932bcf",
       "events": "4d62840f",
       "rng": {
         "draws": 3996,
@@ -8242,7 +8242,7 @@
       "tick": 470,
       "time": 23.5,
       "nextId": 1023,
-      "state": "69df243a",
+      "state": "5a3ec25a",
       "events": "741638a5",
       "rng": {
         "draws": 4081,
@@ -8253,7 +8253,7 @@
       "tick": 480,
       "time": 24,
       "nextId": 1023,
-      "state": "57aa7bcf",
+      "state": "1150e1a7",
       "events": "741638a5",
       "rng": {
         "draws": 4173,
@@ -8264,7 +8264,7 @@
       "tick": 481,
       "time": 24.05,
       "nextId": 1023,
-      "state": "d880dc32",
+      "state": "3461889c",
       "events": "0cb39b0c",
       "rng": {
         "draws": 4181,
@@ -9214,6 +9214,7 @@
             "phase": 2,
             "raiseFallenTimer": 0.05,
             "sigilTimer": 13.85,
+            "soulRendFireGapTimer": 0.45,
             "soulRendLockout": 15,
             "soulRendSettleTimer": 4.9,
             "soulRendTimer": 20.9,
@@ -13613,7 +13614,7 @@
       "tick": 985,
       "time": 49.25,
       "nextId": 1023,
-      "state": "f9e43b55",
+      "state": "3e24fcce",
       "events": "69e89a7a",
       "rng": {
         "draws": 8528,
@@ -14568,7 +14569,7 @@
               }
             ],
             "boneSpikeTimer": 998.95,
-            "boneStormTimer": 7.95,
+            "boneStormTimer": 8,
             "deathlessTimer": 33.9,
             "dialogueBusyUntil": 51.85,
             "dialogueToken": 8,
@@ -14829,7 +14830,7 @@
       "tick": 990,
       "time": 49.5,
       "nextId": 1023,
-      "state": "5fab389a",
+      "state": "41ef33d5",
       "events": "741638a5",
       "rng": {
         "draws": 8569,
@@ -14840,7 +14841,7 @@
       "tick": 1000,
       "time": 50,
       "nextId": 1023,
-      "state": "e66987d8",
+      "state": "1d522216",
       "events": "76e7642d",
       "rng": {
         "draws": 8652,
@@ -14851,8 +14852,8 @@
       "tick": 1010,
       "time": 50.5,
       "nextId": 1023,
-      "state": "f6d84aa3",
-      "events": "4615960f",
+      "state": "4c9fc0af",
+      "events": "741638a5",
       "rng": {
         "draws": 8749,
         "digest": "61e8348c"
@@ -14862,7 +14863,7 @@
       "tick": 1020,
       "time": 51,
       "nextId": 1023,
-      "state": "ec3648f6",
+      "state": "8e012432",
       "events": "741638a5",
       "rng": {
         "draws": 8829,
@@ -14873,8 +14874,8 @@
       "tick": 1030,
       "time": 51.5,
       "nextId": 1023,
-      "state": "1589aba5",
-      "events": "8a163597",
+      "state": "b377497f",
+      "events": "741638a5",
       "rng": {
         "draws": 8925,
         "digest": "0a593a5c"
@@ -14884,7 +14885,7 @@
       "tick": 1040,
       "time": 52,
       "nextId": 1023,
-      "state": "1aaa7816",
+      "state": "76813990",
       "events": "741638a5",
       "rng": {
         "draws": 9029,
@@ -14895,123 +14896,123 @@
       "tick": 1050,
       "time": 52.5,
       "nextId": 1023,
-      "state": "af77b681",
-      "events": "37987016",
+      "state": "11e127b0",
+      "events": "9515d144",
       "rng": {
-        "draws": 9126,
-        "digest": "48f0bb18"
+        "draws": 9130,
+        "digest": "3606ba86"
       }
     },
     {
       "tick": 1060,
       "time": 53,
       "nextId": 1023,
-      "state": "e3ddfadd",
+      "state": "711646e1",
       "events": "741638a5",
       "rng": {
-        "draws": 9221,
-        "digest": "6c4177ec"
+        "draws": 9225,
+        "digest": "65045eb3"
       }
     },
     {
       "tick": 1070,
       "time": 53.5,
       "nextId": 1023,
-      "state": "132d4772",
-      "events": "8e427be5",
+      "state": "ab3761b3",
+      "events": "741638a5",
       "rng": {
-        "draws": 9309,
-        "digest": "7877bed6"
+        "draws": 9314,
+        "digest": "c45482cc"
       }
     },
     {
       "tick": 1080,
       "time": 54,
       "nextId": 1023,
-      "state": "ba9f687d",
+      "state": "bfc595e7",
       "events": "741638a5",
       "rng": {
-        "draws": 9382,
-        "digest": "8644e140"
+        "draws": 9385,
+        "digest": "1000eff0"
       }
     },
     {
       "tick": 1090,
       "time": 54.5,
       "nextId": 1023,
-      "state": "ab67d9eb",
-      "events": "aa801f5f",
+      "state": "a5842abd",
+      "events": "c63813f3",
       "rng": {
-        "draws": 9486,
-        "digest": "d13860fb"
+        "draws": 9487,
+        "digest": "439dc58e"
       }
     },
     {
       "tick": 1100,
       "time": 55,
       "nextId": 1023,
-      "state": "51570258",
-      "events": "741638a5",
+      "state": "7609cd02",
+      "events": "47d4f1d2",
       "rng": {
-        "draws": 9546,
-        "digest": "b7ee2c93"
+        "draws": 9557,
+        "digest": "7f0c8542"
       }
     },
     {
       "tick": 1110,
       "time": 55.5,
       "nextId": 1023,
-      "state": "c2a418be",
-      "events": "abe59783",
+      "state": "31a0c36d",
+      "events": "741638a5",
       "rng": {
-        "draws": 9647,
-        "digest": "8fb1a516"
+        "draws": 9653,
+        "digest": "cd42c88e"
       }
     },
     {
       "tick": 1120,
       "time": 56,
       "nextId": 1023,
-      "state": "f11c6f65",
+      "state": "44f88368",
       "events": "741638a5",
       "rng": {
-        "draws": 9729,
-        "digest": "b5320915"
+        "draws": 9734,
+        "digest": "c9f19be5"
       }
     },
     {
       "tick": 1130,
       "time": 56.5,
       "nextId": 1023,
-      "state": "3aa0c5a8",
-      "events": "59007fb0",
+      "state": "acbab2a9",
+      "events": "741638a5",
       "rng": {
-        "draws": 9818,
-        "digest": "6e718b29"
+        "draws": 9833,
+        "digest": "c5421a6b"
       }
     },
     {
       "tick": 1140,
       "time": 57,
       "nextId": 1023,
-      "state": "4e6784c7",
-      "events": "9b96621b",
+      "state": "4c6f31db",
+      "events": "741638a5",
       "rng": {
-        "draws": 9902,
-        "digest": "6c851bc9"
+        "draws": 9911,
+        "digest": "7282fd46"
       }
     },
     {
       "tick": 1146,
       "time": 57.3,
       "nextId": 1023,
-      "state": "41806599",
-      "events": "f6a1ea1f",
+      "state": "26b13ea3",
+      "events": "741638a5",
       "rng": {
-        "draws": 9947,
-        "digest": "8550f071"
+        "draws": 9950,
+        "digest": "a58c44d3"
       },
-      "label": "bone-storm",
+      "label": "phase-three-no-storm",
       "players": [
         {
           "activeLoadout": -1,
@@ -15037,7 +15038,7 @@
           "companionUpgrades": {},
           "counters": {
             "damageDealt": 8,
-            "damageTaken": 42121,
+            "damageTaken": 16241,
             "kills": 2
           },
           "craftDaily": {},
@@ -15407,7 +15408,7 @@
           "cls": "mage",
           "companionUpgrades": {},
           "counters": {
-            "damageTaken": 72667
+            "damageTaken": 46167
           },
           "craftDaily": {},
           "craftSkills": {},
@@ -15528,7 +15529,7 @@
           "cls": "mage",
           "companionUpgrades": {},
           "counters": {
-            "damageTaken": 67667
+            "damageTaken": 46167
           },
           "craftDaily": {},
           "craftSkills": {},
@@ -15644,7 +15645,7 @@
           ],
           "blockChance": 0.05,
           "blockValue": 6,
-          "combatTimer": 1,
+          "combatTimer": 2.4,
           "comboUntil": -1,
           "critChance": 0.0695,
           "detonateTimer": "Infinity",
@@ -15798,7 +15799,7 @@
           "aiState": "idle",
           "attackPower": 10,
           "channelTickTimer": -5.05,
-          "combatTimer": 4,
+          "combatTimer": 34.3,
           "comboUntil": -1,
           "critChance": 0.056,
           "detonateTimer": "Infinity",
@@ -15848,6 +15849,7 @@
         {
           "aiState": "idle",
           "attackPower": 10,
+          "combatTimer": 34.3,
           "comboUntil": -1,
           "critChance": 0.056,
           "detonateTimer": "Infinity",
@@ -15895,7 +15897,7 @@
           }
         },
         {
-          "aggroTargetId": 1014,
+          "aggroTargetId": 1010,
           "aiState": "attack",
           "auras": [
             {
@@ -15908,25 +15910,15 @@
               "school": "shadow",
               "sourceId": 1015,
               "value": 0.2
-            },
-            {
-              "duration": 600,
-              "encounterOwned": true,
-              "id": "nythraxis_bone_storm",
-              "kind": "buff_speed",
-              "name": "Bone Storm",
-              "remaining": 592.95,
-              "school": "physical",
-              "sourceId": 1015,
-              "value2": 0.1
             }
           ],
           "autoAttack": true,
+          "combatTimer": 2.4,
           "comboUntil": -1,
           "critChance": 0.05,
           "detonateTimer": "Infinity",
           "dodgeChance": 0.05,
-          "facing": 3.011582,
+          "facing": 1.768192,
           "fiveSecondRule": 99,
           "hostile": true,
           "hp": 34800,
@@ -15947,38 +15939,26 @@
               1013,
               1014
             ],
-            "boneSpikeTimer": 997.95,
-            "boneStorm": {
-              "castKey": 3187705399,
-              "chargeIndex": 2,
-              "chargeTargetId": 1014,
-              "chargedIds": [
-                1013,
-                1010,
-                1014
-              ],
-              "elapsed": 7,
-              "slammed": true,
-              "whirlTickTimer": 1
-            },
-            "boneStormTimer": 50,
-            "deathlessTimer": 32.9,
-            "dialogueBusyUntil": 52.9,
-            "dialogueToken": 9,
-            "dreadCurseTimer": 997.95,
+            "boneSpikeTimer": 990.95,
+            "boneStormTimer": 0.05,
+            "deathlessTimer": 25.85,
+            "dialogueBusyUntil": 51.85,
+            "dialogueToken": 8,
+            "dreadCurseHolderId": 1010,
+            "dreadCurseTimer": 990.95,
             "enrageElapsed": 56.3,
             "eruptionCastKey": 3394067541,
-            "eruptionTimer": 997.95,
+            "eruptionTimer": 990.95,
             "graveFlameSeq": 4,
             "gravebreakerCasts": 3,
-            "gravebreakerTimer": 10.75,
+            "gravebreakerTimer": 3.75,
             "gravefireTimer": 999,
             "introSpoken": true,
             "phase": 3,
             "raiseFallenTimer": 0.05,
             "sigilSide": -1,
-            "sigilTimer": 997.95,
-            "soulRendTimer": 8.8,
+            "sigilTimer": 990.95,
+            "soulRendTimer": 1.75,
             "transitionReleased": true,
             "transitionStarted": true,
             "wardChannels": [
@@ -16003,8 +15983,8 @@
           "overpowerUntil": -1,
           "petMode": "defensive",
           "pos": {
-            "x": 103301.161113,
-            "z": -1171.408089
+            "x": 103295.48284,
+            "z": -1159.096568
           },
           "potionCooldownUntil": -1,
           "spawnPos": {
@@ -16014,7 +15994,7 @@
           "stats": {
             "armor": 798
           },
-          "swingTimer": 1.95,
+          "swingTimer": 0.2,
           "templateId": "nythraxis_scourge_of_thornpeak",
           "threat": [
             [
@@ -16219,121 +16199,121 @@
       "tick": 1150,
       "time": 57.5,
       "nextId": 1023,
-      "state": "ba488ed0",
+      "state": "3bff1764",
       "events": "741638a5",
       "rng": {
-        "draws": 9973,
-        "digest": "bb6f923e"
+        "draws": 9976,
+        "digest": "e72c410e"
       }
     },
     {
       "tick": 1160,
       "time": 58,
       "nextId": 1023,
-      "state": "3d9043ad",
-      "events": "741638a5",
+      "state": "f69738df",
+      "events": "8d5c5da0",
       "rng": {
-        "draws": 10045,
-        "digest": "2993c6f3"
+        "draws": 10051,
+        "digest": "2f4f9ebd"
       }
     },
     {
       "tick": 1170,
       "time": 58.5,
       "nextId": 1023,
-      "state": "741e3d3a",
-      "events": "f6a1ea1f",
+      "state": "e4ceaafd",
+      "events": "741638a5",
       "rng": {
-        "draws": 10121,
-        "digest": "17e95bc1"
+        "draws": 10118,
+        "digest": "d5c34dcb"
       }
     },
     {
       "tick": 1180,
       "time": 59,
       "nextId": 1023,
-      "state": "659ba2fb",
+      "state": "1fdfed77",
       "events": "741638a5",
       "rng": {
-        "draws": 10233,
-        "digest": "30c8aed3"
+        "draws": 10227,
+        "digest": "338af946"
       }
     },
     {
       "tick": 1190,
       "time": 59.5,
       "nextId": 1023,
-      "state": "6e40fb64",
-      "events": "c0a1fd56",
+      "state": "ec11abd0",
+      "events": "86d567eb",
       "rng": {
-        "draws": 10336,
-        "digest": "d2f46c70"
+        "draws": 10321,
+        "digest": "7d903c10"
       }
     },
     {
       "tick": 1200,
       "time": 60,
       "nextId": 1023,
-      "state": "cb9f6ff5",
+      "state": "669048f0",
       "events": "741638a5",
       "rng": {
-        "draws": 10418,
-        "digest": "5e48e3dd"
+        "draws": 10415,
+        "digest": "c980141d"
       }
     },
     {
       "tick": 1210,
       "time": 60.5,
       "nextId": 1023,
-      "state": "87f64b82",
-      "events": "af9f7f15",
+      "state": "13122ae8",
+      "events": "3ec00703",
       "rng": {
-        "draws": 10498,
-        "digest": "951b2bf7"
+        "draws": 10525,
+        "digest": "e78644a0"
       }
     },
     {
       "tick": 1220,
       "time": 61,
       "nextId": 1023,
-      "state": "8dc03d06",
+      "state": "8b1196ab",
       "events": "741638a5",
       "rng": {
-        "draws": 10583,
-        "digest": "d649b255"
+        "draws": 10617,
+        "digest": "75f043e1"
       }
     },
     {
       "tick": 1230,
       "time": 61.5,
       "nextId": 1023,
-      "state": "b9db64b6",
-      "events": "d0f91a19",
+      "state": "aeaf28dc",
+      "events": "741638a5",
       "rng": {
-        "draws": 10677,
-        "digest": "05f22f78"
+        "draws": 10714,
+        "digest": "9cc0d242"
       }
     },
     {
       "tick": 1240,
       "time": 62,
       "nextId": 1023,
-      "state": "1128ea0a",
+      "state": "5171d2ab",
       "events": "741638a5",
       "rng": {
-        "draws": 10763,
-        "digest": "327ac669"
+        "draws": 10795,
+        "digest": "787195b7"
       }
     },
     {
       "tick": 1247,
       "time": 62.35,
       "nextId": 1023,
-      "state": "872969fd",
-      "events": "6d0b8231",
+      "state": "0483df33",
+      "events": "f97a3b3c",
       "rng": {
-        "draws": 10823,
-        "digest": "e5556da0"
+        "draws": 10854,
+        "digest": "be63c87b"
       },
       "label": "crown-endures",
       "players": [
@@ -16361,7 +16341,7 @@
           "companionUpgrades": {},
           "counters": {
             "damageDealt": 8,
-            "damageTaken": 42121,
+            "damageTaken": 16912,
             "kills": 2
           },
           "craftDaily": {},
@@ -16610,7 +16590,7 @@
           "cls": "mage",
           "companionUpgrades": {},
           "counters": {
-            "damageTaken": 68667
+            "damageTaken": 42167
           },
           "craftDaily": {},
           "craftSkills": {},
@@ -16731,7 +16711,7 @@
           "cls": "mage",
           "companionUpgrades": {},
           "counters": {
-            "damageTaken": 72667
+            "damageTaken": 46167
           },
           "craftDaily": {},
           "craftSkills": {},
@@ -16852,7 +16832,7 @@
           "cls": "mage",
           "companionUpgrades": {},
           "counters": {
-            "damageTaken": 77667
+            "damageTaken": 46167
           },
           "craftDaily": {},
           "craftSkills": {},
@@ -16968,7 +16948,7 @@
           ],
           "blockChance": 0.05,
           "blockValue": 6,
-          "combatTimer": 6.05,
+          "combatTimer": 2.15,
           "comboUntil": -1,
           "critChance": 0.0695,
           "detonateTimer": "Infinity",
@@ -17019,6 +16999,18 @@
         {
           "aiState": "idle",
           "attackPower": 10,
+          "auras": [
+            {
+              "duration": 8,
+              "encounterOwned": true,
+              "id": "nythraxis_soul_rend",
+              "kind": "vulnerability",
+              "name": "Soul Rend",
+              "remaining": 4.7,
+              "school": "shadow",
+              "sourceId": 1015
+            }
+          ],
           "channelTickTimer": -5.05,
           "combatTimer": 55.6,
           "comboUntil": -1,
@@ -17070,8 +17062,20 @@
         {
           "aiState": "idle",
           "attackPower": 10,
+          "auras": [
+            {
+              "duration": 8,
+              "encounterOwned": true,
+              "id": "nythraxis_soul_rend",
+              "kind": "vulnerability",
+              "name": "Soul Rend",
+              "remaining": 4.7,
+              "school": "shadow",
+              "sourceId": 1015
+            }
+          ],
           "channelTickTimer": -5.05,
-          "combatTimer": 0.05,
+          "combatTimer": 39.35,
           "comboUntil": -1,
           "critChance": 0.056,
           "detonateTimer": "Infinity",
@@ -17122,7 +17126,7 @@
           "aiState": "idle",
           "attackPower": 10,
           "channelTickTimer": -5.05,
-          "combatTimer": 9.05,
+          "combatTimer": 39.35,
           "comboUntil": -1,
           "critChance": 0.056,
           "detonateTimer": "Infinity",
@@ -17172,7 +17176,19 @@
         {
           "aiState": "idle",
           "attackPower": 10,
-          "combatTimer": 3.05,
+          "auras": [
+            {
+              "duration": 8,
+              "encounterOwned": true,
+              "id": "nythraxis_soul_rend",
+              "kind": "vulnerability",
+              "name": "Soul Rend",
+              "remaining": 4.7,
+              "school": "shadow",
+              "sourceId": 1015
+            }
+          ],
+          "combatTimer": 39.35,
           "comboUntil": -1,
           "critChance": 0.056,
           "detonateTimer": "Infinity",
@@ -17221,7 +17237,7 @@
         },
         {
           "aggroTargetId": 1010,
-          "aiState": "chase",
+          "aiState": "attack",
           "auras": [
             {
               "duration": 600,
@@ -17258,12 +17274,13 @@
               "value": 0.5
             }
           ],
-          "combatTimer": 0.05,
+          "autoAttack": true,
+          "combatTimer": 2.15,
           "comboUntil": -1,
           "critChance": 0.05,
           "detonateTimer": "Infinity",
           "dodgeChance": 0.05,
-          "facing": -1.05356,
+          "facing": 1.768192,
           "fiveSecondRule": 99,
           "hostile": true,
           "hp": 34800,
@@ -17285,8 +17302,8 @@
               1014
             ],
             "boneSpikeTimer": 998.95,
-            "boneStormTimer": 998.95,
-            "deathlessTimer": 32.85,
+            "boneStormTimer": 999,
+            "deathlessTimer": 20.8,
             "dialogueBusyUntil": 64.95,
             "dialogueToken": 10,
             "dreadCurseHolderId": 1010,
@@ -17297,15 +17314,29 @@
             "eruptionTimer": 998.95,
             "graveFlameSeq": 4,
             "gravebreakerCasts": 3,
-            "gravebreakerTimer": 2.95,
+            "gravebreakerCharged": true,
+            "gravebreakerTimer": 10.7,
             "gravefireTimer": 999,
             "introSpoken": true,
-            "majorGapTimer": 5.95,
             "phase": 3,
             "raiseFallenTimer": 0.05,
             "sigilSide": -1,
             "sigilTimer": 998.95,
-            "soulRendTimer": 8.75,
+            "soulRendMarks": [
+              {
+                "playerId": 1014,
+                "remaining": 4.7
+              },
+              {
+                "playerId": 1011,
+                "remaining": 4.7
+              },
+              {
+                "playerId": 1012,
+                "remaining": 4.7
+              }
+            ],
+            "soulRendTimer": 26.7,
             "transitionReleased": true,
             "transitionStarted": true,
             "wardChannels": [
@@ -17330,8 +17361,8 @@
           "overpowerUntil": -1,
           "petMode": "defensive",
           "pos": {
-            "x": 103326.711146,
-            "z": -1175.195913
+            "x": 103295.48284,
+            "z": -1159.096568
           },
           "potionCooldownUntil": -1,
           "spawnPos": {
@@ -17341,7 +17372,7 @@
           "stats": {
             "armor": 798
           },
-          "swingTimer": 1.9,
+          "swingTimer": 0.45,
           "templateId": "nythraxis_scourge_of_thornpeak",
           "threat": [
             [
@@ -17546,11 +17577,11 @@
       "tick": 1248,
       "time": 62.4,
       "nextId": 1023,
-      "state": "eaee410a",
-      "events": "37f2b712",
+      "state": "9b2e7e00",
+      "events": "31ced149",
       "rng": {
-        "draws": 10844,
-        "digest": "93f5b0e9"
+        "draws": 10867,
+        "digest": "fc0f44b0"
       },
       "label": "death",
       "players": [
@@ -17578,7 +17609,7 @@
           "companionUpgrades": {},
           "counters": {
             "damageDealt": 34808,
-            "damageTaken": 42121,
+            "damageTaken": 16912,
             "kills": 3,
             "xpGained": 83
           },
@@ -17689,11 +17720,11 @@
               "itemId": "baked_bread"
             },
             {
-              "count": 1,
+              "count": 3,
               "itemId": "wyrmfall_core",
               "materialSources": [
                 {
-                  "count": 1,
+                  "count": 3,
                   "source": {}
                 }
               ]
@@ -17734,6 +17765,9 @@
             "bossUnlocks": {
               "nythraxis_scourge_of_thornpeak": 1
             },
+            "raidClears": [
+              1
+            ],
             "raidUnlocks": [
               1,
               0,
@@ -17744,7 +17778,10 @@
               0,
               0
             ],
-            "resetAtMs": 604862349
+            "resetAtMs": 604862349,
+            "weeklyBossUnlocks": {
+              "nythraxis_scourge_of_thornpeak": 1
+            }
           },
           "worldQuestCycle": "wq1_26596",
           "worldQuestReplacements": {},
@@ -17886,11 +17923,11 @@
               "itemId": "spring_water"
             },
             {
-              "count": 1,
+              "count": 3,
               "itemId": "wyrmfall_core",
               "materialSources": [
                 {
-                  "count": 1,
+                  "count": 3,
                   "source": {}
                 }
               ]
@@ -17927,6 +17964,9 @@
             "bossUnlocks": {
               "nythraxis_scourge_of_thornpeak": 1
             },
+            "raidClears": [
+              1
+            ],
             "raidUnlocks": [
               1,
               0,
@@ -17937,7 +17977,10 @@
               0,
               0
             ],
-            "resetAtMs": 604862349
+            "resetAtMs": 604862349,
+            "weeklyBossUnlocks": {
+              "nythraxis_scourge_of_thornpeak": 1
+            }
           },
           "worldQuestCycle": "wq1_26596",
           "worldQuestReplacements": {},
@@ -17971,7 +18014,7 @@
           "cls": "mage",
           "companionUpgrades": {},
           "counters": {
-            "damageTaken": 68667,
+            "damageTaken": 42167,
             "xpGained": 83
           },
           "craftDaily": {},
@@ -18079,11 +18122,11 @@
               "itemId": "spring_water"
             },
             {
-              "count": 1,
+              "count": 3,
               "itemId": "wyrmfall_core",
               "materialSources": [
                 {
-                  "count": 1,
+                  "count": 3,
                   "source": {}
                 }
               ]
@@ -18120,6 +18163,9 @@
             "bossUnlocks": {
               "nythraxis_scourge_of_thornpeak": 1
             },
+            "raidClears": [
+              1
+            ],
             "raidUnlocks": [
               1,
               0,
@@ -18130,7 +18176,10 @@
               0,
               0
             ],
-            "resetAtMs": 604862349
+            "resetAtMs": 604862349,
+            "weeklyBossUnlocks": {
+              "nythraxis_scourge_of_thornpeak": 1
+            }
           },
           "worldQuestCycle": "wq1_26596",
           "worldQuestReplacements": {},
@@ -18164,7 +18213,7 @@
           "cls": "mage",
           "companionUpgrades": {},
           "counters": {
-            "damageTaken": 72667,
+            "damageTaken": 46167,
             "xpGained": 83
           },
           "craftDaily": {},
@@ -18272,11 +18321,11 @@
               "itemId": "spring_water"
             },
             {
-              "count": 1,
+              "count": 3,
               "itemId": "wyrmfall_core",
               "materialSources": [
                 {
-                  "count": 1,
+                  "count": 3,
                   "source": {}
                 }
               ]
@@ -18313,6 +18362,9 @@
             "bossUnlocks": {
               "nythraxis_scourge_of_thornpeak": 1
             },
+            "raidClears": [
+              1
+            ],
             "raidUnlocks": [
               1,
               0,
@@ -18323,7 +18375,10 @@
               0,
               0
             ],
-            "resetAtMs": 604862349
+            "resetAtMs": 604862349,
+            "weeklyBossUnlocks": {
+              "nythraxis_scourge_of_thornpeak": 1
+            }
           },
           "worldQuestCycle": "wq1_26596",
           "worldQuestReplacements": {},
@@ -18357,7 +18412,7 @@
           "cls": "mage",
           "companionUpgrades": {},
           "counters": {
-            "damageTaken": 77667,
+            "damageTaken": 46167,
             "xpGained": 83
           },
           "craftDaily": {},
@@ -18465,11 +18520,11 @@
               "itemId": "spring_water"
             },
             {
-              "count": 1,
+              "count": 3,
               "itemId": "wyrmfall_core",
               "materialSources": [
                 {
-                  "count": 1,
+                  "count": 3,
                   "source": {}
                 }
               ]
@@ -18506,6 +18561,9 @@
             "bossUnlocks": {
               "nythraxis_scourge_of_thornpeak": 1
             },
+            "raidClears": [
+              1
+            ],
             "raidUnlocks": [
               1,
               0,
@@ -18516,7 +18574,10 @@
               0,
               0
             ],
-            "resetAtMs": 604862349
+            "resetAtMs": 604862349,
+            "weeklyBossUnlocks": {
+              "nythraxis_scourge_of_thornpeak": 1
+            }
           },
           "worldQuestCycle": "wq1_26596",
           "worldQuestReplacements": {},
@@ -18596,6 +18657,18 @@
         {
           "aiState": "idle",
           "attackPower": 10,
+          "auras": [
+            {
+              "duration": 8,
+              "encounterOwned": true,
+              "id": "nythraxis_soul_rend",
+              "kind": "vulnerability",
+              "name": "Soul Rend",
+              "remaining": 4.65,
+              "school": "shadow",
+              "sourceId": 1015
+            }
+          ],
           "channelTickTimer": -5.05,
           "combatTimer": 55.65,
           "comboUntil": -1,
@@ -18646,8 +18719,20 @@
         {
           "aiState": "idle",
           "attackPower": 10,
+          "auras": [
+            {
+              "duration": 8,
+              "encounterOwned": true,
+              "id": "nythraxis_soul_rend",
+              "kind": "vulnerability",
+              "name": "Soul Rend",
+              "remaining": 4.65,
+              "school": "shadow",
+              "sourceId": 1015
+            }
+          ],
           "channelTickTimer": -5.05,
-          "combatTimer": 0.1,
+          "combatTimer": 39.4,
           "comboUntil": -1,
           "critChance": 0.056,
           "detonateTimer": "Infinity",
@@ -18656,7 +18741,6 @@
           "healPower": 41,
           "hp": 50000,
           "id": 1012,
-          "inCombat": true,
           "kind": "player",
           "level": 20,
           "lootFfaTimer": "Infinity",
@@ -18698,7 +18782,7 @@
           "aiState": "idle",
           "attackPower": 10,
           "channelTickTimer": -5.05,
-          "combatTimer": 9.1,
+          "combatTimer": 39.4,
           "comboUntil": -1,
           "critChance": 0.056,
           "detonateTimer": "Infinity",
@@ -18747,7 +18831,19 @@
         {
           "aiState": "idle",
           "attackPower": 10,
-          "combatTimer": 3.1,
+          "auras": [
+            {
+              "duration": 8,
+              "encounterOwned": true,
+              "id": "nythraxis_soul_rend",
+              "kind": "vulnerability",
+              "name": "Soul Rend",
+              "remaining": 4.65,
+              "school": "shadow",
+              "sourceId": 1015
+            }
+          ],
+          "combatTimer": 39.4,
           "comboUntil": -1,
           "critChance": 0.056,
           "detonateTimer": "Infinity",
@@ -18756,7 +18852,6 @@
           "healPower": 41,
           "hp": 50000,
           "id": 1014,
-          "inCombat": true,
           "kind": "player",
           "level": 20,
           "lootFfaTimer": "Infinity",
@@ -18796,6 +18891,7 @@
         },
         {
           "aiState": "dead",
+          "autoAttack": true,
           "comboUntil": -1,
           "corpseHarvestState": {
             "priorityEndsAt": 72.35,
@@ -18813,40 +18909,27 @@
           "dead": true,
           "detonateTimer": "Infinity",
           "dodgeChance": 0.05,
-          "facing": -1.05356,
+          "facing": 1.768192,
           "fiveSecondRule": 99,
           "hostile": true,
           "id": 1015,
           "inCombat": true,
           "kind": "mob",
           "leashAnchor": {
-            "x": 103326.711146,
-            "z": -1175.195913
+            "x": 103295.48284,
+            "z": -1159.096568
           },
           "level": 20,
           "loot": {
-            "copper": 95835,
+            "copper": 164924,
             "items": [
               {
                 "count": 1,
-                "itemId": "stormcallers_spaulders"
+                "itemId": "stormhymn_chain_grips"
               },
               {
                 "count": 1,
-                "instance": {
-                  "lootQuality": {
-                    "tier": 1,
-                    "version": 1,
-                    "weights": [
-                      181,
-                      90,
-                      589,
-                      661,
-                      37
-                    ]
-                  }
-                },
-                "itemId": "gravecourt_hewer"
+                "itemId": "thornpeak_moonhide_cowl"
               }
             ]
           },
@@ -18872,9 +18955,9 @@
               1014
             ],
             "boneSpikeTimer": 998.95,
-            "boneStormTimer": 998.95,
+            "boneStormTimer": 999,
             "deathSpoken": true,
-            "deathlessTimer": 32.85,
+            "deathlessTimer": 20.8,
             "dialogueBusyUntil": 67.6,
             "dialogueToken": 11,
             "dreadCurseHolderId": 1010,
@@ -18885,14 +18968,29 @@
             "eruptionTimer": 998.95,
             "graveFlameSeq": 4,
             "gravebreakerCasts": 3,
-            "gravebreakerTimer": 2.95,
+            "gravebreakerCharged": true,
+            "gravebreakerTimer": 10.7,
             "gravefireTimer": 999,
             "introSpoken": true,
             "phase": "dead",
             "raiseFallenTimer": 0.05,
             "sigilSide": -1,
             "sigilTimer": 998.95,
-            "soulRendTimer": 8.75,
+            "soulRendMarks": [
+              {
+                "playerId": 1014,
+                "remaining": 4.7
+              },
+              {
+                "playerId": 1011,
+                "remaining": 4.7
+              },
+              {
+                "playerId": 1012,
+                "remaining": 4.7
+              }
+            ],
+            "soulRendTimer": 26.7,
             "transitionReleased": true,
             "transitionStarted": true,
             "wardChannels": [
@@ -18917,8 +19015,8 @@
           "overpowerUntil": -1,
           "petMode": "defensive",
           "pos": {
-            "x": 103326.711146,
-            "z": -1175.195913
+            "x": 103295.48284,
+            "z": -1159.096568
           },
           "potionCooldownUntil": -1,
           "respawnTimer": 24.95,
@@ -18929,7 +19027,7 @@
           "stats": {
             "armor": 798
           },
-          "swingTimer": 1.9,
+          "swingTimer": 0.45,
           "tappedById": 1010,
           "templateId": "nythraxis_scourge_of_thornpeak",
           "weapon": {
@@ -19129,77 +19227,77 @@
       "tick": 1250,
       "time": 62.5,
       "nextId": 1023,
-      "state": "054901f8",
+      "state": "120792d5",
       "events": "741638a5",
       "rng": {
-        "draws": 10863,
-        "digest": "b24e3e98"
+        "draws": 10902,
+        "digest": "3e37f525"
       }
     },
     {
       "tick": 1260,
       "time": 63,
       "nextId": 1023,
-      "state": "60afc782",
+      "state": "9acb2cd8",
       "events": "741638a5",
       "rng": {
-        "draws": 10975,
-        "digest": "46dadfd2"
+        "draws": 10989,
+        "digest": "892f7e8d"
       }
     },
     {
       "tick": 1270,
       "time": 63.5,
       "nextId": 1023,
-      "state": "c00f6d6d",
+      "state": "e02b43ab",
       "events": "741638a5",
       "rng": {
-        "draws": 11056,
-        "digest": "6bceab62"
+        "draws": 11048,
+        "digest": "a5bb03ee"
       }
     },
     {
       "tick": 1280,
       "time": 64,
       "nextId": 1023,
-      "state": "dc59e089",
+      "state": "e85d9b89",
       "events": "741638a5",
       "rng": {
-        "draws": 11149,
-        "digest": "fdf4f7eb"
+        "draws": 11143,
+        "digest": "a6678a26"
       }
     },
     {
       "tick": 1290,
       "time": 64.5,
       "nextId": 1023,
-      "state": "dad53478",
+      "state": "67d63826",
       "events": "741638a5",
       "rng": {
-        "draws": 11242,
-        "digest": "e946ad09"
+        "draws": 11238,
+        "digest": "93fa08e9"
       }
     },
     {
       "tick": 1300,
       "time": 65,
       "nextId": 1023,
-      "state": "82034874",
+      "state": "c91c6662",
       "events": "741638a5",
       "rng": {
-        "draws": 11335,
-        "digest": "b360dd31"
+        "draws": 11323,
+        "digest": "ee658aee"
       }
     },
     {
       "tick": 1308,
       "time": 65.4,
       "nextId": 1023,
-      "state": "001fff46",
+      "state": "292e2738",
       "events": "73c8d5ba",
       "rng": {
-        "draws": 11388,
-        "digest": "86f2eea8"
+        "draws": 11409,
+        "digest": "d092bcca"
       },
       "label": "final",
       "players": [
@@ -19227,7 +19325,7 @@
           "companionUpgrades": {},
           "counters": {
             "damageDealt": 34808,
-            "damageTaken": 42121,
+            "damageTaken": 16912,
             "kills": 3,
             "xpGained": 83
           },
@@ -19338,11 +19436,11 @@
               "itemId": "baked_bread"
             },
             {
-              "count": 1,
+              "count": 3,
               "itemId": "wyrmfall_core",
               "materialSources": [
                 {
-                  "count": 1,
+                  "count": 3,
                   "source": {}
                 }
               ]
@@ -19383,6 +19481,9 @@
             "bossUnlocks": {
               "nythraxis_scourge_of_thornpeak": 1
             },
+            "raidClears": [
+              1
+            ],
             "raidUnlocks": [
               1,
               0,
@@ -19393,7 +19494,10 @@
               0,
               0
             ],
-            "resetAtMs": 604862349
+            "resetAtMs": 604862349,
+            "weeklyBossUnlocks": {
+              "nythraxis_scourge_of_thornpeak": 1
+            }
           },
           "worldQuestCycle": "wq1_26596",
           "worldQuestReplacements": {},
@@ -19535,11 +19639,11 @@
               "itemId": "spring_water"
             },
             {
-              "count": 1,
+              "count": 3,
               "itemId": "wyrmfall_core",
               "materialSources": [
                 {
-                  "count": 1,
+                  "count": 3,
                   "source": {}
                 }
               ]
@@ -19576,6 +19680,9 @@
             "bossUnlocks": {
               "nythraxis_scourge_of_thornpeak": 1
             },
+            "raidClears": [
+              1
+            ],
             "raidUnlocks": [
               1,
               0,
@@ -19586,7 +19693,10 @@
               0,
               0
             ],
-            "resetAtMs": 604862349
+            "resetAtMs": 604862349,
+            "weeklyBossUnlocks": {
+              "nythraxis_scourge_of_thornpeak": 1
+            }
           },
           "worldQuestCycle": "wq1_26596",
           "worldQuestReplacements": {},
@@ -19620,7 +19730,7 @@
           "cls": "mage",
           "companionUpgrades": {},
           "counters": {
-            "damageTaken": 68667,
+            "damageTaken": 42167,
             "xpGained": 83
           },
           "craftDaily": {},
@@ -19728,11 +19838,11 @@
               "itemId": "spring_water"
             },
             {
-              "count": 1,
+              "count": 3,
               "itemId": "wyrmfall_core",
               "materialSources": [
                 {
-                  "count": 1,
+                  "count": 3,
                   "source": {}
                 }
               ]
@@ -19769,6 +19879,9 @@
             "bossUnlocks": {
               "nythraxis_scourge_of_thornpeak": 1
             },
+            "raidClears": [
+              1
+            ],
             "raidUnlocks": [
               1,
               0,
@@ -19779,7 +19892,10 @@
               0,
               0
             ],
-            "resetAtMs": 604862349
+            "resetAtMs": 604862349,
+            "weeklyBossUnlocks": {
+              "nythraxis_scourge_of_thornpeak": 1
+            }
           },
           "worldQuestCycle": "wq1_26596",
           "worldQuestReplacements": {},
@@ -19813,7 +19929,7 @@
           "cls": "mage",
           "companionUpgrades": {},
           "counters": {
-            "damageTaken": 72667,
+            "damageTaken": 46167,
             "xpGained": 83
           },
           "craftDaily": {},
@@ -19921,11 +20037,11 @@
               "itemId": "spring_water"
             },
             {
-              "count": 1,
+              "count": 3,
               "itemId": "wyrmfall_core",
               "materialSources": [
                 {
-                  "count": 1,
+                  "count": 3,
                   "source": {}
                 }
               ]
@@ -19962,6 +20078,9 @@
             "bossUnlocks": {
               "nythraxis_scourge_of_thornpeak": 1
             },
+            "raidClears": [
+              1
+            ],
             "raidUnlocks": [
               1,
               0,
@@ -19972,7 +20091,10 @@
               0,
               0
             ],
-            "resetAtMs": 604862349
+            "resetAtMs": 604862349,
+            "weeklyBossUnlocks": {
+              "nythraxis_scourge_of_thornpeak": 1
+            }
           },
           "worldQuestCycle": "wq1_26596",
           "worldQuestReplacements": {},
@@ -20006,7 +20128,7 @@
           "cls": "mage",
           "companionUpgrades": {},
           "counters": {
-            "damageTaken": 77667,
+            "damageTaken": 46167,
             "xpGained": 83
           },
           "craftDaily": {},
@@ -20114,11 +20236,11 @@
               "itemId": "spring_water"
             },
             {
-              "count": 1,
+              "count": 3,
               "itemId": "wyrmfall_core",
               "materialSources": [
                 {
-                  "count": 1,
+                  "count": 3,
                   "source": {}
                 }
               ]
@@ -20155,6 +20277,9 @@
             "bossUnlocks": {
               "nythraxis_scourge_of_thornpeak": 1
             },
+            "raidClears": [
+              1
+            ],
             "raidUnlocks": [
               1,
               0,
@@ -20165,7 +20290,10 @@
               0,
               0
             ],
-            "resetAtMs": 604862349
+            "resetAtMs": 604862349,
+            "weeklyBossUnlocks": {
+              "nythraxis_scourge_of_thornpeak": 1
+            }
           },
           "worldQuestCycle": "wq1_26596",
           "worldQuestReplacements": {},
@@ -20245,6 +20373,18 @@
         {
           "aiState": "idle",
           "attackPower": 10,
+          "auras": [
+            {
+              "duration": 8,
+              "encounterOwned": true,
+              "id": "nythraxis_soul_rend",
+              "kind": "vulnerability",
+              "name": "Soul Rend",
+              "remaining": 1.65,
+              "school": "shadow",
+              "sourceId": 1015
+            }
+          ],
           "channelTickTimer": -5.05,
           "combatTimer": 58.65,
           "comboUntil": -1,
@@ -20295,8 +20435,20 @@
         {
           "aiState": "idle",
           "attackPower": 10,
+          "auras": [
+            {
+              "duration": 8,
+              "encounterOwned": true,
+              "id": "nythraxis_soul_rend",
+              "kind": "vulnerability",
+              "name": "Soul Rend",
+              "remaining": 1.65,
+              "school": "shadow",
+              "sourceId": 1015
+            }
+          ],
           "channelTickTimer": -5.05,
-          "combatTimer": 3.1,
+          "combatTimer": 42.4,
           "comboUntil": -1,
           "critChance": 0.056,
           "detonateTimer": "Infinity",
@@ -20305,7 +20457,6 @@
           "healPower": 41,
           "hp": 50000,
           "id": 1012,
-          "inCombat": true,
           "kind": "player",
           "level": 20,
           "lootFfaTimer": "Infinity",
@@ -20347,7 +20498,7 @@
           "aiState": "idle",
           "attackPower": 10,
           "channelTickTimer": -5.05,
-          "combatTimer": 12.1,
+          "combatTimer": 42.4,
           "comboUntil": -1,
           "critChance": 0.056,
           "detonateTimer": "Infinity",
@@ -20396,7 +20547,19 @@
         {
           "aiState": "idle",
           "attackPower": 10,
-          "combatTimer": 6.1,
+          "auras": [
+            {
+              "duration": 8,
+              "encounterOwned": true,
+              "id": "nythraxis_soul_rend",
+              "kind": "vulnerability",
+              "name": "Soul Rend",
+              "remaining": 1.65,
+              "school": "shadow",
+              "sourceId": 1015
+            }
+          ],
+          "combatTimer": 42.4,
           "comboUntil": -1,
           "critChance": 0.056,
           "detonateTimer": "Infinity",
@@ -20444,6 +20607,7 @@
         },
         {
           "aiState": "dead",
+          "autoAttack": true,
           "comboUntil": -1,
           "corpseHarvestState": {
             "priorityEndsAt": 72.35,
@@ -20461,40 +20625,27 @@
           "dead": true,
           "detonateTimer": "Infinity",
           "dodgeChance": 0.05,
-          "facing": -1.05356,
+          "facing": 1.768192,
           "fiveSecondRule": 99,
           "hostile": true,
           "id": 1015,
           "inCombat": true,
           "kind": "mob",
           "leashAnchor": {
-            "x": 103326.711146,
-            "z": -1175.195913
+            "x": 103295.48284,
+            "z": -1159.096568
           },
           "level": 20,
           "loot": {
-            "copper": 95835,
+            "copper": 164924,
             "items": [
               {
                 "count": 1,
-                "itemId": "stormcallers_spaulders"
+                "itemId": "stormhymn_chain_grips"
               },
               {
                 "count": 1,
-                "instance": {
-                  "lootQuality": {
-                    "tier": 1,
-                    "version": 1,
-                    "weights": [
-                      181,
-                      90,
-                      589,
-                      661,
-                      37
-                    ]
-                  }
-                },
-                "itemId": "gravecourt_hewer"
+                "itemId": "thornpeak_moonhide_cowl"
               }
             ]
           },
@@ -20520,9 +20671,9 @@
               1014
             ],
             "boneSpikeTimer": 998.95,
-            "boneStormTimer": 998.95,
+            "boneStormTimer": 999,
             "deathSpoken": true,
-            "deathlessTimer": 32.85,
+            "deathlessTimer": 20.8,
             "dialogueBusyUntil": 67.6,
             "dialogueToken": 11,
             "dreadCurseHolderId": 1010,
@@ -20533,14 +20684,29 @@
             "eruptionTimer": 998.95,
             "graveFlameSeq": 4,
             "gravebreakerCasts": 3,
-            "gravebreakerTimer": 2.95,
+            "gravebreakerCharged": true,
+            "gravebreakerTimer": 10.7,
             "gravefireTimer": 999,
             "introSpoken": true,
             "phase": "dead",
             "raiseFallenTimer": 0.05,
             "sigilSide": -1,
             "sigilTimer": 998.95,
-            "soulRendTimer": 8.75,
+            "soulRendMarks": [
+              {
+                "playerId": 1014,
+                "remaining": 4.7
+              },
+              {
+                "playerId": 1011,
+                "remaining": 4.7
+              },
+              {
+                "playerId": 1012,
+                "remaining": 4.7
+              }
+            ],
+            "soulRendTimer": 26.7,
             "transitionReleased": true,
             "transitionStarted": true,
             "wardChannels": [
@@ -20565,8 +20731,8 @@
           "overpowerUntil": -1,
           "petMode": "defensive",
           "pos": {
-            "x": 103326.711146,
-            "z": -1175.195913
+            "x": 103295.48284,
+            "z": -1159.096568
           },
           "potionCooldownUntil": -1,
           "respawnTimer": 21.95,
@@ -20577,7 +20743,7 @@
           "stats": {
             "armor": 798
           },
-          "swingTimer": 1.9,
+          "swingTimer": 0.45,
           "tappedById": 1010,
           "templateId": "nythraxis_scourge_of_thornpeak",
           "weapon": {

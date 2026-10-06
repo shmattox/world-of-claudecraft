@@ -57,6 +57,7 @@ export const WARFARE_SHOP_SET_ORDER: readonly string[] = [
 export const WARFARE_SHOP_JEWELRY_KEY = 'jewelry';
 export const WARFARE_SHOP_WEAPONS_KEY = 'weapons';
 export const WARFARE_SHOP_SEASON2_WEAPONS_KEY = 'season2_weapons';
+export const WARFARE_SHOP_SEASON2_JEWELRY_KEY = 'season2_jewelry';
 
 /** The NpcDef shape this window gates on. A FLAG, never a hard-coded npc id:
  *  the Heroic Quartermaster is keyed to a single id and a second one would have
@@ -77,8 +78,12 @@ export function isWarfareVendorNpc(def: WarfareVendorNpcFlags | undefined): bool
 export interface WarfareShopOffer {
   itemId: string;
   item: ItemDef;
-  /** Price in Honor for one purchase (Honor is never stack-multiplied). */
+  /** Price in Honor for one purchase (Honor is never stack-multiplied); 0 on a
+   *  gold row. */
   honor: number;
+  /** Price in copper for one purchase: the Season 1 rows sell for gold
+   *  (WARFARE_SEASON1_PRICE_COPPER); 0 on an honor row. */
+  copper: number;
   /** Advisory only: the purchase resolves server-side against the server's own
    *  stock and balance, and this window decides nothing. */
   affordable: boolean;
@@ -139,10 +144,15 @@ export interface WarfareShopView {
   sections: WarfareShopSection[];
   /** The viewer's current Honor balance. */
   balance: number;
+  /** The viewer's gold, in copper, when any row sells for gold (so the window
+   *  shows the balance those rows are judged against); null otherwise. */
+  goldBalance: number | null;
 }
 
 export interface WarfareShopViewer {
   honor: number;
+  /** The viewer's gold, in copper: what a Season 1 row's affordability reads. */
+  copper: number;
   /** Item ids the viewer wears OR carries in a bag. See warfareShopViewer below
    *  for what "owns" deliberately does NOT cover (the bank). */
   ownedItemIds: ReadonlySet<string>;
@@ -162,7 +172,7 @@ export interface WarfareShopViewer {
  *  whole seam: the derivation stays drivable from a Sim-shaped and a
  *  ClientWorld-mirror-shaped stub alike, which is the exact place those two
  *  could quietly diverge. */
-export type WarfareShopWorld = Pick<IWorld, 'honor' | 'inventory' | 'equipment' | 'cfg'>;
+export type WarfareShopWorld = Pick<IWorld, 'honor' | 'copper' | 'inventory' | 'equipment' | 'cfg'>;
 
 /**
  * Derive the shop viewer from the world seam: the honor balance, the item ids
@@ -181,13 +191,17 @@ export type WarfareShopWorld = Pick<IWorld, 'honor' | 'inventory' | 'equipment' 
  */
 export function warfareShopViewer(
   world: WarfareShopWorld,
-): Pick<WarfareShopViewer, 'honor' | 'ownedItemIds' | 'equippedItemIds' | 'viewerClass'> {
+): Pick<
+  WarfareShopViewer,
+  'honor' | 'copper' | 'ownedItemIds' | 'equippedItemIds' | 'viewerClass'
+> {
   const equippedItemIds = new Set(
     Object.values(world.equipment).filter((id): id is string => !!id),
   );
   const ownedItemIds = new Set([...equippedItemIds, ...world.inventory.map((slot) => slot.itemId)]);
   return {
     honor: world.honor,
+    copper: world.copper,
     ownedItemIds,
     equippedItemIds,
     viewerClass: world.cfg.playerClass,
@@ -196,11 +210,13 @@ export function warfareShopViewer(
 
 function offerFor(itemId: string, item: ItemDef, viewer: WarfareShopViewer): WarfareShopOffer {
   const honor = Math.max(0, Math.floor(item.priceHonor ?? 0));
+  const copper = Math.max(0, Math.floor(item.buyValue ?? 0));
   return {
     itemId,
     item,
     honor,
-    affordable: viewer.honor >= honor,
+    copper,
+    affordable: viewer.honor >= honor && viewer.copper >= copper,
     owned: viewer.ownedItemIds.has(itemId),
   };
 }
@@ -238,15 +254,20 @@ export function buildWarfareVendorView(
   const jewelry: WarfareShopOffer[] = [];
   const weapons: WarfareShopOffer[] = [];
   const seasonWeapons: WarfareShopOffer[] = [];
+  const seasonJewelry: WarfareShopOffer[] = [];
   for (const itemId of stock) {
     const item = items[itemId];
     if (!item) continue;
     const offer = offerFor(itemId, item, viewer);
-    if (offer.honor <= 0) continue;
+    if (offer.honor <= 0 && offer.copper <= 0) continue;
     // Season 2 is class-locked: list only what this viewer can wear.
     if (SEASON2_IDS.has(itemId) && !wearableBy(item, viewer.viewerClass)) continue;
     if (SEASON2_IDS.has(itemId) && item.kind === 'weapon') {
       seasonWeapons.push(offer);
+    } else if (SEASON2_IDS.has(itemId) && !item.set) {
+      // Season 2 neck and rings: their own section in the Season 2 group, so
+      // they never mix into the entry tier's jewelry.
+      seasonJewelry.push(offer);
     } else if (item.set) {
       const existing = bySet.get(item.set);
       if (existing) existing.push(offer);
@@ -274,16 +295,25 @@ export function buildWarfareVendorView(
   ];
 
   const sections: WarfareShopSection[] = [];
-  const pushSeasonWeapons = () => {
-    if (seasonWeapons.length === 0) return;
-    sections.push({
-      kind: 'weapons',
-      group: 'season2',
-      key: WARFARE_SHOP_SEASON2_WEAPONS_KEY,
-      offers: seasonWeapons,
-    });
+  const pushSeasonWeaponsAndJewelry = () => {
+    if (seasonWeapons.length > 0) {
+      sections.push({
+        kind: 'weapons',
+        group: 'season2',
+        key: WARFARE_SHOP_SEASON2_WEAPONS_KEY,
+        offers: seasonWeapons,
+      });
+    }
+    if (seasonJewelry.length > 0) {
+      sections.push({
+        kind: 'jewelry',
+        group: 'season2',
+        key: WARFARE_SHOP_SEASON2_JEWELRY_KEY,
+        offers: seasonJewelry,
+      });
+    }
   };
-  if (seasonSetIds.length === 0) pushSeasonWeapons();
+  if (seasonSetIds.length === 0) pushSeasonWeaponsAndJewelry();
   for (const setId of orderedSetIds) {
     const offers = bySet.get(setId) as WarfareShopOffer[];
     const ownedPieces = distinctSlots(offers, viewer.ownedItemIds);
@@ -314,8 +344,9 @@ export function buildWarfareVendorView(
         ? { pieces: pending.pieces, remaining: pending.pieces - ownedPieces }
         : null,
     });
-    // Season 2 weapons close the Season 2 group, before the entry tier starts.
-    if (setId === seasonSetIds[seasonSetIds.length - 1]) pushSeasonWeapons();
+    // Season 2 weapons and jewelry close the Season 2 group, before the entry
+    // tier starts.
+    if (setId === seasonSetIds[seasonSetIds.length - 1]) pushSeasonWeaponsAndJewelry();
   }
   if (jewelry.length > 0) {
     sections.push({
@@ -333,5 +364,10 @@ export function buildWarfareVendorView(
       offers: weapons,
     });
   }
-  return { sections, balance: Math.max(0, Math.floor(viewer.honor)) };
+  const sellsForGold = sections.some((section) => section.offers.some((o) => o.copper > 0));
+  return {
+    sections,
+    balance: Math.max(0, Math.floor(viewer.honor)),
+    goldBalance: sellsForGold ? Math.max(0, Math.floor(viewer.copper)) : null,
+  };
 }

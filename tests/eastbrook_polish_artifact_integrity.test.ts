@@ -1394,7 +1394,7 @@ const ACCEPTED_POLISH_V2_METADATA_SHA256 =
   // (remint_polish_provenance.mjs on the merged tree; no capture was retaken).
   // Re-minted at the fourth release/v0.44.0 base merge into integration/world-quests-v0440
   // (the Eastbrook ferry, PR 4225; remint_polish_provenance.mjs on the merged tree; no capture was retaken).
-  '14ce9a9fda7e8327ba20bc6fc06487fb90a7b25713a109c9d75651fdf0d9f1a0';
+  '132ec3c7aeae8fa5b488c727e54be36de0fdf7904c663670014f82a0ae548740';
 const ACCEPTED_POLISH_V2_COMPOSITE_PROVENANCE =
   // Re-minted for the release/v0.44.0 base merges into PR 4193 (Buried Hoards), the second after PR 3847 landed. No capture was retaken.
   // Re-minted for the Eastbrook handoff merge with release/v0.43.0: the merged renderer leaf and the moved NPC layout match neither parent. No capture was retaken.
@@ -1417,7 +1417,7 @@ const ACCEPTED_POLISH_V2_COMPOSITE_PROVENANCE =
   // (remint_polish_provenance.mjs on the merged tree; no capture was retaken).
   // Re-minted at the fourth release/v0.44.0 base merge into integration/world-quests-v0440
   // (the Eastbrook ferry, PR 4225; remint_polish_provenance.mjs on the merged tree; no capture was retaken).
-  'f8e2b4efc26fcdbcf8ddb023b0ccfd4376072f04eff228d8af84f27c2c345abe';
+  '3a9e4f3fd27676cdbd4571f7e778f8167c799a65a2038309ebfd4df2c6ddc3aa';
 const ACCEPTED_POLISH_V2_METADATA = readJsonFile<CaptureMetadata>(ACCEPTED_POLISH_V2_METADATA_PATH);
 const ACCEPTED_POLISH_V2_PROVENANCE = ACCEPTED_POLISH_V2_METADATA.polishProvenance;
 const ACCEPTED_POLISH_V2_TOWN_CONTRACT = ACCEPTED_POLISH_V2_METADATA.records[0]?.townContract;
@@ -2800,7 +2800,7 @@ describe('Eastbrook polish performance and contact evidence', () => {
       // LAST again over the re-swept evidence. No capture was retaken.
       // release/v0.44.0 base merge into PR 4193: recomputed LAST again over the
       // re-swept evidence. No capture was retaken.
-    ).toBe('bea291ee724a7be20ad2e108da203effda7fd2d28e6c633c8aad95675862738a');
+    ).toBe('9d6302e953bfbf67213b2fdb5a700f8eb55ee986d60eb4d902b2116afbd77542');
   });
 
   it('binds every historical after record to its accepted source and asset provenance', () => {

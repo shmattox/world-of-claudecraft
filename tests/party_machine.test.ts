@@ -65,6 +65,8 @@ function makeCtx() {
       events.push(ev);
     },
     clearAurasFromSource() {},
+    hillPartyDisband() {},
+    hillPartyJoin() {},
     dropPartyMarkers(partyId: number) {
       droppedMarkers.push(partyId);
     },

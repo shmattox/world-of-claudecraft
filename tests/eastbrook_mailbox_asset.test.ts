@@ -22,8 +22,8 @@ import { isSharedGeometry, isSharedMaterial } from '../src/render/shared_resourc
 const REPO_ROOT = path.join(__dirname, '..');
 const ASSET_PATH = path.join(REPO_ROOT, 'public/models/props/mailbox_pillar.glb');
 const ASSET_BYTES = 32_884;
-const ASSET_SHA256 = 'ca3b384adc162fa9929e5e1e41ae4f8cbb24966f3b80c111d5107e3f58cbb885';
-const SOURCE_FINGERPRINT = '375559b79c802f1f129e115898cd0cb3a82574fcefe02a501455c608422a7c20';
+const ASSET_SHA256 = 'cab15422aab1dd3b201c5721040c47fa04a69adbb95d5cde80b921d74f306cde';
+const SOURCE_FINGERPRINT = 'c27efee53405ae4c02138d644f5259eb735534b9cf1a1769d48d506f00a9302a';
 let restoreGfx: (() => void) | null = null;
 
 function setStandardMaterials(value: boolean): void {

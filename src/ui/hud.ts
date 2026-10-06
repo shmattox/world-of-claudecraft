@@ -189,6 +189,7 @@ import {
   bannerSubtextLines,
   isBannerStale,
 } from './banner_queue';
+import { treasureMapTooltipLine } from './treasure_map_tooltip_view';
 
 export type { BannerVariant } from './banner_queue';
 
@@ -463,6 +464,7 @@ import {
   crossHotbarResolvers,
   crossHotbarSeedActions,
 } from './hud/cross_hotbar';
+import { createDeathPromptView, updateDeathPromptView } from './hud/death';
 import { DelveBoardController } from './hud/delve/delve_board_controller';
 import { DelveMapPainter } from './hud/delve/delve_map_painter';
 import { DelveTrackerController } from './hud/delve/delve_tracker_controller';
@@ -616,7 +618,10 @@ import {
 } from './hud/vendor/vendor_view';
 import { renderVendorWindow } from './hud/vendor/vendor_window';
 import { buildWarfareVendorView, warfareShopViewer } from './hud/vendor/warfare_vendor_view';
-import { renderWarfareVendorWindow } from './hud/vendor/warfare_vendor_window';
+import {
+  renderWarfareVendorWindow,
+  warfarePurchaseConfirmBody,
+} from './hud/vendor/warfare_vendor_window';
 import { afflictionFateThreadCount, createDoomMeter, destructionRuinPips } from './hud/warlock';
 import { WocTradeController } from './hud/woc_trade';
 import { HudFrameGroups, refreshHudFrameGroupLabels } from './hud_frame_groups';
@@ -1115,12 +1120,6 @@ const ABSENT_TARGET_DESCRIPTOR: UnitFrameDescriptor = {
 };
 // The HUD's i18n + number-formatting surface, handed to the pure stat-tooltip
 // view so it can render localized breakdowns without importing the i18n runtime.
-// Ghost-mode display threshold, mirroring src/sim/spirit.ts CORPSE_REZ_RANGE. The
-// server re-validates the range; this only decides whether the ghost prompt's corpse
-// button is shown, so keep it in sync. (The Pale Keeper's raise is reached by talking
-// to the Keeper, so no healer range is mirrored here any more.)
-const GHOST_CORPSE_REZ_RANGE = 35;
-
 const STAT_VIEW_DEPS: StatTooltipI18n = {
   t: (key, params) => t(key as TranslationKey, params),
   fmt: (value, opts) => formatNumber(value, opts),
@@ -1616,6 +1615,8 @@ export class Hud {
   private guildInvitePromptEl: HTMLElement | null = null;
   private promptSequence = 0;
   private resurrectCorpseBtnEl = $('#resurrect-corpse-btn');
+  private pvpResurrectBtnEl = $('#pvp-resurrect-btn');
+  private deathView = createDeathPromptView();
   // The standing top-of-screen ghost line (both ways back); shown for a ghost only.
   private ghostHintEl = $('#ghost-hint');
   // Cached once (was re-queried every frame): the near-death screen-edge overlay.
@@ -2717,6 +2718,7 @@ export class Hud {
       this.deathRecapDialog.toggle();
     });
     bindTouchTap(this.resurrectCorpseBtnEl, () => this.sim.resurrectAtCorpse());
+    bindTouchTap(this.pvpResurrectBtnEl, () => this.sim.pvpResurrect());
     document.addEventListener('pointerdown', (ev) => {
       const target = ev.target as Node | null;
       if (!target) return;
@@ -5046,13 +5048,13 @@ export class Hud {
     this.aurasPainterDeps,
     document,
   );
-  // Target dots (#target-dots): the multi-target tracker for every debuff the
-  // LOCAL player has out. The selection core is class-agnostic (ownership plus
-  // isDebuffAura), so it needs no class knowledge here; the Hud supplies only the
-  // ownership predicate it already shares with the target strip, and the
-  // localization callbacks the core must not make itself.
+  // Target dots (#target-dots): every debuff the LOCAL player has out on a mob or a
+  // hostile player. Class-agnostic selection (ownership plus isDebuffAura); the Hud
+  // supplies only the ownership predicate and the PvP hostility verdict it shares
+  // with the target frame, plus the localization callbacks the core must not make.
   private readonly targetDotsView = createTargetDotsView<Entity>({
     isOwn: (a) => isOwnAura(a, this.sim.playerId),
+    isHostilePlayer: (e) => isPvpHostilePlayer(this.sim, e),
     auraName: (a) =>
       auraDisplayNameForHud(a.name, ABILITIES[a.id] ? abilityDisplayName(ABILITIES[a.id]) : null),
     targetName: (e) => entityDisplayName(e),
@@ -5582,7 +5584,7 @@ export class Hud {
   private readonly hillBar = new HillBar({
     layer: () => document.getElementById('ui'),
     writers: this.writerFacet,
-    onPvpEntry: () => this.showBanner(t('hudChrome.hill.pvpBanner'), true, undefined, 'pvp'),
+    banner: (text) => this.showBanner(text, true, undefined, 'pvp'),
   });
   // Character window painter (char_view.ts core + char_window.ts painter). It composes
   // presentation helpers with HUD-built stats/progression plus the unequip + drag
@@ -6632,13 +6634,11 @@ export class Hud {
     if (requiredClasses) {
       html += `<div class="tt-sub">${esc(t('itemUi.tooltip.classes', { classes: requiredClasses.map(classDisplayName).join(', ') }))}</div>`;
     }
-    html += itemRequiredLevelLine(item, this.sim.player.level);
+    html += itemRequiredLevelLine(item, this.sim.player.level) + treasureMapTooltipLine(item);
     html += this.itemProcBlock(item) + trinketTooltipLines(item, this.sim.player);
     html += this.itemSetBlock(item);
     html += materialMakersMarkLines(item, instance, materialSources);
-    // Stackables state their per-slot cap (sim/bags.ts stackSizeOf), so a
-    // player holding a single potion learns more copies will share the slot;
-    // 1-per-slot kinds, mounts, and charge-bearing payloads render nothing.
+    // Stackables show their per-slot cap; maps also show the fixed party size above.
     html += stackSizeTooltipLine(item, instance);
     html += vendorSellTooltipLine(item);
     if (compare) html += this.itemCompareBlock(item, instance);
@@ -9339,32 +9339,29 @@ export class Hud {
     // returns immediately, so this costs nothing at steady state.
     this.fctPainter.step(now);
 
-    // Death UI. A fresh corpse (dead, spirit not yet released) gets the full-screen
-    // Release overlay (a corpse cannot move, so a modal is fine; suppressed in arena).
-    // A ghost runs FREELY (no blocking overlay) and the world drains to greyscale; a
-    // A small prompt appears only in corpse reach (the server re-checks the range); the
-    // Pale Keeper's raise is reached by talking to the Keeper, and a standing top line
-    // names both ways back for the whole ghost run.
-    const ghost = p.dead && p.ghost;
-    const deadInArena = p.dead && !!this.sim.arenaInfo?.match;
-    // A battleground corpse releases like the open world, so the Release modal shows;
-    // only the corpse-run / Spirit Healer prompts are suppressed in a match
-    // (the wave is the one way back, enforced server-side too).
-    const ghostInBgMatch = !!this.sim.bgInfo?.match;
+    // Death UI: src/ui/hud/death/death_prompt_view.ts decides (the Release overlay
+    // and its PvP Resurrect button for a fresh corpse; the greyscale spirit world,
+    // hint line and corpse-reach prompt for a ghost); this paints.
+    const death = updateDeathPromptView(
+      this.deathView,
+      p.dead,
+      p.ghost,
+      !!this.sim.arenaInfo?.match,
+      !!this.sim.bgInfo?.match,
+      p.pos,
+      p.corpsePos,
+      p.pvpResurrect === true,
+    );
     if (p.dead) syncDeathControllerHints(this.optionsHooks?.gamepad ?? null);
     if (!p.dead) {
       this.closeResurrectionPrompt();
       if (this.deathRecapDialog.isOpen()) this.deathRecapDialog.close();
     }
-    document.body.classList.toggle('spirit-mode', ghost);
-    this.setDisplay(this.deathOverlayEl, p.dead && !ghost && !deadInArena ? 'flex' : 'none');
-    this.setDisplay(this.ghostHintEl, ghost && !ghostInBgMatch ? 'block' : 'none');
-    if (ghost && !ghostInBgMatch) {
-      const corpseInRange = !!p.corpsePos && dist2d(p.pos, p.corpsePos) <= GHOST_CORPSE_REZ_RANGE;
-      this.setDisplay(this.ghostPromptEl, corpseInRange ? 'flex' : 'none');
-    } else {
-      this.setDisplay(this.ghostPromptEl, 'none');
-    }
+    document.body.classList.toggle('spirit-mode', death.spiritMode);
+    this.setDisplay(this.deathOverlayEl, death.overlay ? 'flex' : 'none');
+    this.setDisplay(this.pvpResurrectBtnEl, death.pvpResurrect ? '' : 'none');
+    this.setDisplay(this.ghostHintEl, death.ghostHint ? 'block' : 'none');
+    this.setDisplay(this.ghostPromptEl, death.ghostPrompt ? 'flex' : 'none');
 
     const inDungeon = p.pos.x > DUNGEON_X_THRESHOLD;
     const currentZone = zoneAt(p.pos.x, p.pos.z);
@@ -14875,26 +14872,19 @@ export class Hud {
     this.warfareVendorOpenerFocus = null;
   }
 
-  // Honor purchases debit an unrefundable currency and record no buyback
-  // (gold vendors are the only buyback source), exactly like Heroic Marks, so
-  // the buy command fires ONLY from the confirm callback.
+  // Warfare purchases are soulbound with no sell value (Honor, or gold for
+  // Season 1), so a mis-tap is unrefundable, exactly like Heroic Marks: the buy
+  // command fires ONLY from the confirm callback.
   private requestWarfarePurchase(npcId: number, itemId: string): void {
     const item = ITEMS[itemId];
     if (!item) return;
     // COUPLING: the title / accept / cancel labels are BORROWED from the Heroic
     // Marks shop because they are currency-neutral today. Specializing any of
     // the three heroicShop.buyConfirm* values for Marks would silently retitle
-    // this Honor dialog; mint warfareShop.* replacements here if that happens.
+    // this Warfare dialog; mint warfareShop.* replacements here if that happens.
     this.confirmDialog(
       t('heroicShop.buyConfirmTitle'),
-      t('hudChrome.warfareShop.buyConfirmBody', {
-        item: itemDisplayName(item),
-        honor: t('hudChrome.warfare.honorAmount', {
-          amount: formatNumber(Math.max(0, Math.floor(item.priceHonor ?? 0)), {
-            maximumFractionDigits: 0,
-          }),
-        }),
-      }),
+      warfarePurchaseConfirmBody(item),
       t('heroicShop.buyConfirmAccept'),
       t('heroicShop.buyConfirmCancel'),
       () => this.sim.buyItem(npcId, itemId),

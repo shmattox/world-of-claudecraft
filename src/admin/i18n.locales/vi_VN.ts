@@ -401,6 +401,8 @@ export const vi_VN: Record<string, string> = {
   'detail.accountActions': 'Hành động kiểm duyệt tài khoản',
   'detail.banReason': 'Lý do cấm:{value}',
   'detail.suspensionReason': 'Lý do đình chỉ:{value}',
+  'detail.deactivatedNotice': 'Người chơi đã vô hiệu hóa tài khoản này vào {value}.',
+  'detail.reactivate': 'Kích hoạt lại',
   'detail.notePlaceholder': 'Ghi chú / lý do của điều hành viên',
   'detail.suspend1h': 'Đình Chỉ 1 giờ',
   'detail.suspend24h': 'Đình Chỉ 24 giờ',
@@ -499,6 +501,7 @@ export const vi_VN: Record<string, string> = {
   'dialog.confirmBan': 'Xác nhận cấm',
   'dialog.confirmUnban': 'Xác nhận gỡ cấm',
   'dialog.confirmUnsuspension': 'Xác nhận việc hủy tạm ngưng',
+  'dialog.confirmReactivation': 'Xác nhận kích hoạt lại',
   'dialog.character': 'Nhân Vật',
   'dialog.account': 'Tài Khoản',
   'dialog.action': 'Hành Động',
@@ -511,6 +514,8 @@ export const vi_VN: Record<string, string> = {
   'dialog.actionUnban': 'Khôi phục quyền đăng nhập tài khoản',
   'dialog.actionUnsuspend':
     'Khôi phục quyền truy cập đăng nhập tài khoản trước khi hết hạn tạm dừng',
+  'dialog.actionReactivate':
+    'Hoàn tác việc người chơi tự vô hiệu hóa và khôi phục quyền đăng nhập tài khoản',
   'dialog.confirm': 'Xác Nhận',
   'dialog.cancel': 'Hủy',
   'dialog.warning': 'Cảnh báo',

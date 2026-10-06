@@ -18,7 +18,7 @@ const ASSETS = [
   {
     kind: 'orb',
     bytes: 20488,
-    sha: '11f1f93ca3fb33080d1cfa03f46e855784f49de3a142c0f45ae88c5c075629f9',
+    sha: 'eb2c05b7f31090bccca0fddbc0cd146a49bc10e722eface944b1778cb348c296',
     names: ['Core', 'LocalArcs', 'OuterEnergy', 'Sparks'],
     triangles: [80, 732, 1068, 108],
     min: [-0.844265, -0.540179, -0.906207],
@@ -27,7 +27,7 @@ const ASSETS = [
   {
     kind: 'impact',
     bytes: 18452,
-    sha: 'f0dc7f0d75ac3466d92b5822bfb29225520135f7b0cc6c156133bee8abf61041',
+    sha: 'fa7c99fe2c59ee2302c48e88167660c41f40545cb75aafd0f364ed6842a671e6',
     names: ['Crown', 'GroundArcs', 'ImpactCore', 'RadialBurst', 'Sparks'],
     triangles: [168, 612, 80, 516, 108],
     min: [-1.02133, -0.1232, -1.051493],

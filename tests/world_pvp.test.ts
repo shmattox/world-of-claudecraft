@@ -223,6 +223,7 @@ describe('the /pvp flag lifecycle', () => {
     const a = addFighter(sim, 'Aleph');
     expect(sim.worldPvpInfoFor(a)).toEqual({
       rewardSeconds: 0,
+      rewardPause: null,
       flagged: false,
       disarmRemaining: null,
       kills: 0,
@@ -1317,7 +1318,7 @@ describe('aid: shields and buffs count like heals', () => {
     expect(ent(sim, a).auras.some((aura) => aura.kind === 'buff_sta_pct')).toBe(true);
   });
 
-  it('a heal with no target at all still self-casts: only a World PvP enemy on the target refuses', () => {
+  it('a heal with no target at all still self-casts', () => {
     const { sim, priest } = fight();
     ent(sim, priest).targetId = null;
     ent(sim, priest).hp = 1;
@@ -1349,6 +1350,82 @@ describe('aid: shields and buffs count like heals', () => {
     expect(ent(sim, b).auras.some((aura) => aura.kind === 'buff_sta_pct')).toBe(true);
     expect(ent(sim, priest).pvpFlag).toBeUndefined();
     expect(sim.worldPvpBooks.recentSupport.has(b)).toBe(false);
+  });
+});
+
+describe('a friendly cast with a World PvP enemy targeted lands on the caster', () => {
+  // The classic self-cast a duel, arena or battleground healer already gets: a
+  // flagged priest fighting a flagged enemy presses a heal with that enemy still
+  // selected, and the heal lands on the priest instead of being refused with the
+  // aid line.
+  function engaged(): { sim: Sim; priest: number; enemy: number } {
+    const sim = world();
+    const priest = addFighter(sim, 'Priest', 20, 1, 'priest');
+    const enemy = addFighter(sim, 'Enemy', 20, 2);
+    standTogether(sim, [priest, enemy]);
+    flag(sim, priest);
+    flag(sim, enemy);
+    expect(sim.isHostileTo(ent(sim, priest), ent(sim, enemy))).toBe(true);
+    hit(sim, enemy, priest, 150);
+    ent(sim, priest).targetId = enemy;
+    sim.events = [];
+    return { sim, priest, enemy };
+  }
+
+  it('an instant shield lands on the caster and keeps the enemy selected', () => {
+    const { sim, priest, enemy } = engaged();
+    sim.castAbility('power_word_shield', priest);
+    const errors = errorLines(sim, priest);
+    sim.tick();
+    expect(errors).not.toContain(WORLD_PVP_AID_REFUSED_LINE);
+    expect(ent(sim, priest).auras.some((aura) => aura.kind === 'absorb')).toBe(true);
+    expect(ent(sim, enemy).auras.some((aura) => aura.kind === 'absorb')).toBe(false);
+    expect(ent(sim, priest).targetId).toBe(enemy);
+  });
+
+  it('a timed heal starts and finishes on the caster', () => {
+    const { sim, priest, enemy } = engaged();
+    const before = ent(sim, priest).hp;
+    sim.castAbility('lesser_heal', priest);
+    const errors = errorLines(sim, priest);
+    expect(ent(sim, priest).castingAbility).toBe('lesser_heal');
+    for (let i = 0; i < Math.round(2.5 / DT); i++) {
+      for (const ev of sim.tick()) {
+        if (ev.type === 'error' && ev.pid === priest) errors.push(ev.text);
+      }
+    }
+    expect(errors).not.toContain(WORLD_PVP_AID_REFUSED_LINE);
+    expect(ent(sim, priest).castingAbility).toBeNull();
+    // Rank 1 heals at least 47: in-combat regeneration cannot account for that.
+    expect(ent(sim, priest).hp).toBeGreaterThanOrEqual(before + 47);
+    expect(ent(sim, enemy).hp).toBe(ent(sim, enemy).maxHp);
+  });
+
+  it('a heal whose locked target turns into an enemy mid-cast still fails the finish', () => {
+    const sim = world();
+    const priest = addFighter(sim, 'Priest', 20, 1, 'priest');
+    const stranger = addFighter(sim, 'Stranger', 20, 2);
+    standTogether(sim, [priest, stranger]);
+    flag(sim, stranger);
+    ent(sim, stranger).hp -= 100;
+    const strangerHp = ent(sim, stranger).hp;
+    const priestHp = ent(sim, priest).hp;
+    ent(sim, priest).targetId = stranger;
+    sim.castAbility('lesser_heal', priest);
+    expect(ent(sim, priest).castingAbility).toBe('lesser_heal');
+    // Raising the priest's own flag mid-cast makes the two flagged strangers.
+    sim.setWorldPvpFlag(true, priest);
+    expect(sim.isHostileTo(ent(sim, priest), ent(sim, stranger))).toBe(true);
+    const errors: string[] = [];
+    for (let i = 0; i < Math.round(2.5 / DT); i++) {
+      for (const ev of sim.tick()) {
+        if (ev.type === 'error' && ev.pid === priest) errors.push(ev.text);
+      }
+    }
+    expect(errors).toContain(WORLD_PVP_AID_REFUSED_LINE);
+    // Out-of-combat regeneration ticks; a heal (at least 47) never landed.
+    expect(ent(sim, stranger).hp).toBeLessThan(strangerHp + 47);
+    expect(ent(sim, priest).hp).toBe(priestHp);
   });
 });
 

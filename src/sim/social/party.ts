@@ -200,6 +200,7 @@ export class PartyMachine {
       };
       this.parties.set(party.id, party);
       this.partyByPid.set(invite.fromPid, party.id);
+      this.ctx.hillPartyJoin(invite.fromPid);
     }
     if (party.members.length >= this.partyCapacity(party)) {
       this.ctx.error(r.meta.entityId, party.raid ? 'That raid is full.' : 'That party is full.');
@@ -209,6 +210,7 @@ export class PartyMachine {
     party.members.push(r.meta.entityId);
     party.raidGroups.set(r.meta.entityId, raidGroup);
     this.partyByPid.set(r.meta.entityId, party.id);
+    this.ctx.hillPartyJoin(r.meta.entityId);
     rememberSoulwellPartyEligibility(this.ctx, party);
     this.ctx.inheritDungeonResetLocks(r.meta.entityId);
     this.syncPersistentPaladinPartyAuras(party);
@@ -470,6 +472,7 @@ export class PartyMachine {
       };
       this.parties.set(party.id, party);
       this.partyByPid.set(baseUnit.leaderPid, party.id);
+      this.ctx.hillPartyJoin(baseUnit.leaderPid);
       // Same deed credit the invite path grants (acceptInvite): a finder group is a
       // party the player joined, so it counts toward partiesJoined.
       this.ctx.bumpDeedStat(leaderMeta, 'partiesJoined', 1);
@@ -500,6 +503,7 @@ export class PartyMachine {
         party.members.push(pid);
         party.raidGroups.set(pid, raidGroup);
         this.partyByPid.set(pid, party.id);
+        this.ctx.hillPartyJoin(pid);
         rememberSoulwellPartyEligibility(this.ctx, party);
         // A finder merge is a join like any other: without this, a
         // finder-formed member escapes the reset-cooldown inheritance the
@@ -600,6 +604,9 @@ export class PartyMachine {
       });
     }
     if (party.members.length <= 1) {
+      if (party.members.length === 1 && !party.raid) {
+        this.ctx.hillPartyDisband(party.id, party.members[0]);
+      }
       for (const mPid of party.members) {
         this.partyByPid.delete(mPid);
         // The members left behind lose their group too, so any curate-phase roll

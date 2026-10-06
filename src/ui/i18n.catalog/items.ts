@@ -81,6 +81,10 @@ const itemStringsEn = {
       dps: '({dps} damage per second)',
       armorStat: '{value} Armor',
       stat: '+{value} {stat}',
+      // Under a weapon's Warfare line: only the main hand's weapon counts its
+      // rating (countsWarfareRating, src/sim/pvp/power.ts), so a dual wielder's
+      // offhand weapon adds no Warfare.
+      warfareMainHandOnly: 'Warfare counts only in the main hand.',
       useFood: 'Use: Restores {amount} health over {seconds} sec. Must remain seated while eating.',
       useDrink:
         'Use: Restores {amount} mana over {seconds} sec. Must remain seated while drinking.',
@@ -3375,6 +3379,14 @@ const ITEM_ENTITY_IDS = [
   'vanguard_fang_dagger',
   'vanguard_warstaff',
   'vanguard_feral_staff',
+  'vanguard_band_of_might',
+  'vanguard_band_of_precision',
+  'vanguard_band_of_focus',
+  'vanguard_band_of_mending',
+  'vanguard_pendant_of_might',
+  'vanguard_pendant_of_precision',
+  'vanguard_pendant_of_focus',
+  'vanguard_pendant_of_mending',
 ] as const;
 
 type ItemEntityId = (typeof ITEM_ENTITY_IDS)[number];
@@ -4311,6 +4323,14 @@ const APPENDED_ITEM_NAMES: Partial<Record<ItemEntityId, string>> = {
   vanguard_fang_dagger: "Vanguard's Fang",
   vanguard_warstaff: "Vanguard's Warstaff",
   vanguard_feral_staff: "Vanguard's Feral Staff",
+  vanguard_band_of_might: "Vanguard's Band of Might",
+  vanguard_band_of_precision: "Vanguard's Band of Precision",
+  vanguard_band_of_focus: "Vanguard's Band of Focus",
+  vanguard_band_of_mending: "Vanguard's Band of Mending",
+  vanguard_pendant_of_might: "Vanguard's Pendant of Might",
+  vanguard_pendant_of_precision: "Vanguard's Pendant of Precision",
+  vanguard_pendant_of_focus: "Vanguard's Pendant of Focus",
+  vanguard_pendant_of_mending: "Vanguard's Pendant of Mending",
 };
 
 function itemTranslations(names: readonly string[]): ItemEntityTranslations {

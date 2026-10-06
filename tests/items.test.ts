@@ -376,12 +376,12 @@ describe('items vendor: buy / sell / sellAllJunk / buyBack', () => {
     player.pos.x = fury.pos.x;
     player.pos.z = fury.pos.z;
     meta.inventory.length = 0;
-    meta.honor = 1_400;
+    meta.honor = 2_000;
     meta.lifetimeHonor = 2_000;
 
-    items.buyItem(ctxOf(sim), fury.id, 'final_argument_greatblade', pid);
+    items.buyItem(ctxOf(sim), fury.id, 'vanguard_verdict_greatsword', pid);
 
-    expect(sim.countItem('final_argument_greatblade', pid)).toBe(1);
+    expect(sim.countItem('vanguard_verdict_greatsword', pid)).toBe(1);
     expect(meta.honor).toBe(200);
     expect(meta.lifetimeHonor).toBe(2_000);
     expect(meta.copper).toBe(0);
@@ -396,15 +396,15 @@ describe('items vendor: buy / sell / sellAllJunk / buyBack', () => {
     player.pos.x = fury.pos.x;
     player.pos.z = fury.pos.z;
     meta.inventory.length = 0;
-    meta.honor = 2_400;
+    meta.honor = 3_600;
 
-    items.buyItem(ctxOf(sim), fury.id, 'final_argument_greatblade', pid);
-    items.buyItem(ctxOf(sim), fury.id, 'final_argument_greatblade', pid);
-    expect(sim.countItem('final_argument_greatblade', pid)).toBe(2);
-    expect(ITEMS.final_argument_greatblade.soulbound).toBe(true);
+    items.buyItem(ctxOf(sim), fury.id, 'vanguard_verdict_greatsword', pid);
+    items.buyItem(ctxOf(sim), fury.id, 'vanguard_verdict_greatsword', pid);
+    expect(sim.countItem('vanguard_verdict_greatsword', pid)).toBe(2);
+    expect(ITEMS.vanguard_verdict_greatsword.soulbound).toBe(true);
 
-    items.discardItem(ctxOf(sim), 'final_argument_greatblade', 2, pid);
-    expect(sim.countItem('final_argument_greatblade', pid)).toBe(0);
+    items.discardItem(ctxOf(sim), 'vanguard_verdict_greatsword', 2, pid);
+    expect(sim.countItem('vanguard_verdict_greatsword', pid)).toBe(0);
   });
 
   it('checks dual copper/honor prices and bag space before either debit', () => {
@@ -537,10 +537,10 @@ describe('items vendor: buy / sell / sellAllJunk / buyBack', () => {
     meta.inventory.length = 0;
     meta.honor = 10_000;
 
-    items.buyItem(ctxOf(sim), fury.id, 'final_argument_greatblade', pid, { bulk: true });
+    items.buyItem(ctxOf(sim), fury.id, 'vanguard_verdict_greatsword', pid, { bulk: true });
 
-    expect(sim.countItem('final_argument_greatblade', pid)).toBe(1);
-    expect(meta.honor).toBe(10_000 - 1_200);
+    expect(sim.countItem('vanguard_verdict_greatsword', pid)).toBe(1);
+    expect(meta.honor).toBe(10_000 - 1_800);
   });
 
   it('buyItem bulk purchase force-1s a soulbound copper-priced stackable, matching the count path (Q23)', () => {
@@ -849,11 +849,11 @@ describe('items vendor: buy / sell / sellAllJunk / buyBack', () => {
     meta.inventory.length = 0;
     meta.honor = 10_000;
 
-    items.buyItem(ctxOf(sim), fury.id, 'final_argument_greatblade', pid, { count: 5 });
+    items.buyItem(ctxOf(sim), fury.id, 'vanguard_verdict_greatsword', pid, { count: 5 });
 
-    // One purchase, one per-purchase honor debit: never 5 x 1,200.
-    expect(sim.countItem('final_argument_greatblade', pid)).toBe(1);
-    expect(meta.honor).toBe(10_000 - 1_200);
+    // One purchase, one per-purchase honor debit: never 5 x 1,800.
+    expect(sim.countItem('vanguard_verdict_greatsword', pid)).toBe(1);
+    expect(meta.honor).toBe(10_000 - 1_800);
   });
 
   it('buyItem count on a dual-price row is forced to one purchase charging both currencies once', () => {

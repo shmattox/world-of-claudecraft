@@ -47,6 +47,7 @@ import {
   type GatherNodeType,
   type StationType,
 } from '../sim/types';
+import { vaultPortalVisible } from '../sim/vault_visibility';
 import { WORLD_BOSSES, worldBossLockoutId } from '../sim/world_boss';
 import { worldQuestCompletedForBoard } from '../sim/world_quest_practice';
 import { activeWorldQuestsForCycle } from '../sim/world_quest_rotation';
@@ -441,7 +442,12 @@ export function createMinimapMarkers(): MinimapMarkers {
       const friendNames = social
         ? new Set(social.friends.filter((f) => f.online).map((f) => f.name))
         : null;
-      const guildNames = social?.guild ? new Set(social.guild.members.map((m) => m.name)) : null;
+      // Both sets are ONLINE-only, the rule the world map already applies: a
+      // friend or guildmate whose presence setting hides them from this viewer
+      // (server/presence_privacy.ts) arrives offline and gets no dot.
+      const guildNames = social?.guild
+        ? new Set(social.guild.members.filter((m) => m.online).map((m) => m.name))
+        : null;
       const partyPids = world.partyInfo ? new Set(world.partyInfo.members.map((m) => m.pid)) : null;
       // The same roster as a list, the shape the corpse indicator's rights
       // check consumes (the VIEWER's party, handed over as the tapper's only
@@ -536,6 +542,7 @@ export function createMinimapMarkers(): MinimapMarkers {
           // top of the larger painted station marker.
           npcMarkers.push({ kind: 'npc', mx, my, glyph, marker: folded });
         } else if (e.kind === 'object') {
+          if (!vaultPortalVisible(e, p.id, world.partyInfo?.members ?? null)) continue;
           // A quest collectable this viewer is not on the quest for draws nothing at
           // all, in any layer: it is not in the 3D scene either (the renderer withholds
           // its view), so any blip would point at empty ground.

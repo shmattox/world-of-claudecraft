@@ -42,5 +42,9 @@ Cover changes in `tests/world_pvp_view.test.ts` (the core and the markup) and
 `tests/pvp_tabs_view.test.ts` (the tab never pins or locks).
 
 The played-time reward clock uses h:mm and updates its text node in place; it
-does not enter the full-panel signature. Tutorial island blocks enable/keep-up
-and shows paused progress for an armed flag; lowering the flag remains available.
+does not enter the full-panel signature. Tutorial island blocks enable/keep-up;
+lowering the flag remains available. The paused line names the cause the sim
+sends in `WorldPvpInfo.rewardPause` (`rewardPausedDead`, `rewardPausedInstance`,
+or `rewardPaused` for the sanctuary), falling back to the sanctuary rule for an
+older server that sends no cause. Instance ground reads contested, so the zone
+alone cannot tell an instance pause apart.

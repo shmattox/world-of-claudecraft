@@ -217,6 +217,7 @@ import {
 import { pruneMissingEntities } from './despawn_grace';
 import { dungeonEntrySnapshotFacing } from './dungeon_entry_facing';
 import { decodeEntityFlairWire } from './entity_flair_wire';
+import { applyEntityPresenceBits } from './entity_presence_wire';
 import { reanchorDecision } from './entity_reanchor';
 import { applyGroundTelegraphSnapshot } from './ground_telegraph_wire';
 import { GuildBankLogMirror } from './guild_bank_log_mirror';
@@ -2890,8 +2891,7 @@ export class ClientWorld extends ReconWireState implements IWorld {
       e.climbProgress = typeof w.cl === 'number' && w.cl > 0 ? w.cl / 100 : undefined;
       e.leaping = !!w.lp;
       applyFerryWire(e, w.fry, snap ? -1 : entAlpha); // a passenger's deck spot
-      e.afk = !!w.ak; // /afk display bit: drives the nameplate tag + social presence dot
-      e.pvpFlag = !!w.pvp; // /pvp flag bit: nameplate + target-frame hostility colour
+      applyEntityPresenceBits(e, w); // /afk, /pvp, hill bounty: nameplate + target frame
       e.weaponStowed = !!w.ws;
       e.helmHidden = !!w.hh;
       e.aggroTargetId = w.aggro ?? null;
@@ -2984,9 +2984,6 @@ export class ClientWorld extends ReconWireState implements IWorld {
       e.savedMana = typeof s.sm === 'number' ? s.sm : 0;
       // delta fields: the server omits them while unchanged, so only the
       // snapshots that carry them rebuild the local structures
-      // corpse position while a ghost (null once resurrected). Delta-guarded: kept
-      // unchanged when the server omits it; drives the corpse marker + resurrect button.
-      if (s.corpse !== undefined) e.corpsePos = s.corpse ?? null;
       if (timerWire.mode === 'stable' && timerWire.time !== null && s.cds !== undefined) {
         if (this.stableCooldownSchedules === undefined) this.stableCooldownSchedules = new Map();
         this.stableCooldownSchedules.clear();
@@ -3448,6 +3445,9 @@ export class ClientWorld extends ReconWireState implements IWorld {
   }
   resurrectAtSpiritHealer(): Promise<boolean> {
     return this.cmdWithOutcome({ cmd: 'resurrect_healer' });
+  }
+  pvpResurrect(): void {
+    this.cmd({ cmd: 'pvp_resurrect' });
   }
   respondToResurrection(accept: boolean): void {
     this.cmd({ cmd: 'resurrect_respond', accept });

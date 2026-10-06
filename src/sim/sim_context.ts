@@ -450,9 +450,10 @@ export interface SimContextCallbacks {
   // (N1, the delve slice, quest spawns, the interaction dispatchers) reaches them
   // through the seam; implemented in instances/dungeons, Sim keeps thin delegates so
   // existing `this.enterDungeon` etc. call sites resolve unchanged.
-  // dungeonDifficulty/setDungeonDifficulty are the heroic-selection commands: the
-  // body-stays-on-Sim kind (party/meta state lives on Sim), exposed so the chat
-  // slash command and instances/dungeons reach them through the seam.
+  // dungeonDifficulty/setDungeonDifficulty are the heroic-selection commands
+  // (party/meta state lives on Sim; the setter's body is owned by
+  // instances/difficulty_selection), exposed so the chat slash command and
+  // instances/dungeons reach them through the seam.
   // awardHeroicMarks is owned by instances/dungeons: the C1 death hub calls it
   // once per death to settle a heroic final boss's direct participant rewards
   // and whole-claim realm-reset lockout together (no rng draws).
@@ -686,6 +687,8 @@ export interface SimContextCallbacks {
   pullTimerStart(rawCommand: string, pid?: number): void;
   pullTimerCancel(pid?: number): void;
   removeFromParty(pid: number, verb: string): void;
+  hillPartyDisband(partyId: number, survivorPid: number): void;
+  hillPartyJoin(pid: number): void;
   // Drop a disbanded party's whole raid-marker set (points at T1's targeting store).
   dropPartyMarkers(partyId: number): void;
   // Dungeon Finder formation seam (owned by social/party.ts): merge solo
@@ -1669,6 +1672,8 @@ export function createSimContext(host: SimContextHost): SimContext {
     pullTimerStart: host.pullTimerStart,
     pullTimerCancel: host.pullTimerCancel,
     removeFromParty: host.removeFromParty,
+    hillPartyDisband: host.hillPartyDisband,
+    hillPartyJoin: host.hillPartyJoin,
     dropPartyMarkers: host.dropPartyMarkers,
     formDungeonFinderGroup: host.formDungeonFinderGroup,
     onMobKilledForQuests: host.onMobKilledForQuests,
