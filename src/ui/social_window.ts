@@ -32,6 +32,7 @@ import {
 import { GUILD_ROSTER_PAGE_SEATS } from '../sim/guild_roster';
 import type { PlayerClass } from '../sim/types';
 import type { IWorld, WhoRosterInfo } from '../world_api';
+import { PRESENCE_MODES, type PresenceMode } from '../world_api/social_graph';
 import { formatCount } from './count_format';
 import { deedTitleText } from './deed_i18n';
 import { markDialogRoot } from './dialog_root';
@@ -404,6 +405,22 @@ export function guildMemberRowHtml(m: GuildRow, now: number): string {
     `<span class="soc-meta" title="${tip}">${meta}</span>` +
     (actions ? `<span class="soc-actions">${actions}</span>` : '') +
     `</div>`
+  );
+}
+
+/** The Friends footer's presence setting (server/presence_privacy.ts): a native
+ *  select, rebuilt only with the footer so an open dropdown survives the list's
+ *  slow-HUD refreshes. Choosing a value sends the same /presence command a
+ *  player can type. */
+export function presenceSettingHtml(mode: PresenceMode): string {
+  const options = PRESENCE_MODES.map(
+    (m) =>
+      `<option value="${m}"${m === mode ? ' selected' : ''}>${esc(t(`hudChrome.social.presence.${m}`))}</option>`,
+  ).join('');
+  return (
+    `<div class="soc-presence" title="${esc(t('hudChrome.social.presence.title'))}">` +
+    `<label for="soc-presence-select">${esc(t('hudChrome.social.presence.label'))}</label>` +
+    `<select id="soc-presence-select" class="ui-input" data-field="presence">${options}</select></div>`
   );
 }
 
@@ -1381,15 +1398,19 @@ export class SocialWindow {
         `<input class="ui-input" maxlength="${WHO_SEARCH_MAX}" aria-label="${esc(t('hudChrome.social.who.searchPlaceholder'))}" placeholder="${esc(t('hudChrome.social.who.searchPlaceholder'))}" data-field="who" value="${esc(this.who.search)}" autocomplete="off" spellcheck="false"/>` +
         `<button class="btn ui-btn" data-act="who-search">${esc(t('hudChrome.social.who.search'))}</button></div>`
       );
-    if (this.tab === 'friends')
-      return this.addRow(
-        'friend',
-        'friend-add',
-        t('hud.social.friendSearchPlaceholder'),
-        t('hud.social.add'),
-        16,
-        true,
+    if (this.tab === 'friends') {
+      const mode = this.deps.world().socialInfo?.presenceMode;
+      return (
+        this.addRow(
+          'friend',
+          'friend-add',
+          t('hud.social.friendSearchPlaceholder'),
+          t('hud.social.add'),
+          16,
+          true,
+        ) + (mode ? presenceSettingHtml(mode) : '')
       );
+    }
     if (this.tab === 'ignore')
       return this.addRow(
         'ignore',
@@ -1548,6 +1569,10 @@ export class SocialWindow {
     };
     el.querySelectorAll('.soc-add .btn').forEach((b) => {
       b.addEventListener('click', () => submit((b as HTMLElement).dataset.act));
+    });
+    el.querySelector('select[data-field="presence"]')?.addEventListener('change', (e) => {
+      const mode = PRESENCE_MODES.find((m) => m === (e.target as HTMLSelectElement).value);
+      if (mode) w.chat(`/presence ${mode}`);
     });
     // Enter-to-submit only for plain inputs (the guild name). Search inputs get
     // richer keyboard handling (arrows + Enter to pick a suggestion) below.

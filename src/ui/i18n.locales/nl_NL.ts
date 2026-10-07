@@ -2,6 +2,58 @@
 import type { TranslationKey } from '../i18n.catalog';
 
 export const nl_NL: Partial<Record<TranslationKey, string>> = {
+  'footer.guideBest': "Beste MMORPG's",
+  'footer.guideBrowser': "Browser-MMORPG's",
+  'footer.guideFree': "Gratis MMORPG's",
+  'footer.guideGamesLikeDiablo': 'Spellen zoals Diablo',
+  'footer.guideGamesLikeWow': 'Spellen zoals WoW',
+  'footer.guideNew': "Nieuwe MMORPG's",
+  'footer.guidesLabel': 'Spelersgidsen',
+  'hudChrome.weeklyRewards.completedTask.pvpWinMany': '{count} PvP-overwinningen',
+  'hudChrome.weeklyRewards.completedTask.pvpWinOne': '{count} PvP-overwinning',
+  'hudChrome.weeklyRewards.requiredTask.pvpWinMany': 'Behaal {count} PvP-overwinningen',
+  'hudChrome.weeklyRewards.requiredTask.pvpWinOne': 'Behaal {count} PvP-overwinning',
+  'guide.footer.guideBest': "Beste MMORPG's",
+  'guide.footer.guideBrowser': "Browser-MMORPG's",
+  'guide.footer.guideFree': "Gratis MMORPG's",
+  'guide.footer.guideGamesLikeDiablo': 'Spellen zoals Diablo',
+  'guide.footer.guideGamesLikeWow': 'Spellen zoals WoW',
+  'guide.footer.guideNew': "Nieuwe MMORPG's",
+  'guide.footer.guidesLabel': 'Spelersgidsen',
+  'guide.worldPvpPage.hillBodyRanked':
+    'Elke twee uur verschijnt er een heuvel in de Drakenlanden, de Vorstsluier of de Amberval. Het rijk krijgt een kwartier van tevoren een waarschuwing en de cirkel wordt op open terrein gemarkeerd. De heuvel blijft dertig minuten actief. Bij het betreden van de actieve cirkel wordt je wereld-PvP-vlag ingeschakeld volgens de normale niveauregels, ook voor raidleden. De groep met de meeste spelers binnen de cirkel die aan de voorwaarden voldoen, verovert de heuvel na een minuut met een ononderbroken meerderheid; een solospeler telt als een groep van één, maar raidleden en spelers onder het vereiste PvP-niveau kunnen de heuvel niet veroveren en er geen Eer verdienen. Elke bezetter binnen de cirkel verdient in een steeds hoger tempo Eer. Uitbetalingen volgen elkaar sneller op en lopen sneller op, zodat de totale Eer van het vroegere evenement van vijfenveertig minuten behouden blijft. Bij een wisseling van bezetters begint de opbouw opnieuw. Elke vijf minuten terwijl de heuvel staat, hoort het rijk de locatie ervan en de groepen gerangschikt naar bezettingsduur. Wanneer de heuvel valt, als de groep die het het langst hield het minstens tien minuten totaal hield, verdient elke speler die minstens een minuut daarbinnen voor die groep stond en er nog steeds onderdeel van is een overwinning voor de PvP-rij van de Weeklijkse Kluis. Je vlag blijft aan wanneer je de cirkel verlaat; /pvp off gebruikt de normale vertraging van vijf minuten en kan niet aflopen binnen een actieve heuvel of tijdens een gevecht. De heuvelbalk toont de bezetting, aantallen en veroveringsvoortgang; /hill meldt de locatie.',
+  'hudChrome.death.pvpResurrect': 'PvP-Opstanding',
+  'hudChrome.death.pvpResurrectTitle':
+    'Herverrijzen op de dichtstbijzijnde begraafplaats met volledige gezondheid, zonder een nieuwe Tol van de Hoeder.',
+  'hudChrome.hill.callout.dominating': '{name} domineert!',
+  'hudChrome.hill.callout.godlike': '{name} is goddelijk!',
+  'hudChrome.hill.callout.killingSpree': '{name} voert een moordpartij uit!',
+  'hudChrome.hill.callout.legendary': '{name} is legendarisch!',
+  'hudChrome.hill.callout.rampage': '{name} gaat volledig uit zijn dak!',
+  'hudChrome.hill.callout.shutDown': '{killer} heeft de reeks van {victim} beëindigd!',
+  'hudChrome.hill.callout.unstoppable': '{name} is onstopbaar!',
+  'hudChrome.nameplate.bountyTag': 'Premie {honor}',
+  'hudChrome.social.presence.everyone': 'Iedereen',
+  'hudChrome.social.presence.friends': 'Alleen vrienden',
+  'hudChrome.social.presence.label': 'Laat me online zien voor',
+  'hudChrome.social.presence.none': 'Niemand',
+  'hudChrome.social.presence.title':
+    'Wie ziet je online in vriendenlijsten en het gilderooster, met je zone en kaartpositie. Je groep ziet je altijd.',
+  'hudChrome.warfareShop.buyConfirmBodyGold':
+    '{item} voor {price} kopen? Deze aankoop kan niet worden terugbetaald.',
+  'itemUi.tooltip.warfareMainHandOnly': 'Oorlogvoering telt alleen in de hoofdhand.',
+  'entities.items.vanguard_band_of_focus.name': 'Voortocht-ring van Concentratie',
+  'entities.items.vanguard_band_of_mending.name': 'Voortocht-ring van Verzorging',
+  'entities.items.vanguard_band_of_might.name': 'Voortocht-ring van Kracht',
+  'entities.items.vanguard_band_of_precision.name': 'Voortocht-ring van Precisie',
+  'entities.items.vanguard_pendant_of_focus.name': 'Voortocht-hanger van Concentratie',
+  'entities.items.vanguard_pendant_of_mending.name': 'Voortocht-hanger van Verzorging',
+  'entities.items.vanguard_pendant_of_might.name': 'Voortocht-hanger van Kracht',
+  'entities.items.vanguard_pendant_of_precision.name': 'Voortocht-hanger van Precisie',
+  'guide.arenaPage.vanguardStatsBody':
+    'In tegenstelling tot de originele rang, draagt Voortocht-uitrusting ook gevechtswaarderingen: elk stuk Voortocht-harnas, wapen en halsketting heeft een Kritieke-waardering of Snelheidswaardering, en de delen voor tovenaar en heelmeester voegen Spreukkracht of Genezingskracht toe. De Voortocht-ringen en halskettingen worden naast de wapens verkocht, en elke klasse kan ze dragen. Twee van de Voortocht-nabijavechtsringen geven exact de Raakwaarde die ervoor zorgt dat je aanvallen zeker raken tegen een speler van je eigen niveau, en twee tovenaarringen doen hetzelfde voor je spreuken niet worden tegengewerkt. Auto-aanvallen met twee wapens behouden hun extra miskans. De heelmeester-ring draagt in plaats daarvan een Snelheidswaardering.',
+  'guide.commandsPage.presence':
+    'Wie ziet je online in vriendenlijsten, je gilderooster en /who: /presence everyone (het standaard), /presence friends (alleen spelers op je vriendenlijst), of /presence none. Verborgen, ze zien geen online stip, zone of kaartpositie voor je, hoewel gefluister en uitnodigingen je nog steeds bereiken; je groep ziet je altijd. Een eenvoudige /presence vertelt je wat er is ingesteld.',
   'abilityUi.actionBar.cooldownMinutes': '{minutes}m',
   'abilityUi.cast.hoard_cast_bat_dive': 'Duiken',
   'abilityUi.cast.hoard_cast_bat_dive_aim': 'Duik omlaag',
@@ -2323,6 +2375,8 @@ export const nl_NL: Partial<Record<TranslationKey, string>> = {
   'guide.arenaPage.vanguardHeading': 'Voortocht-uitrusting: Oorlogsseizoen 2',
   'guide.combat.unstuckBodyWindow':
     'Als de wereld je ergens opsluit waar je niet uit kunt, typ /bevrijd. Je moet uit gevecht zijn en stilstaan, niet vastgehouden door een verdoof of wortel, en niet in een tweegevecht of een arenamatch: een korte aftelling loopt, en beweging of schadeverursaking annuleert het. Wanneer het klaar is ben je bij de dichtstbijzijnde begraafplaats. Het doodt je nooit en laat geen lijk achter, en als je al neerslag maak je daar weer op. Het eerste gebruik in een uur kost je niets. Gebruik het opnieuw binnen een uur van het vorige en de prijs is Bevrijd-Ziekte, een tijdelijke verzwakking van alles wat je bent die is voorbijgegaan tegen de tijd dat je de opdracht weer zou kunnen gebruiken, en zoals de Tol van de Bewaarder spaart het gloednieuwe personages helemaal.',
+  'guide.commandsPage.flair':
+    'Toont of verbergt je Discord-rol voor andere spelers, dus je gekleurde naam, je rollabel en je geverifieerde chatlabel: /flair on toont hem, /flair off verbergt hem, en alleen /flair vertelt je wat er is ingesteld. Vereist een gekoppeld Discord-account.',
   'guide.commandsPage.pvpZones':
     'Wereld-PvP-vlag: /pvp wisselt de stand, /pvp on schakelt hem in en /pvp off schakelt hem uit. Spelers met een vlag kunnen elkaar op betwist terrein bevechten, heiligdommen staan geen wereldgevechten toe en bij het betreden van een actieve cirkel van Koning van de Heuvel wordt je vlag ingeschakeld; uitschakelen duurt 5 minuten.',
   'guide.commandsPage.unstuckWindow':
@@ -6121,9 +6175,9 @@ export const nl_NL: Partial<Record<TranslationKey, string>> = {
     'Verzamelt de aangevinkte onderdelen. Elk lijk kan eenmaal worden geoogst, wie het eerst komt. Neemt de buit niet mee.',
   'hudChrome.discord.link.joinServer': 'Doe gewoon mee met de Discord-server',
   'hudChrome.discord.roleTag.contentcreator': 'Contentmaker',
-  'hudChrome.discord.roleTag.juniormods': 'Junior Mod',
+  'hudChrome.discord.roleTag.juniormods': 'Waarnemer',
   'hudChrome.discord.roleTag.legend': 'LEGENDE',
-  'hudChrome.discord.roleTag.seniormods': 'Senior Mod',
+  'hudChrome.discord.roleTag.seniormods': 'Schildwacht',
   'hudChrome.discord.roleTag.shill': 'PROMOTOR',
   'hudChrome.discord.roleTagChatTitle': 'Geverifieerde serverrol: {role}',
   'hudChrome.finder.accept': 'Accepteren',
@@ -7316,7 +7370,6 @@ export const nl_NL: Partial<Record<TranslationKey, string>> = {
   'hudChrome.death.resurrectAtHealer': 'De Bleke Hoeder (Tol van de Hoeder)',
   'hudChrome.death.spiritHealerAlive':
     'De Bleke Hoeder waakt over de doden. Jij bent nog onder de levenden.',
-  'hudChrome.discord.roleTag.admin': 'Admin',
   'hudChrome.frameReset.label': 'Frameposities herstellen',
   'hudChrome.mailbox.arrivedBanner': 'De raaf is geland: post van {name}.',
   'hudChrome.mailbox.arrivedLog': 'Je hebt nieuwe post van {name}.',
@@ -18480,12 +18533,12 @@ export const nl_NL: Partial<Record<TranslationKey, string>> = {
   'hudChrome.raidBossGuide.nythraxis.dreadCurseSummary':
     'Elke {every} sec slaat Nythraxis zijn huidige tank voor {hitNormal} van maximale gezondheid als Schaduwschade en voegt een stapel Schrikvloek toe. Gedurende {duration} sec verhoogt elke stapel de schade die die tank van Nythraxis oploopt met {perStackNormal}, tot {max} stapels.',
   'hudChrome.raidBossGuide.nythraxis.graveEruptionHeroicSummary':
-    'Elke {everyHeroic} sec markeren skelethanden {countHeroic} cirkels van {radius} yd onder raiders. Na {warning} sec barst elke cirkel uit voor {burstHeroic} van maximale gezondheid als Schaduwschade en brandt daarna {flameHeroic} sec als Grafvlam, die elke seconde {tickHeroic} van maximale gezondheid aanricht aan iedereen die erin staat.',
+    'Elke {everyHeroic} sec markeren skelethanden {countHeroic} cirkels van {radius} yd onder raiders. Na {warning} sec barst elke cirkel uit voor {burstHeroic} van maximale gezondheid als Schaduwschade en brandt daarna {flameHeroic} sec als Grafvlam, die elke seconde {tickHeroic} van maximale gezondheid aanricht aan iedereen die erin staat. Dit gebeurt nooit zolang er Zielenscheur-markeringen actief zijn, of binnen {gap} sec nadat ze verdwenen zijn.',
   'hudChrome.raidBossGuide.nythraxis.graveEruptionName': 'Grafuitbarsting',
   'hudChrome.raidBossGuide.nythraxis.graveEruptionResponse':
     'Stap uit elke waarschuwingscirkel voordat die uitbarst en blijf van de brandende grond. Tanks trekken Nythraxis uit de vlammen zodat melee ruimte houdt om te werken.',
   'hudChrome.raidBossGuide.nythraxis.graveEruptionSummary':
-    'Elke {everyNormal} sec markeren skelethanden {countNormal} cirkels van {radius} yd onder raiders. Na {warning} sec barst elke cirkel uit voor {burstNormal} van maximale gezondheid als Schaduwschade en brandt daarna {flameNormal} sec als Grafvlam, die elke seconde {tickNormal} van maximale gezondheid aanricht aan iedereen die erin staat.',
+    'Elke {everyNormal} sec markeren skelethanden {countNormal} cirkels van {radius} yd onder raiders. Na {warning} sec barst elke cirkel uit voor {burstNormal} van maximale gezondheid als Schaduwschade en brandt daarna {flameNormal} sec als Grafvlam, die elke seconde {tickNormal} van maximale gezondheid aanricht aan iedereen die erin staat. Dit gebeurt nooit zolang er Zielenscheur-markeringen actief zijn, of binnen {gap} sec nadat ze verdwenen zijn.',
   'hudChrome.raidBossGuide.nythraxis.gravebreakerName': 'Grafbreker',
   'hudChrome.raidBossGuide.nythraxis.gravebreakerResponse':
     'Tanks houden Nythraxis van de raid af gericht. Alle anderen blijven achter of naast hem en kruisen de kegel nooit.',
@@ -20036,9 +20089,13 @@ export const nl_NL: Partial<Record<TranslationKey, string>> = {
     'Houd wereld-PvP ingeschakeld om {percent} meer ervaring en factiereputatie te verdienen. De bonussen stoppen zodra je vraagt om het uit te schakelen.',
   'hudChrome.worldPvp.rewardPaused':
     'Huidige PvP-reeks: {time} gespeeld (gepauzeerd aan de Beproevingskust)',
+  'hudChrome.worldPvp.rewardPausedDead':
+    'Huidige PvP-reeks: {time} gespeeld (gepauzeerd zolang je dood bent)',
+  'hudChrome.worldPvp.rewardPausedInstance':
+    'Huidige PvP-reeks: {time} gespeeld (gepauzeerd in instanties)',
   'hudChrome.worldPvp.rewardProgress': 'Huidige PvP-reeks: {time} gespeeld',
   'hudChrome.worldPvp.rewardTitles':
-    'Verdien permanente titels na {thresholds} speeltijd met wereld-PvP ingeschakeld. Uitloggen en de Beproevingskust bezoeken pauzeren de teller. Uitschakelen zet hem terug op nul.',
+    'Verdien permanente titels na {thresholds} speeltijd in de open wereld met wereld-PvP ingeschakeld. Uitloggen, dood zijn, instanties en de Beproevingskust pauzeren de teller. Uitschakelen zet hem terug op nul.',
   'guide.worldPvpPage.introZones':
     'PvP in de open wereld is vrijwillig en hangt af van het gebied. Op betwist terrein maakt je ingeschakelde PvP-vlag alle spelers met een vlag buiten je groep of raid tot vijanden; na uitschakelen ben je na een korte vertraging weer toeschouwer. De Beproevingskust is het enige heiligdom zonder wereldgevechten en de drie noordelijkste gebieden gebruiken dezelfde vrijwillige vlagregels als de rest van de wereld. Bij het betreden van een actieve cirkel van Koning van de Heuvel wordt je vlag automatisch ingeschakeld. Groeps- en raidleden zijn nergens je vijanden; gildeleden buiten je groep zijn net als andere spelers aan te vallen.',
   'guide.worldPvpPage.zonesBody':

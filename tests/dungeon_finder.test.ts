@@ -205,13 +205,13 @@ describe('finder catalogue metadata', () => {
       'grave_eruption',
       'wardstones',
       'kings_wrath',
-      'bone_storm',
       'crown_endures',
     ]) {
       expect(normalMechanics, m).toContain(m);
       expect(heroicMechanics, m).toContain(m);
     }
-    for (const add of ['raise_fallen', 'deathless_court']) {
+    // Bone Storm is retired from play, so neither tier advertises it.
+    for (const add of ['raise_fallen', 'deathless_court', 'bone_storm']) {
       expect(normalMechanics, add).not.toContain(add);
       expect(heroicMechanics, add).not.toContain(add);
     }

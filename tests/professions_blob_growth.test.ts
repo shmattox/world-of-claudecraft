@@ -52,6 +52,7 @@ import {
   GATHERING_PROFESSIONS,
   HARVEST_COMPONENT_ITEMS,
 } from '../src/sim/content/professions';
+import { SEASON2_JEWELRY_IDS } from '../src/sim/content/pvp_honor_season2';
 import { recipeById } from '../src/sim/content/recipes';
 import {
   RELIQUARY_ITEM_TO_PAGES,
@@ -2431,6 +2432,10 @@ describe('the whole-character gear-heavy maximal blob (Phase 18 U-MEASURE)', () 
         // The feral staff adds one discovery (23 bytes) and one existing-page
         // Reliquary entry (53 bytes), isolated below.
         76 +
+        // The eight Season 2 rings and necks (2026-10-02): eight discoveries
+        // (+224, each id plus 3 bytes) and eight existing-page Reliquary entries
+        // (+464, each id plus 33 bytes), isolated below. MEASURED.
+        688 +
         // Plus 154 at the fourth release/v0.44.0 base merge (the ferry deed and
         // its four visit marks, attributed above).
         154 +
@@ -2494,8 +2499,9 @@ describe('the whole-character gear-heavy maximal blob (Phase 18 U-MEASURE)', () 
       // deedStats +4,648 and reliquary +8,848 at the second release/v0.44.0 base
       // merge: Warfare Season 2's 139 item ids (the 13,496 attributed above).
       // The feral staff adds 23 discovery bytes and 53 Reliquary bytes.
-      deedStats: 9450,
-      reliquary: 11554,
+      // The eight Season 2 rings and necks add 224 and 464 (2026-10-02).
+      deedStats: 9674,
+      reliquary: 12018,
     });
     // Removing field_kit AND the Bramblehide release content reproduces the
     // pre-field-kit, pre-Bramblehide baseline WITH the hammer content still
@@ -2532,7 +2538,9 @@ describe('the whole-character gear-heavy maximal blob (Phase 18 U-MEASURE)', () 
       // ferry deed and its visit marks, which this counterfactual keeps).
       // 226,238 -> 231,729 at the 2026-09-28 Buried Hoards merge (+5,491: the
       // +247 knownRecipes, +533 and +4,711 attributed above, all kept here).
-    ).toBe(231943);
+      // 231,943 -> 232,631 for the eight Season 2 rings and necks (+688,
+      // attributed above, kept here).
+    ).toBe(232631);
     // Removing ONLY field_kit (the Bramblehide release content and the two
     // dev-mount reins items still present, current staged tree) reproduces
     // 209,524 plus the 1,548-byte Bramblehide delta plus the 71-byte
@@ -2560,7 +2568,8 @@ describe('the whole-character gear-heavy maximal blob (Phase 18 U-MEASURE)', () 
       // 214,207 -> 227,703 at the second release/v0.44.0 base merge (+13,496).
       // 227,703 -> 227,857 at the fourth release/v0.44.0 base merge (+154).
       // 227,857 -> 233,348 at the 2026-09-28 Buried Hoards merge (+5,491, kept).
-    ).toBe(233562);
+      // 233,562 -> 234,250 for the eight Season 2 rings and necks (+688, kept).
+    ).toBe(234250);
     const priorContent = withoutCrucibleContent(s2);
     const contentDelta = Object.fromEntries(
       (['knownRecipes', 'deedStats', 'reliquary'] as const).map((key) => [
@@ -2665,7 +2674,7 @@ describe('the whole-character gear-heavy maximal blob (Phase 18 U-MEASURE)', () 
       delete withoutPvpTitles.deeds![id];
     }
     expect(bytes - Buffer.byteLength(JSON.stringify(withoutPvpTitles), 'utf8')).toBe(138);
-    expect(Buffer.byteLength(JSON.stringify(withoutPvpTitles), 'utf8')).toBe(233436);
+    expect(Buffer.byteLength(JSON.stringify(withoutPvpTitles), 'utf8')).toBe(234124);
     const withoutFeralStaff = JSON.parse(JSON.stringify(s2)) as CharacterState;
     expect(withoutFeralStaff.deedStats?.itemsDiscovered).toContain('vanguard_feral_staff');
     withoutFeralStaff.deedStats!.itemsDiscovered =
@@ -2678,10 +2687,29 @@ describe('the whole-character gear-heavy maximal blob (Phase 18 U-MEASURE)', () 
     expect(fieldBytes(s2, 'deedStats') - fieldBytes(withoutFeralStaff, 'deedStats')).toBe(23);
     expect(fieldBytes(s2, 'reliquary') - fieldBytes(withoutFeralStaff, 'reliquary')).toBe(53);
     expect(bytes - Buffer.byteLength(JSON.stringify(withoutFeralStaff), 'utf8')).toBe(76);
-    // Re-measured 233,574; unchanged 381-byte tracking band and save warning limit.
-    expect(bytes).toBe(233574);
-    expect(bytes, reMint).toBeGreaterThan(233194);
-    expect(bytes, reMint).toBeLessThan(233575);
+    // The eight Season 2 rings and necks, isolated like the feral staff.
+    const withoutSeason2Jewelry = JSON.parse(JSON.stringify(s2)) as CharacterState;
+    for (const id of SEASON2_JEWELRY_IDS) {
+      expect(withoutSeason2Jewelry.deedStats?.itemsDiscovered).toContain(id);
+      expect(withoutSeason2Jewelry.reliquary?.firstFind?.[id]).toEqual({
+        clears: 999,
+        count: 999999,
+      });
+      delete withoutSeason2Jewelry.reliquary!.firstFind![id];
+    }
+    withoutSeason2Jewelry.deedStats!.itemsDiscovered =
+      withoutSeason2Jewelry.deedStats!.itemsDiscovered!.filter(
+        (id) => !SEASON2_JEWELRY_IDS.includes(id),
+      );
+    expect(fieldBytes(s2, 'deedStats') - fieldBytes(withoutSeason2Jewelry, 'deedStats')).toBe(224);
+    expect(fieldBytes(s2, 'reliquary') - fieldBytes(withoutSeason2Jewelry, 'reliquary')).toBe(464);
+    expect(bytes - Buffer.byteLength(JSON.stringify(withoutSeason2Jewelry), 'utf8')).toBe(688);
+    // Re-measured 233,574, then 234,262 with the eight Season 2 rings and necks
+    // (+688, 2026-10-02); the band re-based to measured minus 380 and plus one,
+    // the save warning limit unchanged.
+    expect(bytes).toBe(234262);
+    expect(bytes, reMint).toBeGreaterThan(233882);
+    expect(bytes, reMint).toBeLessThan(234263);
 
     // The Crucible database review approved 229,376 bytes (224 KiB), the first
     // 32-KiB step above the corrected 209,261-byte pre-field-kit fixture it was

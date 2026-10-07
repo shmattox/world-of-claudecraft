@@ -13,6 +13,58 @@
 import type { TranslationKey } from '../i18n.catalog';
 
 export const pt_BR: Partial<Record<TranslationKey, string>> = {
+  'footer.guideBest': 'Melhores MMORPGs',
+  'footer.guideBrowser': 'MMORPGs de Navegador',
+  'footer.guideFree': 'MMORPGs Gratuitos',
+  'footer.guideGamesLikeDiablo': 'Jogos como Diablo',
+  'footer.guideGamesLikeWow': 'Jogos como WoW',
+  'footer.guideNew': 'Novos MMORPGs',
+  'footer.guidesLabel': 'Guias de Jogadores',
+  'hudChrome.weeklyRewards.completedTask.pvpWinMany': '{count} Vitórias de PvP',
+  'hudChrome.weeklyRewards.completedTask.pvpWinOne': '{count} Vitória de PvP',
+  'hudChrome.weeklyRewards.requiredTask.pvpWinMany': 'Ganhe {count} Vitórias de PvP',
+  'hudChrome.weeklyRewards.requiredTask.pvpWinOne': 'Ganhe {count} Vitória de PvP',
+  'guide.footer.guideBest': 'Melhores MMORPGs',
+  'guide.footer.guideBrowser': 'MMORPGs de Navegador',
+  'guide.footer.guideFree': 'MMORPGs Gratuitos',
+  'guide.footer.guideGamesLikeDiablo': 'Jogos como Diablo',
+  'guide.footer.guideGamesLikeWow': 'Jogos como WoW',
+  'guide.footer.guideNew': 'Novos MMORPGs',
+  'guide.footer.guidesLabel': 'Guias de Jogadores',
+  'guide.worldPvpPage.hillBodyRanked':
+    'A cada duas horas, uma colina surge em Drakelands, nos Confins de Frostveil ou em Amberfall. O reino recebe um aviso com quinze minutos de antecedência, e o círculo é marcado em terreno aberto. A colina permanece ativa por trinta minutos. Entrar no círculo ativo ativa sua bandeira de PvP Mundial pelas regras normais de nível, inclusive para membros de raide. O grupo com mais jogadores elegíveis dentro do círculo conquista a colina após um minuto de maioria ininterrupta; um jogador sozinho conta como um grupo de um, mas membros de raide e jogadores abaixo do nível exigido para PvP não podem capturar a colina nem ganhar Honra por ela. Cada integrante do grupo que a controla e está dentro do círculo ganha Honra em ritmo crescente. Os pagamentos são mais frequentes e aumentam mais rápido, preservando a Honra total do antigo evento de quarenta e cinco minutos. Uma mudança de controle reinicia o aumento das recompensas. A cada cinco minutos enquanto a colina está ativa, o reino é informado de sua localização e os grupos classificados pelo tempo que a mantêm. Quando a colina cai, se o grupo que a manteve por mais tempo a manteve por pelo menos dez minutos no total, cada jogador que ficou dentro por pelo menos um minuto para esse grupo e ainda é membro dele ganha uma vitória para a linha de PvP do Cofre Semanal. Sair do círculo mantém sua bandeira ligada; /pvp off usa o atraso normal de cinco minutos e não pode terminar dentro de uma colina ativa ou durante o combate. A barra da colina mostra o controle, os números de jogadores e o progresso de captura; /hill informa sua localização.',
+  'hudChrome.death.pvpResurrect': 'Ressuscitar PvP',
+  'hudChrome.death.pvpResurrectTitle':
+    'Reviver no cemitério mais próximo com saúde plena, sem um novo Tributo do Guardião.',
+  'hudChrome.hill.callout.dominating': '{name} está Dominando!',
+  'hudChrome.hill.callout.godlike': '{name} é Divino!',
+  'hudChrome.hill.callout.killingSpree': '{name} está em Matança Crescente!',
+  'hudChrome.hill.callout.legendary': '{name} é Lendário!',
+  'hudChrome.hill.callout.rampage': '{name} está Descontrolado!',
+  'hudChrome.hill.callout.shutDown': '{killer} derrubou {victim}!',
+  'hudChrome.hill.callout.unstoppable': '{name} é Imparável!',
+  'hudChrome.nameplate.bountyTag': 'Recompensa {honor}',
+  'hudChrome.social.presence.everyone': 'Todos',
+  'hudChrome.social.presence.friends': 'Só amigos',
+  'hudChrome.social.presence.label': 'Mostrar-me online para',
+  'hudChrome.social.presence.none': 'Ninguém',
+  'hudChrome.social.presence.title':
+    'Quem vê você online em listas de amigos e na lista da guilda, com sua zona e posição no mapa. Seu grupo sempre vê você.',
+  'hudChrome.warfareShop.buyConfirmBodyGold':
+    'Comprar {item} por {price}? Esta compra não pode ser reembolsada.',
+  'itemUi.tooltip.warfareMainHandOnly': 'Guerra se conta apenas na mão principal.',
+  'entities.items.vanguard_band_of_focus.name': 'Anel da Vanguarda de Foco',
+  'entities.items.vanguard_band_of_mending.name': 'Anel da Vanguarda de Cura',
+  'entities.items.vanguard_band_of_might.name': 'Anel da Vanguarda de Poder',
+  'entities.items.vanguard_band_of_precision.name': 'Anel da Vanguarda de Precisão',
+  'entities.items.vanguard_pendant_of_focus.name': 'Pingente da Vanguarda de Foco',
+  'entities.items.vanguard_pendant_of_mending.name': 'Pingente da Vanguarda de Cura',
+  'entities.items.vanguard_pendant_of_might.name': 'Pingente da Vanguarda de Poder',
+  'entities.items.vanguard_pendant_of_precision.name': 'Pingente da Vanguarda de Precisão',
+  'guide.arenaPage.vanguardStatsBody':
+    'Diferentemente do nível original, o equipamento da Vanguarda também traz classificações de combate: cada peça de armadura, arma e colar da Vanguarda tem Índice de Crítico ou Índice de Aceleração, e as peças de lançador de feitiço e curador adicionam Poder Mágico ou Poder de Cura. Os anéis e colares da Vanguarda são vendidos junto com as armas, e todas as classes podem usá-los. Dois dos anéis de combate corpo a corpo da Vanguarda dão exatamente a Classificação de Acerto que remove a chance base de seus ataques errarem um jogador de seu próprio nível, e dois anéis de lançador de feitiço fazem o mesmo para seus feitiços serem resistidos. Ataques automáticos enquanto se empunha duas armas mantêm sua chance de erro extra. O anel de curador carrega Índice de Aceleração em seu lugar.',
+  'guide.commandsPage.presence':
+    'Quem vê você online em listas de amigos, sua lista de guilda e /who: /presence everyone (o padrão), /presence friends (apenas jogadores em sua lista de amigos), ou /presence none. Oculto, eles não veem um ponto online, zona ou posição do mapa para você, mas sussurros e convites ainda chegam a você; seu grupo sempre vê você. Um simples /presence diz a você qual está configurado.',
   'abilityUi.actionBar.cooldownMinutes': '{minutes}m',
   'abilityUi.cast.hoard_cast_bat_dive': 'Mergulhando',
   'abilityUi.cast.hoard_cast_bat_dive_aim': 'Mergulho em Profundidade',
@@ -2277,6 +2329,8 @@ export const pt_BR: Partial<Record<TranslationKey, string>> = {
   'guide.arenaPage.vanguardHeading': 'Equipamento de Guerra da Vanguarda: Temporada 2',
   'guide.combat.unstuckBodyWindow':
     'Se o mundo o prender em algum lugar de onde você não consegue sair, digite /unstuck. Você precisa estar fora de combate e parado, sem ser atingido por um atordoamento ou uma imobilização, e não estar em um duelo ou numa partida de arena: uma contagem regressiva curta é executada, e se mover ou sofrer dano a cancela. Quando ela termina, você é colocado no cemitério mais próximo. Isso nunca o mata e não deixa corpo algum, e se você já estava caído, ele o reergue ali mesmo. O primeiro uso em uma hora não custa nada. Use-o de novo dentro de uma hora do último uso e o preço é o Mal do Desbloqueio, um enfraquecimento temporário de tudo o que você é que já terá passado quando você puder usar o comando de novo, e assim como o Tributo do Guardião, ele poupa por completo os personagens recém-criados.',
+  'guide.commandsPage.flair':
+    'Mostra ou oculta seu cargo do Discord para outros jogadores, ou seja, seu nome colorido, sua etiqueta de cargo e sua etiqueta verificada no chat: /flair on mostra, /flair off oculta e /flair sozinho informa qual está ativo. Requer uma conta do Discord vinculada.',
   'guide.commandsPage.pvpZones':
     'Bandeira de PvP Mundial: /pvp alterna o estado, /pvp on ativa e /pvp off desativa. Jogadores com bandeira podem lutar entre si em áreas disputadas, santuários não permitem nenhum combate no mundo, e entrar em um círculo ativo do Rei da Colina ativa sua bandeira; a desativação leva 5 minutos.',
   'guide.commandsPage.unstuckWindow':
@@ -6119,9 +6173,9 @@ export const pt_BR: Partial<Record<TranslationKey, string>> = {
   'hudChrome.cameraPrompt.title': 'Escolha Sua Câmera',
   'hudChrome.discord.link.joinServer': 'Entre no servidor do Discord',
   'hudChrome.discord.roleTag.contentcreator': 'Criador de Conteúdo',
-  'hudChrome.discord.roleTag.juniormods': 'Moderador Júnior',
+  'hudChrome.discord.roleTag.juniormods': 'Observador',
   'hudChrome.discord.roleTag.legend': 'LENDA',
-  'hudChrome.discord.roleTag.seniormods': 'Moderador Sênior',
+  'hudChrome.discord.roleTag.seniormods': 'Sentinela',
   'hudChrome.discord.roleTag.shill': 'PROPAGANDISTA',
   'hudChrome.finder.accept': 'Aceitar',
   'hudChrome.finder.acceptApplicantAria': 'Aceitar {name}',
@@ -7204,7 +7258,6 @@ export const pt_BR: Partial<Record<TranslationKey, string>> = {
   'hudChrome.death.resurrectAtHealer': 'O Guardião Pálido (Tributo do Guardião)',
   'hudChrome.death.spiritHealerAlive':
     'O Guardião Pálido vela pelos mortos. Você ainda está entre os vivos.',
-  'hudChrome.discord.roleTag.admin': 'Admin',
   'hudChrome.frameReset.label': 'Redefinir Posições dos Quadros',
   'hudChrome.mailbox.arrivedBanner': 'O corvo pousou: correspondência de {name}.',
   'hudChrome.mailbox.arrivedLog': 'Você tem nova correspondência de {name}.',
@@ -19119,12 +19172,12 @@ export const pt_BR: Partial<Record<TranslationKey, string>> = {
   'hudChrome.raidBossGuide.nythraxis.dreadCurseSummary':
     'A cada {every} s, Nythraxis golpeia o tank atual causando {hitNormal} da vida máxima como dano de Sombra e adiciona um acúmulo de Maldição temível. Por {duration} s, cada acúmulo aumenta em {perStackNormal} o dano que esse tank sofre de Nythraxis, até {max} acúmulos.',
   'hudChrome.raidBossGuide.nythraxis.graveEruptionHeroicSummary':
-    'A cada {everyHeroic} s, mãos esqueléticas marcam {countHeroic} círculos de {radius} yd sob raiders. Após {warning} s, cada círculo explode causando {burstHeroic} da vida máxima como dano de Sombra, depois queima como Chama sepulcral por {flameHeroic} s, causando {tickHeroic} da vida máxima por segundo a quem ficar nele.',
+    'A cada {everyHeroic} s, mãos esqueléticas marcam {countHeroic} círculos de {radius} yd sob raiders. Após {warning} s, cada círculo explode causando {burstHeroic} da vida máxima como dano de Sombra, depois queima como Chama sepulcral por {flameHeroic} s, causando {tickHeroic} da vida máxima por segundo a quem ficar nele. Isso nunca acontece enquanto houver marcas de Rasgo de alma ativas nem nos {gap} s após elas sumirem.',
   'hudChrome.raidBossGuide.nythraxis.graveEruptionName': 'Erupção sepulcral',
   'hudChrome.raidBossGuide.nythraxis.graveEruptionResponse':
     'Saia de cada círculo de aviso antes que ele exploda e fique fora do chão em chamas. Os tanks puxam Nythraxis para longe das chamas para que os corpo a corpo tenham espaço.',
   'hudChrome.raidBossGuide.nythraxis.graveEruptionSummary':
-    'A cada {everyNormal} s, mãos esqueléticas marcam {countNormal} círculos de {radius} yd sob raiders. Após {warning} s, cada círculo explode causando {burstNormal} da vida máxima como dano de Sombra, depois queima como Chama sepulcral por {flameNormal} s, causando {tickNormal} da vida máxima por segundo a quem ficar nele.',
+    'A cada {everyNormal} s, mãos esqueléticas marcam {countNormal} círculos de {radius} yd sob raiders. Após {warning} s, cada círculo explode causando {burstNormal} da vida máxima como dano de Sombra, depois queima como Chama sepulcral por {flameNormal} s, causando {tickNormal} da vida máxima por segundo a quem ficar nele. Isso nunca acontece enquanto houver marcas de Rasgo de alma ativas nem nos {gap} s após elas sumirem.',
   'hudChrome.raidBossGuide.nythraxis.gravebreakerName': 'Quebra-túmulos',
   'hudChrome.raidBossGuide.nythraxis.gravebreakerResponse':
     'Os tanks mantêm Nythraxis virado para longe da raide. Todos os outros ficam atrás ou ao lado dele e nunca cruzam o cone.',
@@ -20042,9 +20095,13 @@ export const pt_BR: Partial<Record<TranslationKey, string>> = {
     'Mantenha o PvP mundial ativo para ganhar {percent} a mais de experiência e reputação de facção. Os bônus param quando você solicita a desativação.',
   'hudChrome.worldPvp.rewardPaused':
     'Sequência PvP atual: {time} de jogo (pausada na Costa da Provação)',
+  'hudChrome.worldPvp.rewardPausedDead':
+    'Sequência PvP atual: {time} de jogo (pausada enquanto você estiver morto)',
+  'hudChrome.worldPvp.rewardPausedInstance':
+    'Sequência PvP atual: {time} de jogo (pausada dentro de instâncias)',
   'hudChrome.worldPvp.rewardProgress': 'Sequência PvP atual: {time} de jogo',
   'hudChrome.worldPvp.rewardTitles':
-    'Ganhe títulos permanentes após {thresholds} de tempo jogado com o PvP mundial ativo. Sair do jogo e visitar a Costa da Provação pausa o contador. Desativar o PvP o reinicia.',
+    'Ganhe títulos permanentes após {thresholds} de tempo jogado no mundo aberto com o PvP mundial ativo. Sair do jogo, morrer, entrar em instâncias ou visitar a Costa da Provação pausa o contador. Desativar o PvP o reinicia.',
   'guide.worldPvpPage.introZones':
     'O PvP em mundo aberto é opcional e depende do terreno. Em áreas disputadas, ativar sua bandeira de PvP torna inimigos todos os jogadores com bandeira fora do seu grupo ou raide; desativá-la torna você espectador novamente após um breve atraso. A Costa da Provação é o único santuário, sem combates no mundo, e as três áreas mais ao norte seguem as mesmas regras de bandeira opcional do restante do mundo. Entrar em um círculo ativo do Rei da Colina ativa sua bandeira automaticamente. Companheiros de grupo e raide nunca são seus inimigos em lugar algum; membros da guilda fora do seu grupo podem ser atacados como qualquer outro jogador.',
   'guide.worldPvpPage.zonesBody':

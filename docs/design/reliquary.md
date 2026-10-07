@@ -140,9 +140,14 @@ repo's anchor rule):
   its primary, so The Rift shows lifetime clears and S-rank clears together.
 - **Kill-proof mark pages.** The realm-rares page fills from `slain:*` marks
   rather than item ids, one mark per authored rare.
-- **Honor-stock pages.** The warfare pages list purchasable honor gear with no
-  drop roll. The entry-tier Warfare stock has no class gate; the Warfare Season 2
-  Vanguard Gallery is class-locked, so it sits outside completion ('personal').
+- **Warfare stock pages.** The warfare pages list purchasable gear with no drop
+  roll. The entry tier (Warfare Season 1) sells for gold since 2026-10-02 (owner
+  call: "make the last season of PvP sets just worth gold"), so the Warfare
+  Gallery and the Armory's jewelry and weapons can be completed with gold and no
+  PvP (about 617 gold for both pages); only the Armory's two trinkets still cost
+  honor. Both stay inside completion and count toward the Conquerors shelf, by
+  owner decision. The Warfare Season 2 Vanguard Gallery is class-locked, so it
+  sits outside completion ('personal').
 - **Outside-completion pages.** Rule 7's `excludeFromCompletion` pages
   (retired and personal) render their own local pair and drop out of both
   sides of every completion pair.

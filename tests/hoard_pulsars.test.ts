@@ -547,6 +547,9 @@ describe('determinism and the wire', () => {
 describe('an orb is a real target, under the real mob AI', () => {
   it('shot from range for a whole phase it never turns immune, and it dies to damage', () => {
     const entry = encounter();
+    // Survive the full-party boss stats while testing the orb's real AI.
+    entry.sim.player.maxHp = 1_000_000;
+    entry.sim.player.hp = entry.sim.player.maxHp;
     unbind(entry);
     const orb = orbsOf(entry)[0];
     // A caster's spot: far outside any melee reach of a mob that cannot move.

@@ -141,13 +141,19 @@ export function worldPvpBodyHtml(view: WorldPvpWindowView): string {
 
 type LiveView = Extract<WorldPvpWindowView, { kind: 'live' }>;
 
+/** The streak line names what paused it. Instance ground reads contested, so
+ *  the sim's cause, not the zone, decides. */
+const REWARD_PAUSE_KEYS = {
+  dead: 'hudChrome.worldPvp.rewardPausedDead',
+  instance: 'hudChrome.worldPvp.rewardPausedInstance',
+  sanctuary: 'hudChrome.worldPvp.rewardPaused',
+} as const;
+
 function rewardProgressText(view: LiveView): string {
-  return t(
-    view.flagged && view.disarmRemaining === null && view.zone === 'sanctuary'
-      ? 'hudChrome.worldPvp.rewardPaused'
-      : 'hudChrome.worldPvp.rewardProgress',
-    { time: rewardClockText(view.rewardSeconds) },
-  );
+  const key = view.rewardPause
+    ? REWARD_PAUSE_KEYS[view.rewardPause]
+    : 'hudChrome.worldPvp.rewardProgress';
+  return t(key, { time: rewardClockText(view.rewardSeconds) });
 }
 
 /** Patch only the clock, preserving scroll position and button focus. */

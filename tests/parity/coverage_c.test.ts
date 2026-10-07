@@ -20,6 +20,7 @@ import { heroicVariantId } from '../../src/sim/content/heroic_variants';
 import { ITEMS, MOBS } from '../../src/sim/data';
 import { countRawInSlots, countUnlockedInSlots } from '../../src/sim/item_lock';
 import { RIFT_IMPAIRED_FUSE_CAP } from '../../src/sim/mob/rift_escape_window';
+import { NYTHRAXIS_BONE_STORM_ENABLED } from '../../src/sim/nythraxis_bone_storm';
 import {
   FARM_GOLDEN_BONUS_PATTERN_IDS,
   FARM_SEED_BACK_TWO_CHANCE,
@@ -330,10 +331,11 @@ describe('coverage: each scenario fires its subsystem', { timeout: 90_000 }, () 
     // Soul Rend marks pick (the rng.int callout) + Deathless Rage interrupt self-stun.
     expect(chats.some((e) => e.text === 'Your spirit belongs to me')).toBe(true);
     expect(auras.some((e) => e.name === 'Deathless Rage Interrupted')).toBe(true);
-    // Phase 3: The King's Wrath, a Bone Storm (its whirl and a Bone Slam; no
-    // spike lands while he storms), and The Crown Endures enrage.
+    // Phase 3: The King's Wrath and The Crown Endures enrage. Bone Storm (its
+    // whirl and a Bone Slam) fires only while NYTHRAXIS_BONE_STORM_ENABLED;
+    // it is retired from play, so the trace must carry none of it.
     expect(auras.some((e) => e.name === "King's Wrath")).toBe(true);
-    expect(auras.some((e) => e.name === 'Bone Storm')).toBe(true);
+    expect(auras.some((e) => e.name === 'Bone Storm')).toBe(NYTHRAXIS_BONE_STORM_ENABLED);
     expect(auras.some((e) => e.name === 'The Crown Endures')).toBe(true);
     // The mechanics redo: Dread Curse landed on the tank, two raiders were
     // impaled and freed when their spikes died, and the eruption burst then burned.
@@ -359,12 +361,12 @@ describe('coverage: each scenario fires its subsystem', { timeout: 90_000 }, () 
     expect(callouts.some((e) => e.call === 'sigilAppears')).toBe(true);
     expect(callouts.some((e) => e.call === 'sigilBound')).toBe(true);
     expect(callouts.some((e) => e.call === 'kingsWrath')).toBe(true);
-    expect(callouts.some((e) => e.call === 'boneStormBegins')).toBe(true);
-    expect(callouts.some((e) => e.call === 'boneStormCharge')).toBe(true);
-    expect(callouts.some((e) => e.call === 'boneStormEnds')).toBe(true);
+    expect(callouts.some((e) => e.call === 'boneStormBegins')).toBe(NYTHRAXIS_BONE_STORM_ENABLED);
+    expect(callouts.some((e) => e.call === 'boneStormCharge')).toBe(NYTHRAXIS_BONE_STORM_ENABLED);
+    expect(callouts.some((e) => e.call === 'boneStormEnds')).toBe(NYTHRAXIS_BONE_STORM_ENABLED);
     expect(callouts.some((e) => e.call === 'crownEndures')).toBe(true);
-    expect(damage.some((e) => e.ability === 'Bone Storm')).toBe(true);
-    expect(damage.some((e) => e.ability === 'Bone Slam')).toBe(true);
+    expect(damage.some((e) => e.ability === 'Bone Storm')).toBe(NYTHRAXIS_BONE_STORM_ENABLED);
+    expect(damage.some((e) => e.ability === 'Bone Slam')).toBe(NYTHRAXIS_BONE_STORM_ENABLED);
     expect(auras.some((e) => e.name === 'Deathless Ascension')).toBe(true);
     expect(auras.some((e) => e.name === 'Bound')).toBe(true);
     // Kill: raid lockout granted to the tank + the death-dialogue first line emitted.

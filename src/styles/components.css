@@ -7973,6 +7973,9 @@
   .faction-currency-balance {
     color: var(--gold);
   }
+  .warfare-balance .warfare-balance-gold {
+    margin-left: 12px;
+  }
   .warfare-balance,
   .faction-currency-balance {
     margin: 6px 5px;
@@ -14087,6 +14090,19 @@
   }
   .soc-add input {
     flex: 1;
+  }
+  /* The Friends footer's presence setting (src/ui/social_window.ts). */
+  .soc-presence {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 6px;
+    font-size: 11px;
+    color: var(--color-text-muted);
+  }
+  .soc-presence select {
+    flex: 1;
+    min-width: 0;
   }
   .soc-add .btn {
     margin: 0;

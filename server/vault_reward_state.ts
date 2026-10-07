@@ -10,8 +10,6 @@ import type { VaultRewardClaim } from './vault_rewards_db';
 export function addVaultRewardToCharacterState(
   state: CharacterState,
   claim: VaultRewardClaim,
-  attemptId: string,
-  owner: boolean,
 ): CharacterState {
   const capped = claim.items.length === 0 && claim.copper === 0;
   if (!capped) {
@@ -22,9 +20,6 @@ export function addVaultRewardToCharacterState(
     state.copper = copper;
   }
   if (!state.worldQuests) state.worldQuests = { cycle: '', progress: [] };
-  if (owner && state.worldQuests.vaultAttempt?.id === attemptId) {
-    delete state.worldQuests.vaultAttempt;
-  }
   if (!capped) {
     state.worldQuests.clueCasketsOpened = (state.worldQuests.clueCasketsOpened ?? 0) + 1;
   }

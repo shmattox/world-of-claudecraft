@@ -544,7 +544,15 @@ const MONOLITHS: MonolithRow[] = [
     // slot_edit_hints_core.ts and the attack slot's dragstart payload sits on
     // one line. wc -l on the merged tree after biome. Exact count, zero slack.
     // Banner payload and expiry policy moved to banner_queue.ts for hill warnings.
-    ceiling: 18034,
+    // Lowered 18034 -> 18029: the Warfare purchase confirm body (Honor or, for
+    // Season 1, gold) moved to warfarePurchaseConfirmBody in
+    // src/ui/hud/vendor/warfare_vendor_window.ts. Extract, then lower.
+    // Lowered 18029 -> 18024 at the merge with PvP Resurrect: the death-screen
+    // decisions (and the mirrored corpse range constant) moved to
+    // src/ui/hud/death/death_prompt_view.ts. wc -l on the merged tree.
+    // RECORDED RAISE at the PLACE-611 resync to upstream v0.44.4: upstream lowered this ceiling
+    // while the PlaceSchema fork's additions (PLACE-276/410/479/480) sit on top. wc -l on the merged tree.
+    ceiling: 18029,
     seam: 'pure view core + thin painter on PainterHost (src/ui/CLAUDE.md)',
   },
   {
@@ -1214,7 +1222,14 @@ const MONOLITHS: MonolithRow[] = [
     // integration/world-quests-v0440 (the Eastbrook ferry, PR 4225, composes
     // with the branch's): exact count measured on the MERGED working tree
     // (wc -l after biome), never reconciled by arithmetic. Zero slack.
-    ceiling: 11642,
+    // Down 11642 -> 11615 for the party difficulty-switch fix: the
+    // setDungeonDifficulty body moved to src/sim/instances/difficulty_selection.ts
+    // (it gained an implicit reset on change). Exact count, zero slack.
+    // Re-pinned to 11619 at the release/v0.44.4 base merge (PvP Resurrect,
+    // PR 4318, adds its lines): exact count on the MERGED tree. Zero slack.
+    // RECORDED RAISE at the PLACE-611 resync to upstream v0.44.4: upstream lowered this ceiling
+    // while the PlaceSchema fork's additions (PLACE-276/410/479/480) sit on top. wc -l on the merged tree.
+    ceiling: 11626,
     seam: 'a sim system module behind SimContext (src/sim/CLAUDE.md)',
   },
   {
@@ -1699,7 +1714,8 @@ const MONOLITHS: MonolithRow[] = [
     // RECORDED RAISE +12 (PLACE-276, PlaceSchema carry): the logic lives in
     // server/placeschema_sidecar.ts; game.ts gains only its construction (with
     // the save hook), the event-drain call and the ps_carry command arm.
-    ceiling: 9852,
+    // Lowered 9852 -> 9829 at the PLACE-611 resync (upstream's extractions); wc -l on the merged tree.
+    ceiling: 9829,
     seam: 'a sibling server module; see the hot-path seams in server/CLAUDE.md',
   },
   {
@@ -1880,7 +1896,9 @@ const MONOLITHS: MonolithRow[] = [
     // tree (after biome). Exact count, zero slack.
     // RECORDED RAISE +5 (PLACE-276): the carryItem command and the one-line
     // placeschema frame route; the handling lives in src/net/placeschema_frame.ts.
-    ceiling: 5361,
+    // RECORDED RAISE at the PLACE-611 resync to upstream v0.44.4: upstream lowered this ceiling
+    // while the PlaceSchema fork's additions (PLACE-276/410/479/480) sit on top. wc -l on the merged tree.
+    ceiling: 5364,
     seam: 'a src/net sibling module (the refactor/net-online split is the template)',
   },
   {

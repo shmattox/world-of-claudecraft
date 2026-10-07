@@ -13,6 +13,58 @@
 import type { TranslationKey } from '../i18n.catalog';
 
 export const fr_FR: Partial<Record<TranslationKey, string>> = {
+  'footer.guideBest': 'Meilleurs MMORPG',
+  'footer.guideBrowser': 'MMORPG de navigateur',
+  'footer.guideFree': 'MMORPG gratuits',
+  'footer.guideGamesLikeDiablo': 'Jeux comme Diablo',
+  'footer.guideGamesLikeWow': 'Jeux comme WoW',
+  'footer.guideNew': 'Nouveaux MMORPG',
+  'footer.guidesLabel': 'Guides des joueurs',
+  'hudChrome.weeklyRewards.completedTask.pvpWinMany': '{count} Victoires JcJ',
+  'hudChrome.weeklyRewards.completedTask.pvpWinOne': '{count} Victoire JcJ',
+  'hudChrome.weeklyRewards.requiredTask.pvpWinMany': 'Remportez {count} Victoires JcJ',
+  'hudChrome.weeklyRewards.requiredTask.pvpWinOne': 'Remportez {count} Victoire JcJ',
+  'guide.footer.guideBest': 'Meilleurs MMORPG',
+  'guide.footer.guideBrowser': 'MMORPG de navigateur',
+  'guide.footer.guideFree': 'MMORPG gratuits',
+  'guide.footer.guideGamesLikeDiablo': 'Jeux comme Diablo',
+  'guide.footer.guideGamesLikeWow': 'Jeux comme WoW',
+  'guide.footer.guideNew': 'Nouveaux MMORPG',
+  'guide.footer.guidesLabel': 'Guides des joueurs',
+  'guide.worldPvpPage.hillBodyRanked':
+    "Toutes les deux heures, une colline apparaît dans une des zones Les Terres du Dragon, Le Voile de Givre ou La Chute d'Ambre. Le royaume reçoit un avertissement quinze minutes avant et le cercle est marqué en terrain dégagé. La colline reste active trente minutes. Entrer dans le cercle actif lève votre drapeau JcJ mondial selon les conditions de niveau habituelles, même pour les membres d'un raid. Le groupe comptant le plus de joueurs admissibles à l'intérieur capture la colline après une minute de majorité ininterrompue ; un joueur seul compte comme un groupe d'une personne, mais les membres d'un raid et les joueurs sous le niveau requis pour le JcJ ne peuvent ni capturer ni gagner l'Honneur de la colline. Chaque détenteur à l'intérieur gagne de l'Honneur à un rythme croissant. Les versements et leur progression sont accélérés pour conserver l'Honneur total de l'ancien événement de quarante-cinq minutes. Un changement de détenteur réinitialise la progression. Toutes les cinq minutes tandis que la colline se dresse, le royaume apprend sa position et les groupes classés par temps de détention. Quand la colline tombe, si le groupe qui l'a tenue le plus longtemps l'a tenue au moins dix minutes au total, chaque joueur qui est resté à l'intérieur pendant au moins une minute pour ce groupe et en est toujours membre remporte une victoire pour la ligne JcJ du Coffre hebdomadaire. Sortir laisse votre drapeau levé ; /pvp off prend les cinq minutes habituelles et ne peut aboutir dans une colline active ni en combat. La barre affiche le contrôle, les effectifs et la progression de capture ; /hill indique l'emplacement.",
+  'hudChrome.death.pvpResurrect': 'Résurrection JcJ',
+  'hudChrome.death.pvpResurrectTitle':
+    'Ressuscitez au cimetière le plus proche avec la santé complète, sans nouveau Glas du Veilleur.',
+  'hudChrome.hill.callout.dominating': '{name} domine !',
+  'hudChrome.hill.callout.godlike': '{name} est divin !',
+  'hudChrome.hill.callout.killingSpree': '{name} fait un carnage !',
+  'hudChrome.hill.callout.legendary': '{name} est légendaire !',
+  'hudChrome.hill.callout.rampage': '{name} déchaîne la furie !',
+  'hudChrome.hill.callout.shutDown': '{killer} a arrêté {victim} !',
+  'hudChrome.hill.callout.unstoppable': '{name} est inarrêtable !',
+  'hudChrome.nameplate.bountyTag': 'Prime {honor}',
+  'hudChrome.social.presence.everyone': 'Tous',
+  'hudChrome.social.presence.friends': 'Amis uniquement',
+  'hudChrome.social.presence.label': 'Me montrer en ligne à',
+  'hudChrome.social.presence.none': 'Personne',
+  'hudChrome.social.presence.title':
+    "Qui vous voit en ligne dans les listes d'amis et la feuille de guilde, avec votre zone et position sur la carte. Votre groupe vous voit toujours.",
+  'hudChrome.warfareShop.buyConfirmBodyGold':
+    'Acheter {item} pour {price} ? Cet achat ne peut pas être remboursé.',
+  'itemUi.tooltip.warfareMainHandOnly': "L'Art de la guerre ne compte que dans la main principale.",
+  'entities.items.vanguard_band_of_focus.name': "Anneau d'Avant-garde de Concentration",
+  'entities.items.vanguard_band_of_mending.name': "Anneau d'Avant-garde de Soins",
+  'entities.items.vanguard_band_of_might.name': "Anneau d'Avant-garde de Puissance",
+  'entities.items.vanguard_band_of_precision.name': "Anneau d'Avant-garde de Précision",
+  'entities.items.vanguard_pendant_of_focus.name': "Pendentif d'Avant-garde de Concentration",
+  'entities.items.vanguard_pendant_of_mending.name': "Pendentif d'Avant-garde de Soins",
+  'entities.items.vanguard_pendant_of_might.name': "Pendentif d'Avant-garde de Puissance",
+  'entities.items.vanguard_pendant_of_precision.name': "Pendentif d'Avant-garde de Précision",
+  'guide.arenaPage.vanguardStatsBody':
+    "Contrairement au palier d'origine, l'équipement d'Avant-garde porte aussi des notes de combat : chaque pièce d'Avant-garde, arme et pendentif a un Score de critique ou un Score de hâte, et les pièces de lanceur de sorts et de soigneur ajoutent une Puissance des sorts ou une Puissance de soins. Les anneaux et pendentifs d'Avant-garde sont vendus à côté des armes, et toutes les classes peuvent les porter. Deux des anneaux d'Avant-garde de mêlée donnent exactement la Précision qui élimine la chance de base que vos attaques manquent un joueur de votre niveau, et deux anneaux de lanceur de sorts font de même pour vos sorts étant résistés. Les auto-attaques en combat à deux armes gardent leur chance supplémentaire de manquer. L'anneau de soigneur porte un Score de hâte à la place.",
+  'guide.commandsPage.presence':
+    "Qui vous voit en ligne dans les listes d'amis, votre feuille de guilde et /who : /presence everyone (par défaut), /presence friends (uniquement les joueurs sur votre liste d'amis), ou /presence none. Masqué, ils ne voient ni votre point en ligne, ni votre zone ni votre position sur la carte, bien que les chuchotements et les invitations vous atteignent toujours ; votre groupe vous voit toujours. Un simple /presence vous indique ce qui est défini.",
   'abilityUi.actionBar.cooldownMinutes': '{minutes}m',
   'abilityUi.cast.hoard_cast_bat_dive': 'Piqué',
   'abilityUi.cast.hoard_cast_bat_dive_aim': 'Piqué foudroyant',
@@ -2378,6 +2430,8 @@ export const fr_FR: Partial<Record<TranslationKey, string>> = {
   'guide.arenaPage.vanguardHeading': "Équipement d'Avant-garde : Guerre saison 2",
   'guide.combat.unstuckBodyWindow':
     "Si le monde vous piège quelque part dont vous ne pouvez pas sortir, tapez /unstuck. Vous devez être hors combat et immobile, non entravé par un étourdissement ou une immobilisation, et non engagé dans un duel ou un match d'arène : un court compte à rebours démarre, et bouger ou subir des dégâts l'annule. Une fois terminé, vous êtes déposé au cimetière le plus proche. Cela ne vous tue jamais et ne laisse aucun cadavre, et si vous étiez déjà tombé, cela vous relève sur place à la place. Le premier usage en une heure ne vous coûte rien. Réutilisez-la dans l'heure qui suit la dernière fois et le prix en est le Mal de déblocage, un affaiblissement temporaire de tout ce que vous êtes qui s'est dissipé le temps que vous puissiez réutiliser la commande, et comme le Glas du Veilleur, il épargne entièrement les personnages tout neufs.",
+  'guide.commandsPage.flair':
+    'Affiche ou masque votre rôle Discord pour les autres joueurs, c’est-à-dire votre nom en couleur, votre badge de rôle et votre badge de discussion vérifié : /flair on l’affiche, /flair off le masque, et /flair seul vous indique le réglage actuel. Nécessite un compte Discord lié.',
   'guide.commandsPage.pvpZones':
     "Drapeau JcJ mondial : /pvp le bascule ; /pvp on et /pvp off l'activent et le désactivent. Les joueurs marqués peuvent s'affronter en zone contestée ; les sanctuaires interdisent tout JcJ mondial. Entrer dans le cercle actif du Roi de la colline lève votre drapeau. Le désactiver prend 5 minutes.",
   'guide.commandsPage.unstuckWindow':
@@ -6280,9 +6334,9 @@ export const fr_FR: Partial<Record<TranslationKey, string>> = {
   'hudChrome.cameraPrompt.title': 'Choisissez votre caméra',
   'hudChrome.discord.link.joinServer': 'Rejoignez simplement le serveur Discord',
   'hudChrome.discord.roleTag.contentcreator': 'Créateur de contenu',
-  'hudChrome.discord.roleTag.juniormods': 'Modérateur junior',
+  'hudChrome.discord.roleTag.juniormods': 'Observateur',
   'hudChrome.discord.roleTag.legend': 'LÉGENDE',
-  'hudChrome.discord.roleTag.seniormods': 'Modérateur senior',
+  'hudChrome.discord.roleTag.seniormods': 'Sentinelle',
   'hudChrome.discord.roleTag.shill': 'COMPLICE',
   'hudChrome.discord.roleTagChatTitle': 'Rôle de serveur vérifié : {role}',
   'hudChrome.finder.accept': 'Accepter',
@@ -7802,7 +7856,6 @@ export const fr_FR: Partial<Record<TranslationKey, string>> = {
   'hudChrome.death.resurrectAtHealer': 'Le Veilleur pâle (Glas du Veilleur)',
   'hudChrome.death.spiritHealerAlive':
     'Le Veilleur pâle veille sur les morts. Vous êtes encore parmi les vivants.',
-  'hudChrome.discord.roleTag.admin': 'Admin',
   'hudChrome.frameReset.label': 'Réinitialiser la position des cadres',
   'hudChrome.mailbox.arrivedBanner': "Le corbeau s'est posé : du courrier de {name}.",
   'hudChrome.mailbox.arrivedLog': 'Vous avez du nouveau courrier de {name}.',
@@ -18796,12 +18849,12 @@ export const fr_FR: Partial<Record<TranslationKey, string>> = {
   'hudChrome.raidBossGuide.nythraxis.dreadCurseSummary':
     "Toutes les {every} s, Nythraxis frappe son tank actuel pour {hitNormal} des points de vie maximum en dégâts d'Ombre et ajoute une charge de Malédiction funeste. Pendant {duration} s, chaque charge augmente de {perStackNormal} les dégâts que ce tank subit de Nythraxis, jusqu'à {max} charges.",
   'hudChrome.raidBossGuide.nythraxis.graveEruptionHeroicSummary':
-    "Toutes les {everyHeroic} s, des mains squelettiques marquent {countHeroic} cercles de {radius} yd sous des membres du raid. Après {warning} s, chaque cercle explose pour {burstHeroic} des points de vie maximum en dégâts d'Ombre, puis brûle sous forme de Flamme sépulcrale pendant {flameHeroic} s, infligeant {tickHeroic} des points de vie maximum chaque seconde à quiconque s'y tient.",
+    "Toutes les {everyHeroic} s, des mains squelettiques marquent {countHeroic} cercles de {radius} yd sous des membres du raid. Après {warning} s, chaque cercle explose pour {burstHeroic} des points de vie maximum en dégâts d'Ombre, puis brûle sous forme de Flamme sépulcrale pendant {flameHeroic} s, infligeant {tickHeroic} des points de vie maximum chaque seconde à quiconque s'y tient. Cela ne se produit jamais tant que des marques de Déchirure d'âme sont actives, ni dans les {gap} s qui suivent leur disparition.",
   'hudChrome.raidBossGuide.nythraxis.graveEruptionName': 'Éruption sépulcrale',
   'hudChrome.raidBossGuide.nythraxis.graveEruptionResponse':
     "Sortez de chaque cercle d'avertissement avant son explosion et évitez le sol brûlant. Les tanks tirent Nythraxis loin des flammes pour laisser de la place aux mêlées.",
   'hudChrome.raidBossGuide.nythraxis.graveEruptionSummary':
-    "Toutes les {everyNormal} s, des mains squelettiques marquent {countNormal} cercles de {radius} yd sous des membres du raid. Après {warning} s, chaque cercle explose pour {burstNormal} des points de vie maximum en dégâts d'Ombre, puis brûle sous forme de Flamme sépulcrale pendant {flameNormal} s, infligeant {tickNormal} des points de vie maximum chaque seconde à quiconque s'y tient.",
+    "Toutes les {everyNormal} s, des mains squelettiques marquent {countNormal} cercles de {radius} yd sous des membres du raid. Après {warning} s, chaque cercle explose pour {burstNormal} des points de vie maximum en dégâts d'Ombre, puis brûle sous forme de Flamme sépulcrale pendant {flameNormal} s, infligeant {tickNormal} des points de vie maximum chaque seconde à quiconque s'y tient. Cela ne se produit jamais tant que des marques de Déchirure d'âme sont actives, ni dans les {gap} s qui suivent leur disparition.",
   'hudChrome.raidBossGuide.nythraxis.gravebreakerName': 'Brise-tombe',
   'hudChrome.raidBossGuide.nythraxis.gravebreakerResponse':
     "Les tanks gardent Nythraxis tourné à l'opposé du raid. Tous les autres restent derrière ou à côté de lui et ne traversent jamais le cône.",
@@ -20283,9 +20336,13 @@ export const fr_FR: Partial<Record<TranslationKey, string>> = {
     'Gardez le JcJ mondial activé pour gagner {percent} d’expérience et de réputation de faction supplémentaires. Les bonus cessent dès que vous demandez sa désactivation.',
   'hudChrome.worldPvp.rewardPaused':
     'Série JcJ actuelle : {time} de jeu (en pause sur le Rivage de l’Épreuve)',
+  'hudChrome.worldPvp.rewardPausedDead':
+    'Série JcJ actuelle : {time} de jeu (en pause tant que vous êtes mort)',
+  'hudChrome.worldPvp.rewardPausedInstance':
+    'Série JcJ actuelle : {time} de jeu (en pause dans les instances)',
   'hudChrome.worldPvp.rewardProgress': 'Série JcJ actuelle : {time} de jeu',
   'hudChrome.worldPvp.rewardTitles':
-    'Obtenez des titres permanents après {thresholds} de temps de jeu avec le JcJ mondial activé. La déconnexion et les visites au Rivage de l’Épreuve suspendent le compteur. Désactiver le JcJ le remet à zéro.',
+    'Obtenez des titres permanents après {thresholds} de temps de jeu dans le monde ouvert avec le JcJ mondial activé. La déconnexion, la mort, les instances et le Rivage de l’Épreuve suspendent le compteur. Désactiver le JcJ le remet à zéro.',
   'guide.worldPvpPage.introZones':
     "Le JcJ en monde ouvert est volontaire et dépend du terrain. Lever votre drapeau rend ennemis les autres joueurs marqués hors de votre groupe ou raid en zone contestée ; le baisser vous rend à nouveau spectateur après un court délai. Le Rivage de l'Épreuve est le seul sanctuaire, sans JcJ mondial. Les trois zones les plus au nord suivent les mêmes règles de participation volontaire que le reste du monde. Entrer dans le cercle actif du Roi de la colline lève automatiquement votre drapeau. Vos compagnons de groupe et de raid ne sont jamais vos ennemis ; les membres de votre guilde hors de votre groupe peuvent être combattus comme les autres joueurs.",
   'guide.worldPvpPage.zonesBody':

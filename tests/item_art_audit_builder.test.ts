@@ -865,11 +865,13 @@ describe('item-art audit builder', () => {
       // 1464 / 1482 at the 2026-09-28 release/v0.44.0 merge into feature/buried-hoards
       // (the hoard boss loot and map paintings on 36 sheet pages), re-measured the same way.
       // Re-measured with --verify-only after adding the feral Season 2 staff.
-      catalogSha256: '74fb7f5564468571bfee42cf988a63a819621fabdc69a24991015c9d874e9bd8',
-      catalogBytes: 801825,
+      // 1473 / 1491 with the eight Season 2 rings and necks
+      // (vanguard-jewelry-icons-2026-10-03), re-measured with --verify-only.
+      catalogSha256: '53baa63c7d3a475c488a5550e19090dad5c5bac6eb3507b61f95c263b4769673',
+      catalogBytes: 806209,
       rendererFingerprint: '41f5404c4d6d9643c8f03b9d88a8546e44564cc03a1baabdd4a72cb9258a2da7',
-      catalogCount: 1465,
-      liveItemCount: 1483,
+      catalogCount: 1473,
+      liveItemCount: 1491,
       generatedHeroicDefinitions: 78,
       heroicDefinitionsWithOwnWebp: 59,
       heroicWeaponArtAliases: 19,
@@ -887,7 +889,8 @@ describe('item-art audit builder', () => {
         identity: 36,
       },
       sheetSetSha256: null,
-      shippingCatalogSha256: '0a219fc9f9bec37c4628e3d25bea1963118a9a4508030b4bc3a525e258ec93ce',
+      // Re-measured with the Season 2 jewelry icons (--verify-only).
+      shippingCatalogSha256: '8ea2cf44628c3fe8cbf9541a1fe3d9c88f6e46c81ce44ca848b70065db11ba39',
       machineChecksPassed: true,
       verdict: null,
     });

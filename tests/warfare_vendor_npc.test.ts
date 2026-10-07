@@ -96,8 +96,9 @@ describe('Warmarshal Draven Kole: the definition', () => {
     for (const itemId of KOLE.vendorItems ?? []) {
       const item = ITEMS[itemId];
       expect(item, itemId).toBeDefined();
-      // The progression pin: every vendor row must carry a purchase price.
-      expect(item.priceHonor ?? 0, itemId).toBeGreaterThan(0);
+      // The progression pin: every vendor row must carry a purchase price,
+      // Honor or (Season 1, since 2026-10-02) gold.
+      expect((item.priceHonor ?? 0) + (item.buyValue ?? 0), itemId).toBeGreaterThan(0);
     }
   });
 

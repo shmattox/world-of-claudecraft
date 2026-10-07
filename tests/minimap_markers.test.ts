@@ -21,6 +21,7 @@ import {
   YUMI_MAZE_X,
   zoneAt,
 } from '../src/sim/data';
+import { createGroundObject } from '../src/sim/entity';
 import { isProfessionQuest } from '../src/sim/quests/ambient_quest_marker';
 import { isQuestTurnInNpc } from '../src/sim/types';
 import { WORLD_BOSSES, worldBossLockoutId } from '../src/sim/world_boss';
@@ -61,6 +62,23 @@ const S = 162;
 const PPY = 1.7; // base scale at zoom 1
 // An overworld player z (delve positions are x in the delve band; x = 0 is overworld).
 const PZ = 100;
+
+it('hides other owners vault markers unless they are in the current party', () => {
+  const world = makeWorld('sim');
+  const portal = createGroundObject(9000, '', 'Hoard', { x: 1, y: 0, z: PZ });
+  portal.templateId = 'hoard_entrance';
+  portal.vaultOwnerPid = 2;
+  world.entities.set(portal.id, portal);
+  const shown = () =>
+    buildMarkers(world).some(
+      (marker) => marker.kind === 'semantic-object' && marker.semantic.kind === 'hoard-entrance',
+    );
+  expect(shown()).toBe(false);
+  portal.vaultOwnerPid = 5;
+  expect(shown()).toBe(true);
+  portal.vaultOwnerPid = world.player.id;
+  expect(shown()).toBe(true);
+});
 
 // One scenario as plain construction. `shape` toggles between a "Sim-shaped" stub
 // carrying sim-only junk fields the core must ignore and a lean "ClientWorld-mirror"
@@ -577,6 +595,20 @@ describe('createMinimapMarkers: the discriminated union per draw kind', () => {
       { kind: 'ally' }
     >[];
     expect(allies.map((a) => a.ally)).toEqual(['friend', 'guild']);
+  });
+
+  it('marks only ONLINE guildmates: a guildmate hiding their presence gets no diamond', () => {
+    // server/presence_privacy.ts: a hidden guildmate arrives offline in the
+    // roster, and the minimap must not track them through walls anyway.
+    const world = makeWorld('sim') as unknown as {
+      socialInfo: { guild: { members: { online: boolean }[] } };
+    };
+    world.socialInfo.guild.members[0].online = false;
+    const allies = buildMarkers(world as never).filter((m) => m.kind === 'ally') as Extract<
+      MinimapMarker,
+      { kind: 'ally' }
+    >[];
+    expect(allies.map((a) => a.ally)).toEqual(['friend']);
   });
 
   it('drops the object-loot blip for a quest collectable the viewer is not on the quest for', () => {

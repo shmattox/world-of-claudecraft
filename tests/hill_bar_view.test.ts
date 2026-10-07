@@ -149,7 +149,7 @@ describe('buildHillBarView', () => {
 });
 
 describe('HillBar (the painter)', () => {
-  function harness(onPvpEntry?: () => void) {
+  function harness(banner?: (text: string) => void) {
     const layer = document.createElement('div');
     document.body.appendChild(layer);
     const calls: string[] = [];
@@ -189,7 +189,7 @@ describe('HillBar (the painter)', () => {
         else el.setAttribute(name, value);
       },
     };
-    const bar = new HillBar({ layer: () => layer, writers, onPvpEntry });
+    const bar = new HillBar({ layer: () => layer, writers, banner });
     return { layer, bar, calls };
   }
 

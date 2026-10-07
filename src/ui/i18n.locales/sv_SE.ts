@@ -2,6 +2,58 @@
 import type { TranslationKey } from '../i18n.catalog';
 
 export const sv_SE: Partial<Record<TranslationKey, string>> = {
+  'footer.guideBest': 'Bästa MMORPG:er',
+  'footer.guideBrowser': 'Webbläsar-MMORPG:er',
+  'footer.guideFree': 'Gratis MMORPG:er',
+  'footer.guideGamesLikeDiablo': 'Spel som Diablo',
+  'footer.guideGamesLikeWow': 'Spel som WoW',
+  'footer.guideNew': 'Nya MMORPG:er',
+  'footer.guidesLabel': 'Spelarguider',
+  'hudChrome.weeklyRewards.completedTask.pvpWinMany': '{count} PvP-vinster',
+  'hudChrome.weeklyRewards.completedTask.pvpWinOne': '{count} PvP-vinst',
+  'hudChrome.weeklyRewards.requiredTask.pvpWinMany': 'Ta {count} PvP-vinster',
+  'hudChrome.weeklyRewards.requiredTask.pvpWinOne': 'Ta {count} PvP-vinst',
+  'guide.footer.guideBest': 'Bästa MMORPG:er',
+  'guide.footer.guideBrowser': 'Webbläsar-MMORPG:er',
+  'guide.footer.guideFree': 'Gratis MMORPG:er',
+  'guide.footer.guideGamesLikeDiablo': 'Spel som Diablo',
+  'guide.footer.guideGamesLikeWow': 'Spel som WoW',
+  'guide.footer.guideNew': 'Nya MMORPG:er',
+  'guide.footer.guidesLabel': 'Spelarguider',
+  'guide.worldPvpPage.hillBodyRanked':
+    'Varannan timme dyker en kulle upp i Drakländerna, Frostslöjans vidder eller Bärnstensfallet. Riket får en varning femton minuter i förväg och cirkeln markeras på öppen mark. Kullen är aktiv i trettio minuter. När du går in i den aktiva cirkeln aktiveras din flagga för världs-PvP enligt de vanliga nivåreglerna, även för raidmedlemmar. Gruppen med flest behöriga spelare i cirkeln tar kullen efter en minut med obruten majoritet; en ensam spelare räknas som en grupp på en, men raidmedlemmar och spelare under nivåkravet för PvP kan varken inta kullen eller tjäna Ära från den. Varje innehavare som står i cirkeln tjänar Ära i ökande takt. Utbetalningarna sker oftare och ökar snabbare, så att den totala Äran från det tidigare evenemanget på fyrtiofem minuter bevaras. När kullen byter innehavare börjar ökningen om från början. Var femte minut medan berget står hör riket dess plats och grupperna rangordnade efter hur länge de har hållit det. När berget faller, om gruppen som höll det längst höll det i minst tio minuter totalt, får varje spelare som stod innanför i minst en minut för den gruppen, och fortfarande är i den, en vinst till Det veckovisa valvets PvP-rad. Din flagga förblir aktiv när du lämnar cirkeln; /pvp off använder den vanliga fördröjningen på fem minuter och kan inte slutföras på en aktiv kulle eller under strid. Kullens stapel visar kontroll, spelarantal och erövringsförlopp; /hill anger dess plats.',
+  'hudChrome.death.pvpResurrect': 'PvP Återupplivning',
+  'hudChrome.death.pvpResurrectTitle':
+    'Återuppstå vid närmaste kyrkogård med full hälsa, utan ny Väktartull.',
+  'hudChrome.hill.callout.dominating': '{name} dominerar!',
+  'hudChrome.hill.callout.godlike': '{name} är gudalik!',
+  'hudChrome.hill.callout.killingSpree': '{name} är på en mördarspree!',
+  'hudChrome.hill.callout.legendary': '{name} är legendarisk!',
+  'hudChrome.hill.callout.rampage': '{name} härjar!',
+  'hudChrome.hill.callout.shutDown': '{killer} har stoppat {victim}!',
+  'hudChrome.hill.callout.unstoppable': '{name} är omöjlig att stoppa!',
+  'hudChrome.nameplate.bountyTag': 'Belöning {honor}',
+  'hudChrome.social.presence.everyone': 'Alla',
+  'hudChrome.social.presence.friends': 'Endast vänner',
+  'hudChrome.social.presence.label': 'Visa mig online för',
+  'hudChrome.social.presence.none': 'Ingen',
+  'hudChrome.social.presence.title':
+    'Vem som ser dig online i vännernas listor och gildsamlandet, med din zon och kartposition. Ditt lag ser alltid dig.',
+  'hudChrome.warfareShop.buyConfirmBodyGold':
+    'Köp {item} för {price}? Detta köp kan inte återbetalas.',
+  'itemUi.tooltip.warfareMainHandOnly': 'Krigföring räknas endast i huvudhanden.',
+  'entities.items.vanguard_band_of_focus.name': 'Förtruppens ring av fokus',
+  'entities.items.vanguard_band_of_mending.name': 'Förtruppens ring av läkning',
+  'entities.items.vanguard_band_of_might.name': 'Förtruppens ring av kraft',
+  'entities.items.vanguard_band_of_precision.name': 'Förtruppens ring av precision',
+  'entities.items.vanguard_pendant_of_focus.name': 'Förtruppens hänge av fokus',
+  'entities.items.vanguard_pendant_of_mending.name': 'Förtruppens hänge av läkning',
+  'entities.items.vanguard_pendant_of_might.name': 'Förtruppens hänge av kraft',
+  'entities.items.vanguard_pendant_of_precision.name': 'Förtruppens hänge av precision',
+  'guide.arenaPage.vanguardStatsBody':
+    'Till skillnad från den ursprungliga nivån bär Förtruppsutrustning även stridsvärden: varje förtruppspans rustning, vapen och halsband har antingen Kritvärde eller Snabbhetsvärde, och spellcaster- och läkardelarna lägger till Besvärjelsekraft eller Läkningskraft. Förtruppens ringar och halsband säljs vid sidan av vapnen, och alla klasser kan bära dem. Två av Förtruppens närkampingsringar ger exakt det Träffvärde som tar bort baschansen för att dina attacker missar en spelare på din egen nivå, och två spellcaster-ringar gör samma för dina besvärjelser att bli motverkade. Autoattacker medan dual-wielding behåller sin extra misschans. Läkarringen bär Snabbhetsvärde istället.',
+  'guide.commandsPage.presence':
+    'Vem som ser dig online i vännernas listor, ditt gildsamlande och /who: /presence everyone (förval), /presence friends (endast spelare på din vännerlista) eller /presence none. Dold ser de ingen online-prick, zon eller kartposition för dig, dock når vissningar och inbjudningar dig ändå; ditt lag ser alltid dig. En enkel /presence talar om för dig vilken som är inställd.',
   'abilityUi.actionBar.cooldownMinutes': '{minutes}m',
   'abilityUi.cast.hoard_cast_bat_dive': 'Dykning',
   'abilityUi.cast.hoard_cast_bat_dive_aim': 'Störtdykning',
@@ -2293,6 +2345,8 @@ export const sv_SE: Partial<Record<TranslationKey, string>> = {
   'guide.arenaPage.vanguardHeading': 'Vanguard-utrustning: Warfare säsong 2',
   'guide.combat.unstuckBodyWindow':
     'Om världen fångar dig någonstans du inte kan ta dig ut, skriv /unstuck. Du måste vara utanför strid och stå stille, inte hålld av en bedövning eller en rot, och inte i en tvekamp eller en arenomatch: en kort nedräkning körs, och att röra dig eller ta skada avbryter det. När det slutförs är du placerad vid närmaste kyrkogård. Det dödar aldrig dig och det lämnar ingen lik, och om du redan var nere höjer det upp dig där istället. Den första användningen på en timme kostar dig ingenting. Använd det igen inom en timme från senast och priset är Unstuck sjukdom, en tillfällig försvagning av allt du är som har slitit av innan du kunde använda kommandot igen, och som Vaktarens tull sparar helt nya karaktärer.',
+  'guide.commandsPage.flair':
+    'Visar eller döljer din Discord-roll för andra spelare, alltså ditt färgade namn, din rolltagg och din verifierade chattagg: /flair on visar den, /flair off döljer den och bara /flair berättar vad som är inställt. Kräver ett kopplat Discord-konto.',
   'guide.commandsPage.pvpZones':
     'Flagga för världs-PvP: /pvp växlar den, /pvp on slår på den och /pvp off stänger av den. Flaggade spelare kan slåss mot varandra på omstridd mark, fristäder tillåter inga världsstrider alls och din flagga aktiveras när du går in i en aktiv cirkel i Kullens kung; det tar 5 minuter att stänga av den.',
   'guide.commandsPage.unstuckWindow':
@@ -5970,9 +6024,9 @@ export const sv_SE: Partial<Record<TranslationKey, string>> = {
   'hudChrome.cameraPrompt.title': 'Välj din kamera',
   'hudChrome.discord.link.joinServer': 'Gå med i Discord-servern',
   'hudChrome.discord.roleTag.contentcreator': 'Innehållsskapare',
-  'hudChrome.discord.roleTag.juniormods': 'Junior-mod',
+  'hudChrome.discord.roleTag.juniormods': 'Observatör',
   'hudChrome.discord.roleTag.legend': 'LEGEND',
-  'hudChrome.discord.roleTag.seniormods': 'Senior-mod',
+  'hudChrome.discord.roleTag.seniormods': 'Väktare',
   'hudChrome.discord.roleTag.shill': 'MARKNADSFÖRARE',
   'hudChrome.finder.accept': 'Acceptera',
   'hudChrome.finder.acceptApplicantAria': 'Acceptera {name}',
@@ -7046,7 +7100,6 @@ export const sv_SE: Partial<Record<TranslationKey, string>> = {
   'hudChrome.death.resurrectAtHealer': 'Den bleka väktaren (Väktartullen)',
   'hudChrome.death.spiritHealerAlive':
     'Den bleka väktaren vakar över de döda. Du är fortfarande bland de levande.',
-  'hudChrome.discord.roleTag.admin': 'Admin',
   'hudChrome.frameReset.label': 'Återställ ramarnas positioner',
   'hudChrome.mailbox.arrivedBanner': 'Korpen har landat: post från {name}.',
   'hudChrome.mailbox.arrivedLog': 'Du har ny post från {name}.',
@@ -18263,12 +18316,12 @@ export const sv_SE: Partial<Record<TranslationKey, string>> = {
   'hudChrome.raidBossGuide.nythraxis.dreadCurseSummary':
     'Var {every} sek träffar Nythraxis sin nuvarande tank för {hitNormal} av maximal hälsa som Skuggskada och lägger till en stapel Skräckförbannelse. I {duration} sek ökar varje stapel skadan den tanken tar från Nythraxis med {perStackNormal}, upp till {max} staplar.',
   'hudChrome.raidBossGuide.nythraxis.graveEruptionHeroicSummary':
-    'Var {everyHeroic} sek markerar skeletthänder {countHeroic} cirklar på {radius} yd under raiddeltagare. Efter {warning} sek bryter varje cirkel ut för {burstHeroic} av maximal hälsa som Skuggskada och brinner sedan som Gravflamma i {flameHeroic} sek, vilket orsakar {tickHeroic} av maximal hälsa varje sekund för alla som står i den.',
+    'Var {everyHeroic} sek markerar skeletthänder {countHeroic} cirklar på {radius} yd under raiddeltagare. Efter {warning} sek bryter varje cirkel ut för {burstHeroic} av maximal hälsa som Skuggskada och brinner sedan som Gravflamma i {flameHeroic} sek, vilket orsakar {tickHeroic} av maximal hälsa varje sekund för alla som står i den. Det sker aldrig medan Själsslitning-märken är aktiva, eller inom {gap} sek efter att de försvunnit.',
   'hudChrome.raidBossGuide.nythraxis.graveEruptionName': 'Gravutbrott',
   'hudChrome.raidBossGuide.nythraxis.graveEruptionResponse':
     'Kliv ut ur varje varningscirkel innan den bryter ut och håll er borta från brinnande mark. Tankar drar Nythraxis bort från lågorna så att närstrid har plats att arbeta.',
   'hudChrome.raidBossGuide.nythraxis.graveEruptionSummary':
-    'Var {everyNormal} sek markerar skeletthänder {countNormal} cirklar på {radius} yd under raiddeltagare. Efter {warning} sek bryter varje cirkel ut för {burstNormal} av maximal hälsa som Skuggskada och brinner sedan som Gravflamma i {flameNormal} sek, vilket orsakar {tickNormal} av maximal hälsa varje sekund för alla som står i den.',
+    'Var {everyNormal} sek markerar skeletthänder {countNormal} cirklar på {radius} yd under raiddeltagare. Efter {warning} sek bryter varje cirkel ut för {burstNormal} av maximal hälsa som Skuggskada och brinner sedan som Gravflamma i {flameNormal} sek, vilket orsakar {tickNormal} av maximal hälsa varje sekund för alla som står i den. Det sker aldrig medan Själsslitning-märken är aktiva, eller inom {gap} sek efter att de försvunnit.',
   'hudChrome.raidBossGuide.nythraxis.gravebreakerName': 'Gravbrytare',
   'hudChrome.raidBossGuide.nythraxis.gravebreakerResponse':
     'Tankar håller Nythraxis vänd bort från raiden. Alla andra står bakom eller bredvid honom och korsar aldrig konen.',
@@ -19784,9 +19837,13 @@ export const sv_SE: Partial<Record<TranslationKey, string>> = {
   'hudChrome.worldPvp.rewardBonus':
     'Ha världs-PvP aktiverat för att få {percent} mer erfarenhet och fraktionsrykte. Bonusarna upphör när du begär att stänga av det.',
   'hudChrome.worldPvp.rewardPaused': 'Nuvarande PvP-svit: {time} spelat (pausad på Prövostranden)',
+  'hudChrome.worldPvp.rewardPausedDead':
+    'Nuvarande PvP-svit: {time} spelat (pausad medan du är död)',
+  'hudChrome.worldPvp.rewardPausedInstance':
+    'Nuvarande PvP-svit: {time} spelat (pausad i instanser)',
   'hudChrome.worldPvp.rewardProgress': 'Nuvarande PvP-svit: {time} spelat',
   'hudChrome.worldPvp.rewardTitles':
-    'Få permanenta titlar efter {thresholds} speltid med världs-PvP aktiverat. Utloggning och besök på Prövostranden pausar räknaren. Avstängning nollställer den.',
+    'Få permanenta titlar efter {thresholds} speltid i den öppna världen med världs-PvP aktiverat. Utloggning, död, instanser och Prövostranden pausar räknaren. Avstängning nollställer den.',
   'guide.worldPvpPage.introZones':
     'PvP i den öppna världen är frivilligt och beror på området. På omstridd mark gör din aktiva PvP-flagga alla flaggade spelare utanför din grupp eller raid till fiender; stänger du av den blir du åskådare igen efter en kort fördröjning. Prövostranden är den enda fristaden utan världsstrider, och de tre nordligaste områdena använder samma frivilliga flaggregler som resten av världen. Din flagga aktiveras automatiskt när du går in i en aktiv cirkel i Kullens kung. Grupp- och raidkamrater är aldrig dina fiender någonstans; guildmedlemmar utanför din grupp är mål som alla andra.',
   'guide.worldPvpPage.zonesBody':

@@ -5019,6 +5019,78 @@ export const TARGETS = [
     },
   },
   {
+    key: 'warfare-shop-season2',
+    label:
+      'Warfare shop at Fury: the Season 2 jewelry section (hovered ring) and a Season 2 helm tooltip with its new rating',
+    when: ['ui/hud/vendor/warfare_vendor', 'sim/content/pvp_honor_season2'],
+    // The offline warrior at Fury with Honor to spend. Two shots per viewport:
+    // the end of the Season 2 group with the first jewelry ring hovered (on a
+    // base checkout there is no jewelry section, so the shot lands on the
+    // Season 2 weapons instead), and the Arms helm hovered, whose tooltip
+    // gains a Crit Rating line on this branch.
+    variants: [
+      { key: 'desktop-jewelry', hover: 'jewelry' },
+      { key: 'desktop-helm', hover: 'helm' },
+      { key: 'mobile-jewelry', mobile: true, hover: 'jewelry' },
+      { key: 'mobile-helm', mobile: true, hover: 'helm' },
+    ],
+    async capture(page, variant) {
+      await page.evaluate(() => {
+        document.querySelector('.camera-prompt-confirm')?.click();
+        document.querySelector('.tut-skip')?.click();
+        document.querySelector('.gpu-notice-dismiss')?.click();
+        document.querySelector('#gpu-notice')?.remove();
+      });
+      await wait(300);
+      const setup = await page.evaluate(() => {
+        const game = window.__game;
+        const sim = game?.sim;
+        if (!sim) return { ok: false, reason: 'no sim' };
+        const vendor = [...sim.entities.values()].find((e) => e.templateId === 'fury');
+        if (!vendor) return { ok: false, reason: 'no fury entity' };
+        const p = sim.player;
+        if (!p?.pos) return { ok: false, reason: 'no player' };
+        const meta = sim.players.get(p.id);
+        if (!meta) return { ok: false, reason: 'no player meta' };
+        meta.honor = 50_000;
+        meta.copper = 1_000_000;
+        p.pos.x = vendor.pos.x + 2;
+        p.pos.z = vendor.pos.z;
+        p.prevPos = { ...p.pos };
+        const el = document.querySelector('#warfare-window');
+        if (el) el.style.display = 'none';
+        game.hud.openWarfareVendor(vendor.id);
+        return { ok: true };
+      });
+      if (!setup.ok) throw new Error(`warfare-shop-season2 setup failed: ${setup.reason}`);
+      if (!(await pollForSize(page, '#warfare-window'))) {
+        throw new Error('warfare window did not open');
+      }
+      for (let i = 0; i < 60; i++) {
+        const curtainUp = await page.evaluate(() =>
+          document.querySelector('#loading-screen')?.classList.contains('visible'),
+        );
+        if (!curtainUp) break;
+        await wait(500);
+      }
+      await wait(600);
+      const hoverKey =
+        variant?.hover === 'helm'
+          ? 'buy:vanguard_warrior_arms:vanguard_warrior_arms_helmet'
+          : (await page.$('#warfare-window [data-grid="season2_jewelry"]'))
+            ? 'buy:season2_jewelry:vanguard_band_of_might'
+            : 'buy:season2_weapons:vanguard_verdict_greatsword';
+      const selector = `#warfare-window button[data-focus-key="${hoverKey}"]`;
+      await page.evaluate((sel) => {
+        document.querySelector(sel)?.scrollIntoView({ block: 'center' });
+      }, selector);
+      await wait(300);
+      if (await page.$(selector)) await page.hover(selector);
+      await wait(500);
+      return {};
+    },
+  },
+  {
     key: 'bank-chips',
     label: 'Bank window with its bags companion: category chips and Deposit materials',
     when: ['ui/bank', 'ui/bag_filter', 'sim/material_taxonomy'],

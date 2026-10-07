@@ -438,7 +438,9 @@ export const fr_CA: EnTranslations = {
         "worldOne": "{count} quête mondiale terminée",
         "worldMany": "{count} quêtes mondiales terminées",
         "pvpOne": "{count} match classé remporté",
-        "pvpMany": "{count} matchs classés remportés"
+        "pvpMany": "{count} matchs classés remportés",
+        "pvpWinOne": "{count} Victoire JcJ",
+        "pvpWinMany": "{count} Victoires JcJ"
       },
       "requiredTask": {
         "raidOne": "Vainquez {count} rencontre de raid",
@@ -448,7 +450,9 @@ export const fr_CA: EnTranslations = {
         "worldOne": "Terminez {count} quête mondiale",
         "worldMany": "Terminez {count} quêtes mondiales",
         "pvpOne": "Remportez {count} match classé",
-        "pvpMany": "Remportez {count} matchs classés"
+        "pvpMany": "Remportez {count} matchs classés",
+        "pvpWinOne": "Remportez {count} Victoire JcJ",
+        "pvpWinMany": "Remportez {count} Victoires JcJ"
       },
       "readyWeeks": "Semaines non réclamées : {count}. Réclamez d'abord la semaine terminée la plus ancienne.",
       "claimLastWeek": "Réclamer la récompense de la semaine dernière",
@@ -594,6 +598,8 @@ export const fr_CA: EnTranslations = {
     },
     "death": {
       "resurrectAtCorpse": "Ressusciter près du cadavre",
+      "pvpResurrect": "Résurrection JcJ",
+      "pvpResurrectTitle": "Ressuscitez au cimetière le plus proche avec la santé complète, sans nouveau Glas du Veilleur.",
       "resurrectAtHealer": "Le Veilleur pâle (Glas du Veilleur)",
       "ghostHint": "Courez jusqu'à l'endroit de votre mort ou parlez au Veilleur pâle pour revivre",
       "spiritHealerAlive": "Le Veilleur pâle veille sur les morts. Vous êtes encore parmi les vivants.",
@@ -2786,8 +2792,10 @@ export const fr_CA: EnTranslations = {
     },
     "worldPvp": {
       "rewardBonus": "Gardez le JcJ mondial activé pour gagner {percent} d’expérience et de réputation de faction supplémentaires. Les bonus cessent dès que vous demandez sa désactivation.",
-      "rewardTitles": "Obtenez des titres permanents après {thresholds} de temps de jeu avec le JcJ mondial activé. La déconnexion et les visites au Rivage de l’Épreuve suspendent le compteur. Désactiver le JcJ le remet à zéro.",
+      "rewardTitles": "Obtenez des titres permanents après {thresholds} de temps de jeu dans le monde ouvert avec le JcJ mondial activé. La déconnexion, la mort, les instances et le Rivage de l’Épreuve suspendent le compteur. Désactiver le JcJ le remet à zéro.",
       "rewardPaused": "Série JcJ actuelle : {time} de jeu (en pause sur le Rivage de l’Épreuve)",
+      "rewardPausedDead": "Série JcJ actuelle : {time} de jeu (en pause tant que vous êtes mort)",
+      "rewardPausedInstance": "Série JcJ actuelle : {time} de jeu (en pause dans les instances)",
       "rewardProgress": "Série JcJ actuelle : {time} de jeu",
       "tab": "JcJ mondial",
       "title": "JcJ mondial",
@@ -2843,6 +2851,15 @@ export const fr_CA: EnTranslations = {
       "falls": "Retombe dans {minutes}",
       "pvpEntry": "Entrer dans le cercle actif active le JcJ mondial.",
       "pvpBanner": "JcJ",
+      "callout": {
+        "killingSpree": "{name} fait un carnage !",
+        "rampage": "{name} déchaîne la furie !",
+        "unstoppable": "{name} est inarrêtable !",
+        "dominating": "{name} domine !",
+        "godlike": "{name} est divin !",
+        "legendary": "{name} est légendaire !",
+        "shutDown": "{killer} a arrêté {victim} !"
+      },
       "standingRaid": "Les membres du raid ne comptent pas : seuls les groupes peuvent détenir la colline"
     },
     "warfareShop": {
@@ -2855,7 +2872,8 @@ export const fr_CA: EnTranslations = {
       "owned": "Possédé",
       "buyAria": "Acheter {item} pour {honor}",
       "buyOwnedAria": "Acheter {item} pour {honor}, déjà possédé",
-      "buyConfirmBody": "Acheter {item} pour {honor} ? Les achats en honneur ne sont pas remboursables."
+      "buyConfirmBody": "Acheter {item} pour {honor} ? Les achats en honneur ne sont pas remboursables.",
+      "buyConfirmBodyGold": "Acheter {item} pour {price} ? Cet achat ne peut pas être remboursé."
     },
     "charSheet": {
       "offense": "Attaque",
@@ -3878,8 +3896,8 @@ export const fr_CA: EnTranslations = {
         "boneSpikeHeroicSummary": "Toutes les {everyHeroic} s, Nythraxis empale {victimsHeroic} membres du raid autres que sa cible actuelle sur des Pointes d'os. Un membre empalé ne peut pas agir et perd {drainHeroic} de ses points de vie maximum chaque seconde jusqu'à la destruction de sa pointe. Une pointe se brise après {hitsHeroic} coups portés par n'importe qui, quels que soient leurs dégâts. Un joueur déjà empalé ne peut pas être choisi de nouveau pendant {cooldown} s, de sorte que les pointes se répartissent sur tout le raid.",
         "boneSpikeResponse": "Le plus proche frappe la Pointe d'os : quelques coups de n'importe qui la brisent, quels que soient les dégâts. Les soigneurs gardent les empalés en vie pendant que les pointes tombent.",
         "graveEruptionName": "Éruption sépulcrale",
-        "graveEruptionSummary": "Toutes les {everyNormal} s, des mains squelettiques marquent {countNormal} cercles de {radius} yd sous des membres du raid. Après {warning} s, chaque cercle explose pour {burstNormal} des points de vie maximum en dégâts d'Ombre, puis brûle sous forme de Flamme sépulcrale pendant {flameNormal} s, infligeant {tickNormal} des points de vie maximum chaque seconde à quiconque s'y tient.",
-        "graveEruptionHeroicSummary": "Toutes les {everyHeroic} s, des mains squelettiques marquent {countHeroic} cercles de {radius} yd sous des membres du raid. Après {warning} s, chaque cercle explose pour {burstHeroic} des points de vie maximum en dégâts d'Ombre, puis brûle sous forme de Flamme sépulcrale pendant {flameHeroic} s, infligeant {tickHeroic} des points de vie maximum chaque seconde à quiconque s'y tient.",
+        "graveEruptionSummary": "Toutes les {everyNormal} s, des mains squelettiques marquent {countNormal} cercles de {radius} yd sous des membres du raid. Après {warning} s, chaque cercle explose pour {burstNormal} des points de vie maximum en dégâts d'Ombre, puis brûle sous forme de Flamme sépulcrale pendant {flameNormal} s, infligeant {tickNormal} des points de vie maximum chaque seconde à quiconque s'y tient. Cela ne se produit jamais tant que des marques de Déchirure d'âme sont actives, ni dans les {gap} s qui suivent leur disparition.",
+        "graveEruptionHeroicSummary": "Toutes les {everyHeroic} s, des mains squelettiques marquent {countHeroic} cercles de {radius} yd sous des membres du raid. Après {warning} s, chaque cercle explose pour {burstHeroic} des points de vie maximum en dégâts d'Ombre, puis brûle sous forme de Flamme sépulcrale pendant {flameHeroic} s, infligeant {tickHeroic} des points de vie maximum chaque seconde à quiconque s'y tient. Cela ne se produit jamais tant que des marques de Déchirure d'âme sont actives, ni dans les {gap} s qui suivent leur disparition.",
         "graveEruptionResponse": "Sortez de chaque cercle d'avertissement avant son explosion et évitez le sol brûlant. Les tanks tirent Nythraxis loin des flammes pour laisser de la place aux mêlées.",
         "bindingSigilName": "Sceau de lien",
         "bindingSigilSummary": "Toutes les {everyNormal} s, un sceau des anciennes protections flamboie sur l'une des deux plateformes qui flanquent le trône, à {sideOffset} yd à gauche ou à droite (du point de vue du raid) de l'endroit où Nythraxis se tenait au pull, en changeant de côté à chaque lancement, et il commence Ascension immortelle, gagnant {ascensionNormal} de dégâts et de vitesse d'attaque toutes les {ascensionEvery} s. S'il se tient sur le sceau dans les {bindNormal} s, il est Lié : l'Ascension est purgée, il est étourdi pendant {stunNormal} s, et il subit {vulnerability} de dégâts supplémentaires pendant {boundNormal} s. Sinon, chaque membre du raid subit {unboundHitNormal} des points de vie maximum en dégâts d'Ombre, et il conserve {unboundBonusNormal} de dégâts supplémentaires jusqu au prochain lien.",
@@ -4194,6 +4212,7 @@ export const fr_CA: EnTranslations = {
       "mobLevel": "{level}",
       "mobEliteLevel": "{level}+",
       "afkTag": "AFK",
+      "bountyTag": "Prime {honor}",
       "pvpTag": "JcJ",
       "cheaterTag": "< Tricheur >",
       "pledgeTag": "Serment de {guild}",
@@ -4579,12 +4598,11 @@ export const fr_CA: EnTranslations = {
       "memberSinceDays": "{days} j sur le Discord",
       "roleTag": {
         "levyst": "Levy St",
-        "admin": "Admin",
         "coredevs": "Développeur principal",
         "devs": "Dév",
-        "seniormods": "Modérateur senior",
+        "seniormods": "Sentinelle",
         "mods": "Modo",
-        "juniormods": "Modérateur junior",
+        "juniormods": "Observateur",
         "artists": "Artiste",
         "contentcreator": "Créateur de contenu",
         "legend": "LÉGENDE",
@@ -5049,6 +5067,13 @@ export const fr_CA: EnTranslations = {
       "offlineHeader": "Hors ligne ({n})",
       "hideOffline": "Masquer les hors ligne",
       "hideOfflineTitle": "Masquer les membres de guilde hors ligne",
+      "presence": {
+        "label": "Me montrer en ligne à",
+        "everyone": "Tous",
+        "friends": "Amis uniquement",
+        "none": "Personne",
+        "title": "Qui vous voit en ligne dans les listes d'amis et la feuille de guilde, avec votre zone et position sur la carte. Votre groupe vous voit toujours."
+      },
       "billboard": {
         "label": "Tableau d'affichage de la guilde",
         "empty": "Rien sur le tableau d'affichage pour le moment.",
@@ -7037,7 +7062,14 @@ export const fr_CA: EnTranslations = {
       "discord": "Rejoindre le Discord",
       "communityWiki": "Wiki communautaire",
       "rights": "World of ClaudeCraft",
-      "linksLabel": "Liens de jeu et de communauté"
+      "linksLabel": "Liens de jeu et de communauté",
+      "guidesLabel": "Guides des joueurs",
+      "guideFree": "MMORPG gratuits",
+      "guideGamesLikeWow": "Jeux comme WoW",
+      "guideBest": "Meilleurs MMORPG",
+      "guideNew": "Nouveaux MMORPG",
+      "guideBrowser": "MMORPG de navigateur",
+      "guideGamesLikeDiablo": "Jeux comme Diablo"
     },
     "language": {
       "label": "Langue",
@@ -7549,6 +7581,8 @@ export const fr_CA: EnTranslations = {
       "arena": "Votre classement au Colisée cendré dans les deux catégories : cote, victoires, défaites et taux de victoires en 1c1 et en 2c2.",
       "pvp": "World PvP flag: /pvp toggles it, /pvp on and /pvp off set it. Flagged players can fight each other anywhere; switching off takes 5 minutes.",
       "pvpZones": "Drapeau JcJ mondial : /pvp le bascule ; /pvp on et /pvp off l'activent et le désactivent. Les joueurs marqués peuvent s'affronter en zone contestée ; les sanctuaires interdisent tout JcJ mondial. Entrer dans le cercle actif du Roi de la colline lève votre drapeau. Le désactiver prend 5 minutes.",
+      "presence": "Qui vous voit en ligne dans les listes d'amis, votre feuille de guilde et /who : /presence everyone (par défaut), /presence friends (uniquement les joueurs sur votre liste d'amis), ou /presence none. Masqué, ils ne voient ni votre point en ligne, ni votre zone ni votre position sur la carte, bien que les chuchotements et les invitations vous atteignent toujours ; votre groupe vous voit toujours. Un simple /presence vous indique ce qui est défini.",
+      "flair": "Affiche ou masque votre rôle Discord pour les autres joueurs, c’est-à-dire votre nom en couleur, votre badge de rôle et votre badge de discussion vérifié : /flair on l’affiche, /flair off le masque, et /flair seul vous indique le réglage actuel. Nécessite un compte Discord lié.",
       "listings": "Vos propres annonces sur le Marché mondial, avec le prix demandé, le temps restant de chacune, et la place qu'il vous reste pour en publier d'autres.",
       "buyback": "Ce que vous avez vendu récemment à un marchand et que vous pouvez encore racheter.",
       "groupState": "Votre état actuel",
@@ -8311,7 +8345,8 @@ export const fr_CA: EnTranslations = {
       "warfareTradeBody": "C'est un compromis voulu. L'équipement de Guerre est conçu pour affronter des joueurs, pas comme un raccourci pour contourner les paliers de donjon : une pièce de Guerre ne porte jamais les scores de combat qu'apporte un objet épique de donjon dans le même emplacement, et tout ce qu'elle apporte se dépense sur d'autres joueurs. Si vous voulez tenir votre rang dans l'arène, achetez-la. Si vous voulez nettoyer les héroïques plus vite, gagnez votre équipement dans les donjons.",
       "warfareTradeBodyRatingSpent": "C’est le compromis voulu. L’équipement de guerre sert à combattre les joueurs et ne permet pas de sauter les paliers de donjon : une pièce de guerre ne porte jamais les cotes de combat d’un épique de donjon dans le même emplacement, et les cotes et bonus qu’elle porte sont entièrement consacrés aux autres joueurs. Pour tenir votre rang dans l’arène, achetez-le. Pour terminer les donjons héroïques plus vite, gagnez votre équipement dans les donjons.",
       "vanguardHeading": "Équipement d'Avant-garde : Guerre saison 2",
-      "vanguardBody": "L'équipement d'Avant-garde est la deuxième saison de l'équipement de Guerre, vendu par les deux mêmes intendants au-dessus du palier d'origine, qui reste en vente. Chaque spécialisation a son propre ensemble d'Avant-garde de cinq pièces, pour la tête, les épaules, le torse, les jambes et les mains, et la boutique ne liste que les trois ensembles que votre classe peut porter, suivis des armes d'Avant-garde que vous pouvez manier. Une pièce d'Avant-garde porte les mêmes scores de Guerre que le palier d'origine à un niveau d'objet supérieur, et chaque ensemble a deux bonus, à deux et quatre pièces, qui modifient l'une des capacités de votre spécialisation. Contrairement aux ensembles d'origine, ces bonus fonctionnent partout, monstres compris, mais ils sont conçus pour affronter des joueurs, si bien qu'un ensemble de raid reste le meilleur choix dans un raid."
+      "vanguardBody": "L'équipement d'Avant-garde est la deuxième saison de l'équipement de Guerre, vendu par les deux mêmes intendants au-dessus du palier d'origine, qui reste en vente. Chaque spécialisation a son propre ensemble d'Avant-garde de cinq pièces, pour la tête, les épaules, le torse, les jambes et les mains, et la boutique ne liste que les trois ensembles que votre classe peut porter, suivis des armes d'Avant-garde que vous pouvez manier. Une pièce d'Avant-garde porte les mêmes scores de Guerre que le palier d'origine à un niveau d'objet supérieur, et chaque ensemble a deux bonus, à deux et quatre pièces, qui modifient l'une des capacités de votre spécialisation. Contrairement aux ensembles d'origine, ces bonus fonctionnent partout, monstres compris, mais ils sont conçus pour affronter des joueurs, si bien qu'un ensemble de raid reste le meilleur choix dans un raid.",
+      "vanguardStatsBody": "Contrairement au palier d'origine, l'équipement d'Avant-garde porte aussi des notes de combat : chaque pièce d'Avant-garde, arme et pendentif a un Score de critique ou un Score de hâte, et les pièces de lanceur de sorts et de soigneur ajoutent une Puissance des sorts ou une Puissance de soins. Les anneaux et pendentifs d'Avant-garde sont vendus à côté des armes, et toutes les classes peuvent les porter. Deux des anneaux d'Avant-garde de mêlée donnent exactement la Précision qui élimine la chance de base que vos attaques manquent un joueur de votre niveau, et deux anneaux de lanceur de sorts font de même pour vos sorts étant résistés. Les auto-attaques en combat à deux armes gardent leur chance supplémentaire de manquer. L'anneau de soigneur porte un Score de hâte à la place."
     },
     "worldPvpPage": {
       "heading": "JcJ en monde ouvert",
@@ -8332,6 +8367,7 @@ export const fr_CA: EnTranslations = {
       "hillBody": "Toutes les deux heures, une colline apparaît dans une des zones Les Terres du Dragon, Le Voile de Givre ou La Chute d'Ambre. Le royaume reçoit un avertissement quinze minutes avant et le cercle est marqué en terrain dégagé. La colline reste active trente minutes. Entrer dans le cercle actif lève votre drapeau JcJ mondial selon les conditions de niveau habituelles, même pour les membres d'un raid. Le groupe comptant le plus de joueurs admissibles à l'intérieur capture la colline après une minute de majorité ininterrompue ; un joueur seul compte comme un groupe d'une personne, mais les membres d'un raid et les joueurs sous le niveau requis pour le JcJ ne peuvent ni capturer ni gagner l'Honneur de la colline. Chaque détenteur à l'intérieur gagne de l'Honneur à un rythme croissant. Les versements et leur progression sont accélérés pour conserver l'Honneur total de l'ancien événement de quarante-cinq minutes. Un changement de détenteur réinitialise la progression. Sortir laisse votre drapeau levé ; /pvp off prend les cinq minutes habituelles et ne peut aboutir dans une colline active ni en combat. La barre affiche le contrôle, les effectifs et la progression de capture ; /hill indique l'emplacement.",
       "limitsBodyHour": "Defeating the same player again and again pays less each time and soon nothing, and your count against that player only starts over about an hour after the first of those kills, so camping one victim is never worth the wait. A target far below your level pays nothing at all. Battlegrounds and Arenas run their own rules while you are inside them, and they pay more Honor than the open world, so world PvP is the slower road to the same vendor.",
       "hillBodyRamp": "Toutes les deux heures, une colline apparaît dans une des zones Les Terres du Dragon, Le Voile de Givre ou La Chute d'Ambre. Le royaume reçoit un avertissement quinze minutes avant et le cercle est marqué en terrain dégagé. La colline reste active trente minutes. Entrer dans le cercle actif lève votre drapeau JcJ mondial selon les conditions de niveau habituelles, même pour les membres d'un raid. Le groupe comptant le plus de joueurs admissibles à l'intérieur capture la colline après une minute de majorité ininterrompue ; un joueur seul compte comme un groupe d'une personne, mais les membres d'un raid et les joueurs sous le niveau requis pour le JcJ ne peuvent ni capturer ni gagner l'Honneur de la colline. Chaque détenteur à l'intérieur gagne de l'Honneur à un rythme croissant. Les versements et leur progression sont accélérés pour conserver l'Honneur total de l'ancien événement de quarante-cinq minutes. Un changement de détenteur réinitialise la progression. Sortir laisse votre drapeau levé ; /pvp off prend les cinq minutes habituelles et ne peut aboutir dans une colline active ni en combat. La barre affiche le contrôle, les effectifs et la progression de capture ; /hill indique l'emplacement.",
+      "hillBodyRanked": "Toutes les deux heures, une colline apparaît dans une des zones Les Terres du Dragon, Le Voile de Givre ou La Chute d'Ambre. Le royaume reçoit un avertissement quinze minutes avant et le cercle est marqué en terrain dégagé. La colline reste active trente minutes. Entrer dans le cercle actif lève votre drapeau JcJ mondial selon les conditions de niveau habituelles, même pour les membres d'un raid. Le groupe comptant le plus de joueurs admissibles à l'intérieur capture la colline après une minute de majorité ininterrompue ; un joueur seul compte comme un groupe d'une personne, mais les membres d'un raid et les joueurs sous le niveau requis pour le JcJ ne peuvent ni capturer ni gagner l'Honneur de la colline. Chaque détenteur à l'intérieur gagne de l'Honneur à un rythme croissant. Les versements et leur progression sont accélérés pour conserver l'Honneur total de l'ancien événement de quarante-cinq minutes. Un changement de détenteur réinitialise la progression. Toutes les cinq minutes tandis que la colline se dresse, le royaume apprend sa position et les groupes classés par temps de détention. Quand la colline tombe, si le groupe qui l'a tenue le plus longtemps l'a tenue au moins dix minutes au total, chaque joueur qui est resté à l'intérieur pendant au moins une minute pour ce groupe et en est toujours membre remporte une victoire pour la ligne JcJ du Coffre hebdomadaire. Sortir laisse votre drapeau levé ; /pvp off prend les cinq minutes habituelles et ne peut aboutir dans une colline active ni en combat. La barre affiche le contrôle, les effectifs et la progression de capture ; /hill indique l'emplacement.",
       "limitsBodyRaids": "Vaincre le même joueur encore et encore rapporte de moins en moins puis bientôt plus rien, et votre compteur contre ce joueur ne repart de zéro qu'environ une heure après la première de ces victoires, si bien que camper une seule victime ne vaut jamais l'attente. Une cible très en dessous de votre niveau ne rapporte rien du tout. Les champs de bataille et les arènes suivent leurs propres règles tant que vous vous y trouvez, et ils rapportent plus d'Honneur que le monde ouvert, si bien que le JcJ en monde ouvert est la voie la plus lente vers le même marchand. Les raids ne gagnent rien des victoires en monde ouvert : un membre de raid ne reçoit ni Honneur ni or et ne réduit la part de personne d'autre, alors combattez en groupe pour être payé."
     },
     "thornhollowPage": {
@@ -9675,7 +9711,14 @@ export const fr_CA: EnTranslations = {
     "whitepaper": "Livre blanc",
     "terms": "Conditions d'utilisation",
     "privacy": "Politique de confidentialité",
-    "discordLabel": "Rejoindre le Discord"
+    "discordLabel": "Rejoindre le Discord",
+    "guidesLabel": "Guides des joueurs",
+    "guideFree": "MMORPG gratuits",
+    "guideGamesLikeWow": "Jeux comme WoW",
+    "guideBest": "Meilleurs MMORPG",
+    "guideNew": "Nouveaux MMORPG",
+    "guideBrowser": "MMORPG de navigateur",
+    "guideGamesLikeDiablo": "Jeux comme Diablo"
   },
   "settings": {
     "languageLoading": "Chargement de la langue...",
@@ -12772,6 +12815,7 @@ export const fr_CA: EnTranslations = {
       "dps": "({dps} dégâts par seconde)",
       "armorStat": "{value} armure",
       "stat": "+{value} {stat}",
+      "warfareMainHandOnly": "L'Art de la guerre ne compte que dans la main principale.",
       "useFood": "Utiliser : rend {amount} points de vie en {seconds} s. Vous devez rester assis en mangeant.",
       "useDrink": "Utiliser : rend {amount} points de mana en {seconds} s. Vous devez rester assis en buvant.",
       "useElixir": "Utiliser : augmente votre {stat} de {value} pendant {minutes} min. Remplace tout autre élixir ou parchemin du même attribut. Utilisable en combat.",
@@ -18465,6 +18509,30 @@ export const fr_CA: EnTranslations = {
       },
       "vanguard_feral_staff": {
         "name": "Bâton farouche de l’Avant-garde"
+      },
+      "vanguard_band_of_might": {
+        "name": "Anneau d'Avant-garde de Puissance"
+      },
+      "vanguard_band_of_precision": {
+        "name": "Anneau d'Avant-garde de Précision"
+      },
+      "vanguard_band_of_focus": {
+        "name": "Anneau d'Avant-garde de Concentration"
+      },
+      "vanguard_band_of_mending": {
+        "name": "Anneau d'Avant-garde de Soins"
+      },
+      "vanguard_pendant_of_might": {
+        "name": "Pendentif d'Avant-garde de Puissance"
+      },
+      "vanguard_pendant_of_precision": {
+        "name": "Pendentif d'Avant-garde de Précision"
+      },
+      "vanguard_pendant_of_focus": {
+        "name": "Pendentif d'Avant-garde de Concentration"
+      },
+      "vanguard_pendant_of_mending": {
+        "name": "Pendentif d'Avant-garde de Soins"
       },
       "conjured_water4": {
         "name": "Eau de source conjurée"

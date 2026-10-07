@@ -1201,27 +1201,27 @@ export const table: DeedLocaleTable = {
   },
   pvp_flag_1h: {
     name: 'Smělý',
-    desc: 'Nechte světové PvP zapnuté po 1 hodinu odehraného času. Odhlášení postup pozastaví; vypnutí jej vynuluje. Získané tituly jsou trvalé.',
+    desc: 'Nechte světové PvP zapnuté po 1 hodinu odehraného času v otevřeném světě. Odhlášení, smrt a instance postup pozastaví; vypnutí jej vynuluje. Získané tituly jsou trvalé.',
     title: 'Smělý',
   },
   pvp_flag_3h: {
     name: 'Vzdorovitý',
-    desc: 'Nechte světové PvP zapnuté po 3 hodiny odehraného času. Odhlášení postup pozastaví; vypnutí jej vynuluje. Získané tituly jsou trvalé.',
+    desc: 'Nechte světové PvP zapnuté po 3 hodiny odehraného času v otevřeném světě. Odhlášení, smrt a instance postup pozastaví; vypnutí jej vynuluje. Získané tituly jsou trvalé.',
     title: 'Vzdorovitý',
   },
   pvp_flag_6h: {
     name: 'Neohrožený',
-    desc: 'Nechte světové PvP zapnuté po 6 hodin odehraného času. Odhlášení postup pozastaví; vypnutí jej vynuluje. Získané tituly jsou trvalé.',
+    desc: 'Nechte světové PvP zapnuté po 6 hodin odehraného času v otevřeném světě. Odhlášení, smrt a instance postup pozastaví; vypnutí jej vynuluje. Získané tituly jsou trvalé.',
     title: 'Neohrožený',
   },
   pvp_flag_24h: {
     name: 'Neústupný',
-    desc: 'Nechte světové PvP zapnuté po 24 hodin odehraného času. Odhlášení postup pozastaví; vypnutí jej vynuluje. Získané tituly jsou trvalé.',
+    desc: 'Nechte světové PvP zapnuté po 24 hodin odehraného času v otevřeném světě. Odhlášení, smrt a instance postup pozastaví; vypnutí jej vynuluje. Získané tituly jsou trvalé.',
     title: 'Neústupný',
   },
   pvp_flag_168h: {
     name: 'Nezdolný',
-    desc: 'Nechte světové PvP zapnuté po 7 dní odehraného času. Odhlášení postup pozastaví; vypnutí jej vynuluje. Získané tituly jsou trvalé.',
+    desc: 'Nechte světové PvP zapnuté po 7 dní odehraného času v otevřeném světě. Odhlášení, smrt a instance postup pozastaví; vypnutí jej vynuluje. Získané tituly jsou trvalé.',
     title: 'Nezdolný',
   },
 };

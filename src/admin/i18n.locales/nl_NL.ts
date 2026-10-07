@@ -355,6 +355,8 @@ export const nl_NL: Record<string, string> = {
   'detail.accountActions': 'Acties voor accountmoderatie',
   'detail.banReason': 'Reden van verbod:{value}',
   'detail.suspensionReason': 'Reden van opschorting:{value}',
+  'detail.deactivatedNotice': 'De speler heeft dit account op {value} gedeactiveerd.',
+  'detail.reactivate': 'Heractiveren',
   'detail.notePlaceholder': 'Moderatornotitie / reden',
   'detail.suspend1h': '1u Schorsen',
   'detail.suspend24h': '24u Schorsen',
@@ -453,6 +455,7 @@ export const nl_NL: Record<string, string> = {
   'dialog.confirmBan': 'Verbanning bevestigen',
   'dialog.confirmUnban': 'Opheffing verbanning bevestigen',
   'dialog.confirmUnsuspension': 'Bevestig de opschorting',
+  'dialog.confirmReactivation': 'Heractivering bevestigen',
   'dialog.character': 'Personage',
   'dialog.account': 'Account',
   'dialog.action': 'Actie',
@@ -466,6 +469,8 @@ export const nl_NL: Record<string, string> = {
   'dialog.actionUnban': 'Inlogtoegang tot account herstellen',
   'dialog.actionUnsuspend':
     'Herstel de inlogtoegang van uw account vóór het verstrijken van de opschorting',
+  'dialog.actionReactivate':
+    'De deactivering door de speler zelf ongedaan maken en de inlogtoegang tot het account herstellen',
   'dialog.confirm': 'Bevestigen',
   'dialog.cancel': 'Annuleren',
   'dialog.warning': 'Waarschuwing',

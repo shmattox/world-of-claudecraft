@@ -189,7 +189,9 @@ describe('crafted wearability: the level-20 shelf is unmoved (masterwrought R5 s
     // Re-pinned 672 -> 768 at the release/v0.44.0 merge into feature/buried-hoards (2026-09-28): the 96 Buried Hoard boss
     // loot pieces (content/hoard_loot.ts) join on the same level-20 gate.
     // The Season 2 feral staff joins the same level-20 shelf.
-    expect(shelf.length).toBe(769);
+    // Re-pinned 769 -> 777 by the eight Season 2 rings and necks (2026-10-02),
+    // sourced at level 29 like the rest of the season.
+    expect(shelf.length).toBe(777);
     for (const def of shelf) {
       expect(requiredLevelFor(def), `${def.id} shelf gate`).toBe(20);
     }

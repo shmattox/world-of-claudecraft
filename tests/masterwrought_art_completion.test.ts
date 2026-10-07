@@ -825,7 +825,8 @@ describe('Masterwrought art completion evidence', () => {
     // + the trinket slot's 18 (trinket-slot-icons-2026-09-23, PR 4173): 1,341. Warfare Season 2's four painted
     // weapons (warfare-season2-weapons-2026-09-25): 1,345, likewise outside it.
     // The separate feral Season 2 staff painting adds one current owner.
-    expect(currentOwnerIds).toHaveLength(1465);
+    // The eight Season 2 jewelry icons (vanguard-jewelry-icons-2026-10-03): 1,473.
+    expect(currentOwnerIds).toHaveLength(1473);
     for (const id of datedIds) {
       expect(currentOwnerIds.includes(id), `${id} still has a current mapping owner`).toBe(true);
     }
@@ -943,6 +944,16 @@ describe('Masterwrought art completion evidence', () => {
     ]);
     expect(datedIds.filter((id) => season2WeaponIds.has(id))).toEqual([]);
     expect(currentOwnerIds.filter((id) => season2WeaponIds.has(id))).toHaveLength(5);
+    // The Warfare Season 2 jewelry icons, one SVG batch
+    // (vanguard-jewelry-icons-2026-10-03): 8 ids, additive the same way.
+    const season2JewelryIds = new Set(
+      mapping.generatedBatches
+        .filter(({ batchId }) => batchId === 'vanguard-jewelry-icons-2026-10-03')
+        .flatMap(({ itemIds }) => itemIds),
+    );
+    expect(season2JewelryIds.size).toBe(8);
+    expect(datedIds.filter((id) => season2JewelryIds.has(id))).toEqual([]);
+    expect(currentOwnerIds.filter((id) => season2JewelryIds.has(id))).toHaveLength(8);
 
     // The Buried Hoards branch's three batches (faction reward paintings,
     // treasure-map family, hoard boss loot): 18 + 5 + 96 = 119 ids, additive
@@ -987,6 +998,7 @@ describe('Masterwrought art completion evidence', () => {
         id !== 'emissary_cache' &&
         id !== 'reins_avian_strider' &&
         !season2WeaponIds.has(id) &&
+        !season2JewelryIds.has(id) &&
         !hoardBranchIds.has(id),
     );
     expect(completionOwnerIds).toHaveLength(1209);

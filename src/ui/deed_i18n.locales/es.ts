@@ -1242,27 +1242,27 @@ export const table: DeedLocaleTable = {
   },
   pvp_flag_1h: {
     name: 'Audaz',
-    desc: 'Mantén el JcJ mundial activado durante 1 hora de tiempo jugado. Desconectarte pausa el progreso; desactivarlo lo reinicia. Los títulos obtenidos son permanentes.',
+    desc: 'Mantén el JcJ mundial activado durante 1 hora de tiempo jugado en el mundo abierto. Desconectarte, morir o entrar en instancias pausa el progreso; desactivarlo lo reinicia. Los títulos obtenidos son permanentes.',
     title: 'Audaz',
   },
   pvp_flag_3h: {
     name: 'Desafiante',
-    desc: 'Mantén el JcJ mundial activado durante 3 horas de tiempo jugado. Desconectarte pausa el progreso; desactivarlo lo reinicia. Los títulos obtenidos son permanentes.',
+    desc: 'Mantén el JcJ mundial activado durante 3 horas de tiempo jugado en el mundo abierto. Desconectarte, morir o entrar en instancias pausa el progreso; desactivarlo lo reinicia. Los títulos obtenidos son permanentes.',
     title: 'Desafiante',
   },
   pvp_flag_6h: {
     name: 'Intrépido',
-    desc: 'Mantén el JcJ mundial activado durante 6 horas de tiempo jugado. Desconectarte pausa el progreso; desactivarlo lo reinicia. Los títulos obtenidos son permanentes.',
+    desc: 'Mantén el JcJ mundial activado durante 6 horas de tiempo jugado en el mundo abierto. Desconectarte, morir o entrar en instancias pausa el progreso; desactivarlo lo reinicia. Los títulos obtenidos son permanentes.',
     title: 'Intrépido',
   },
   pvp_flag_24h: {
     name: 'Inflexible',
-    desc: 'Mantén el JcJ mundial activado durante 24 horas de tiempo jugado. Desconectarte pausa el progreso; desactivarlo lo reinicia. Los títulos obtenidos son permanentes.',
+    desc: 'Mantén el JcJ mundial activado durante 24 horas de tiempo jugado en el mundo abierto. Desconectarte, morir o entrar en instancias pausa el progreso; desactivarlo lo reinicia. Los títulos obtenidos son permanentes.',
     title: 'Inflexible',
   },
   pvp_flag_168h: {
     name: 'Indomable',
-    desc: 'Mantén el JcJ mundial activado durante 7 días de tiempo jugado. Desconectarte pausa el progreso; desactivarlo lo reinicia. Los títulos obtenidos son permanentes.',
+    desc: 'Mantén el JcJ mundial activado durante 7 días de tiempo jugado en el mundo abierto. Desconectarte, morir o entrar en instancias pausa el progreso; desactivarlo lo reinicia. Los títulos obtenidos son permanentes.',
     title: 'Indomable',
   },
 };

@@ -2443,13 +2443,15 @@ describe('the cvault wire signature premise: stock writers are confined', () => 
     expect(wholeRecordWrite.test(sanctioned)).toBe(true);
     // Fields that are merely NAMED vault but are not the materials vault record,
     // matched by their exact assignment (never by file): a Buried Hoard Rift
-    // instance's vault descriptor (RiftInstance.vault, src/sim/rift/runs.ts) and
+    // instance's vault descriptor (RiftInstance.vault, src/sim/rift/runs.ts),
+    // both its install at entry and its clear when the instance resets, and
     // the server's hoard-vault service object (GameServer.vault, server/game.ts).
     // Each is stripped before the patterns run, so any OTHER `.vault = ` in the
     // same file still reds, and each must match exactly once so a stale entry
     // reds too.
     const notTheMaterialsVault = [
       /\binst\.vault\s*=\s*vaultForPortal\(/g,
+      /\binst\.vault\s*=\s*null;/g,
       /\bthis\.vault\s*=\s*new VaultGameServices\(/g,
     ];
     const exemptionHits = notTheMaterialsVault.map(() => 0);

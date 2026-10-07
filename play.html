@@ -635,6 +635,8 @@
         <h2 class="ui-cin" data-i18n="hud.core.deathTitle">You have died.</h2>
         <div class="death-actions">
           <button type="button" class="btn ui-btn ui-btn--red ui-btn--lg" id="release-btn" data-i18n="hud.core.releaseSpirit">Release Spirit</button>
+          <!-- Shown only while the corpse carries the PvP Resurrect offer (src/ui/hud/death). -->
+          <button type="button" class="btn ui-btn ui-btn--lg" id="pvp-resurrect-btn" style="display: none" data-i18n="hudChrome.death.pvpResurrect" data-i18n-title="hudChrome.death.pvpResurrectTitle" title="Revive at the nearest graveyard at full health, without a new Keeper's Toll.">PvP Resurrect</button>
           <button type="button" class="btn ui-btn ui-btn--lg" id="death-recap-btn" data-i18n="hud.core.deathRecap">Recap</button>
         </div>
       </div>
@@ -1244,13 +1246,13 @@
             <a
               class="btn btn-primary desktop-download-link"
               data-platform="mac"
-              href="https://updates.worldofclaudecraft.com/desktop/world-of-claudecraft-0.44.1-mac-universal.dmg"
+              href="https://updates.worldofclaudecraft.com/desktop/world-of-claudecraft-0.44.4-mac-universal.dmg"
               data-i18n="download.macCta"
             >Download for macOS</a>
             <a
               class="btn btn-primary desktop-download-link"
               data-platform="win"
-              href="https://updates.worldofclaudecraft.com/desktop/world-of-claudecraft-0.44.1-win-x64.exe"
+              href="https://updates.worldofclaudecraft.com/desktop/world-of-claudecraft-0.44.4-win-x64.exe"
               data-i18n="download.windowsCta"
             >Download for Windows</a>
           </div>
@@ -1300,12 +1302,20 @@
           <span data-i18n="nav.donate">Donate</span>
         </a>
       </div>
-      <div id="game-version">v0.44.1</div>
+      <div id="game-version">v0.44.4</div>
       </div>
       <div class="footer-legal-row">
         <a href="/terms" class="footer-link" target="_blank" rel="noopener noreferrer" data-i18n="footer.terms">Terms of Service</a>
         <a href="/privacy" class="footer-link" target="_blank" rel="noopener noreferrer" data-i18n="footer.privacy">Privacy Policy</a>
       </div>
+      <nav class="footer-guides-row" aria-label="Player guides" data-i18n-aria="footer.guidesLabel">
+        <a href="/mmorpgs/free" class="footer-link" data-i18n="footer.guideFree">Free MMORPGs</a>
+        <a href="/games-like/world-of-warcraft" class="footer-link" data-i18n="footer.guideGamesLikeWow">Games like WoW</a>
+        <a href="/mmorpgs/best" class="footer-link" data-i18n="footer.guideBest">Best MMORPGs</a>
+        <a href="/mmorpgs/new" class="footer-link" data-i18n="footer.guideNew">New MMORPGs</a>
+        <a href="/mmorpgs/browser" class="footer-link" data-i18n="footer.guideBrowser">Browser MMORPGs</a>
+        <a href="/games-like/diablo" class="footer-link" data-i18n="footer.guideGamesLikeDiablo">Games like Diablo</a>
+      </nav>
       <div class="footer-lang-row">
         <div class="language-selector">
           <label for="lang-select" class="visually-hidden" data-i18n="a11y.languageSelection">Language selection</label>

@@ -47,6 +47,8 @@ function joinedAtEpochMs(raw: unknown): number | null {
 
 export const SOCIAL_SCHEMA = `
 ALTER TABLE characters ADD COLUMN IF NOT EXISTS realm TEXT NOT NULL DEFAULT '${DEFAULT_REALM.replace(/'/g, "''")}';
+-- Presence privacy (server/presence_privacy.ts): everyone | friends | none.
+ALTER TABLE characters ADD COLUMN IF NOT EXISTS presence_mode TEXT NOT NULL DEFAULT 'everyone';
 CREATE INDEX IF NOT EXISTS characters_realm ON characters(realm);
 -- Classic MMOs make character names unique per realm, not globally. Relax the original
 -- global unique on characters.name to a (realm, name) composite. This is a

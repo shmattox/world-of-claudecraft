@@ -140,11 +140,11 @@ export const table: ReliquaryLocaleTable = {
   },
   conquerors_warfare_gallery: {
     name: 'Galeria Wojny',
-    desc: 'Pięć bojowych zestawów Wojny, zdobywanych sztuka po sztuce za honor.',
+    desc: 'Pięć bojowych zestawów Wojen pierwszego sezonu, teraz sprzedawanych kawałek po kawałku za złoto.',
   },
   conquerors_warfare_armory: {
     name: 'Zbrojownia Wojny',
-    desc: 'Biżuteria i bronie Wojny kupione za ciężko wywalczony honor.',
+    desc: 'Biżuteria i broń Wojny, pierwszy sezon za złoto i dwa talizmany za honor.',
   },
   conquerors_vanguard_gallery: {
     name: 'Galeria Awangardy',

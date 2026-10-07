@@ -84,18 +84,30 @@ describe('special-role resolution (staff flair)', () => {
   it('indexes ALL ids that map to a key so either "Admin" or "Admins" resolves', () => {
     const index = indexSpecialRoleIds(guildRoles);
     // Both admin-aliased role ids are kept (the old first-wins map dropped one).
-    expect(index.get('r-admin')).toBe('admin');
-    expect(index.get('r-admins')).toBe('admin');
+    // Admin has no tag of its own: both ids surface as the Sentinel flair.
+    expect(index.get('r-admin')).toBe('seniormods');
+    expect(index.get('r-admins')).toBe('seniormods');
     expect(index.get('r-member')).toBeUndefined(); // not a special role
-    // A holder of EITHER admin role id resolves to the 'admin' flair.
-    expect(topSpecialRoleKeyFor(['r-admin'], index)).toBe('admin');
-    expect(topSpecialRoleKeyFor(['r-admins'], index)).toBe('admin');
+    // A holder of EITHER admin role id resolves to the Sentinel flair.
+    expect(topSpecialRoleKeyFor(['r-admin'], index)).toBe('seniormods');
+    expect(topSpecialRoleKeyFor(['r-admins'], index)).toBe('seniormods');
     expect(topSpecialRoleKeyFor(['r-member'], index)).toBeNull();
+  });
+
+  it('keeps resolving the mod-tier roles after the guild renamed them', () => {
+    // The bug: renaming Junior Mods to Observer and Senior Mods to Sentinel kept
+    // the role ids but changed the names, so the name match dropped every holder.
+    const renamed = indexSpecialRoleIds([
+      { id: 'r-junior', name: 'Observer' },
+      { id: 'r-senior', name: 'Sentinel' },
+    ]);
+    expect(topSpecialRoleKeyFor(['r-junior'], renamed)).toBe('juniormods');
+    expect(topSpecialRoleKeyFor(['r-senior'], renamed)).toBe('seniormods');
   });
 
   it('picks the highest-priority special role a member holds', () => {
     const index = indexSpecialRoleIds(guildRoles);
-    // Levy St (priority 11) outranks Admin (10) per the shared catalog.
+    // Levy St outranks the Admin (Sentinel) flair per the shared catalog.
     expect(topSpecialRoleKeyFor(['r-admins', 'r-levy'], index)).toBe('levyst');
   });
 
@@ -108,8 +120,8 @@ describe('special-role resolution (staff flair)', () => {
     // member's COMPLETE role list, so the reconciled state replaces the cache.
     const after = reconcileMemberRolesFromUpdate({ roles: ['r-member', 'r-admins'] });
     expect(after).toEqual(['r-member', 'r-admins']);
-    // After: 'admin' now resolves where it did not before (the core bug fix).
-    expect(topSpecialRoleKeyFor(after ?? [], index)).toBe('admin');
+    // After: the Admins holder now resolves where it did not before (the core bug fix).
+    expect(topSpecialRoleKeyFor(after ?? [], index)).toBe('seniormods');
   });
 
   it('leaves the cache untouched when an update carries no roles array', () => {

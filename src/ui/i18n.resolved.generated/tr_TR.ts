@@ -438,7 +438,9 @@ export const tr_TR: EnTranslations = {
         "worldOne": "{count} Dünya Görevi Tamamlandı",
         "worldMany": "{count} Dünya Görevi Tamamlandı",
         "pvpOne": "{count} Derecelendirilmiş Maç Kazanıldı",
-        "pvpMany": "{count} Derecelendirilmiş Maç Kazanıldı"
+        "pvpMany": "{count} Derecelendirilmiş Maç Kazanıldı",
+        "pvpWinOne": "{count} PvP Galibiyeti",
+        "pvpWinMany": "{count} PvP Galibiyeti"
       },
       "requiredTask": {
         "raidOne": "{count} Baskın Karşılaşmasını Temizle",
@@ -448,7 +450,9 @@ export const tr_TR: EnTranslations = {
         "worldOne": "{count} Dünya Görevini Tamamla",
         "worldMany": "{count} Dünya Görevini Tamamla",
         "pvpOne": "{count} Derecelendirilmiş Maçı Kazan",
-        "pvpMany": "{count} Derecelendirilmiş Maçı Kazan"
+        "pvpMany": "{count} Derecelendirilmiş Maçı Kazan",
+        "pvpWinOne": "{count} PvP Galibiyeti Al",
+        "pvpWinMany": "{count} PvP Galibiyeti Al"
       },
       "readyWeeks": "Talep edilmemiş haftalar: {count}. İlk tamamlanan haftayı talep et.",
       "claimLastWeek": "Geçen haftanın ödülünü al",
@@ -594,6 +598,8 @@ export const tr_TR: EnTranslations = {
     },
     "death": {
       "resurrectAtCorpse": "Cesedinin Başında Diril",
+      "pvpResurrect": "PvP Diriltme",
+      "pvpResurrectTitle": "En yakın mezarlıkta tam sağlıkla dirilt, yeni bir Bekçi Bedeli olmadan.",
       "resurrectAtHealer": "Solgun Bekçi (Bekçinin Bedeli)",
       "ghostHint": "Ölüm yerine koş veya diriltilmek için Soluk Bekçi ile konuş",
       "spiritHealerAlive": "Solgun Bekçi ölüleri gözetir. Sen hâlâ yaşayanlar arasındasın.",
@@ -2786,8 +2792,10 @@ export const tr_TR: EnTranslations = {
     },
     "worldPvp": {
       "rewardBonus": "{percent} daha fazla deneyim ve fraksiyon itibarı kazanmak için Dünya PvP’sini açık tut. Kapatmayı talep ettiğinde bonuslar sona erer.",
-      "rewardTitles": "Dünya PvP’si açıkken {thresholds} oynama süresine ulaşarak kalıcı unvanlar kazan. Çıkış yapmak ve Sınav Kıyısı’nı ziyaret etmek sayacı duraklatır. Kapatmak sayacı sıfırlar.",
+      "rewardTitles": "Açık dünyada Dünya PvP’si açıkken {thresholds} oynama süresine ulaşarak kalıcı unvanlar kazan. Çıkış yapmak, ölü olmak, örneklerde bulunmak ve Sınav Kıyısı’nı ziyaret etmek sayacı duraklatır. Kapatmak sayacı sıfırlar.",
       "rewardPaused": "Mevcut PvP serisi: {time} oynandı (Sınav Kıyısı’nda duraklatıldı)",
+      "rewardPausedDead": "Mevcut PvP serisi: {time} oynandı (ölüyken duraklatıldı)",
+      "rewardPausedInstance": "Mevcut PvP serisi: {time} oynandı (örneklerde duraklatıldı)",
       "rewardProgress": "Mevcut PvP serisi: {time} oynandı",
       "tab": "Dünya PvP",
       "title": "Dünya PvP",
@@ -2843,6 +2851,15 @@ export const tr_TR: EnTranslations = {
       "falls": "{minutes} içinde düşüyor",
       "pvpEntry": "Aktif çembere girmek Dünya PvP'yi açar.",
       "pvpBanner": "PvP",
+      "callout": {
+        "killingSpree": "{name} Katliam Akışındadır!",
+        "rampage": "{name} Çılgın Öfkededir!",
+        "unstoppable": "{name} Durdurulamaz!",
+        "dominating": "{name} Hükmediyor!",
+        "godlike": "{name} Tanrısal!",
+        "legendary": "{name} Efsanevî!",
+        "shutDown": "{killer}, {victim} serisini bitirdi!"
+      },
       "standingRaid": "Akın üyeleri sayılmaz: yalnızca partiler tepeyi tutabilir"
     },
     "warfareShop": {
@@ -2855,7 +2872,8 @@ export const tr_TR: EnTranslations = {
       "owned": "Sahip",
       "buyAria": "{honor} karşılığında {item} satın al",
       "buyOwnedAria": "{honor} karşılığında {item} satın al, zaten sahipsin",
-      "buyConfirmBody": "{honor} karşılığında {item} satın alınsın mı? Onur ile yapılan alımlar iade edilemez."
+      "buyConfirmBody": "{honor} karşılığında {item} satın alınsın mı? Onur ile yapılan alımlar iade edilemez.",
+      "buyConfirmBodyGold": "{item} için {price} karşılığında satın alınsın mı? Bu satın alma geri alınamaz."
     },
     "charSheet": {
       "offense": "Saldırı",
@@ -3878,8 +3896,8 @@ export const tr_TR: EnTranslations = {
         "boneSpikeHeroicSummary": "Her {everyHeroic} sn, Nythraxis mevcut hedefi dışındaki {victimsHeroic} akıncıyı Kemik Dikenlerine saplar. Saplanan akıncı hareket edemez ve dikeni yok edilene kadar her saniye azami canının {drainHeroic} kadarını kaybeder. Bir diken, kimden gelirse gelsin {hitsHeroic} vuruştan sonra parçalanır; verilen hasar fark etmez. Zaten şişlenmiş bir oyuncu {cooldown} saniye boyunca yeniden seçilemez, böylece dikenler tüm baskına yayılır.",
         "boneSpikeResponse": "En yakındaki kişi Kemik Dikeni'ne vurur: kimden gelirse gelsin birkaç vuruş onu parçalar, hasar fark etmez. Şifacılar dikenler yıkılana dek şişlenenleri hayatta tutar.",
         "graveEruptionName": "Mezar Patlaması",
-        "graveEruptionSummary": "Her {everyNormal} sn, iskelet eller akıncıların altında {radius} yd yarıçaplı {countNormal} çember işaretler. {warning} sn sonra her çember azami canın {burstNormal} kadarı kadar Gölge hasarıyla patlar, ardından {flameNormal} sn boyunca Mezar Alevi olarak yanar ve içinde duran herkese her saniye azami canın {tickNormal} kadarını verir.",
-        "graveEruptionHeroicSummary": "Her {everyHeroic} sn, iskelet eller akıncıların altında {radius} yd yarıçaplı {countHeroic} çember işaretler. {warning} sn sonra her çember azami canın {burstHeroic} kadarı kadar Gölge hasarıyla patlar, ardından {flameHeroic} sn boyunca Mezar Alevi olarak yanar ve içinde duran herkese her saniye azami canın {tickHeroic} kadarını verir.",
+        "graveEruptionSummary": "Her {everyNormal} sn, iskelet eller akıncıların altında {radius} yd yarıçaplı {countNormal} çember işaretler. {warning} sn sonra her çember azami canın {burstNormal} kadarı kadar Gölge hasarıyla patlar, ardından {flameNormal} sn boyunca Mezar Alevi olarak yanar ve içinde duran herkese her saniye azami canın {tickNormal} kadarını verir. Ruh Yırtma işaretleri etkinken veya kaybolduktan sonraki {gap} sn içinde asla gerçekleşmez.",
+        "graveEruptionHeroicSummary": "Her {everyHeroic} sn, iskelet eller akıncıların altında {radius} yd yarıçaplı {countHeroic} çember işaretler. {warning} sn sonra her çember azami canın {burstHeroic} kadarı kadar Gölge hasarıyla patlar, ardından {flameHeroic} sn boyunca Mezar Alevi olarak yanar ve içinde duran herkese her saniye azami canın {tickHeroic} kadarını verir. Ruh Yırtma işaretleri etkinken veya kaybolduktan sonraki {gap} sn içinde asla gerçekleşmez.",
         "graveEruptionResponse": "Her uyarı çemberi patlamadan önce dışına çıkın ve yanan zeminden uzak durun. Tanklar Nythraxis’i alevlerden uzaklaştırır, böylece yakın dövüşün çalışacak alanı kalır.",
         "bindingSigilName": "Bağlama Mührü",
         "bindingSigilSummary": "Her {everyNormal} sn, tahtın iki yanındaki iki platformdan birinde, Nythraxis’in çekiş anında durduğu yerin (baskın açısından) solunda ya da sağında {sideOffset} yd uzakta, her seferinde diğer tarafta, eski muhafazaların mührü parlar ve Nythraxis Ölümsüz Yükseliş’e başlar; her {ascensionEvery} sn {ascensionNormal} hasar ve saldırı hızı kazanır. {bindNormal} sn içinde mührün üzerinde durursa Bağlanır: Yükseliş arındırılır, {stunNormal} sn sersemletilir ve {boundNormal} sn boyunca {vulnerability} daha fazla hasar alır. Aksi halde her akıncı azami canın {unboundHitNormal} kadarı kadar Gölge hasarı alır ve Nythraxis sonraki bağlamaya kadar {unboundBonusNormal} daha fazla hasarı korur.",
@@ -4194,6 +4212,7 @@ export const tr_TR: EnTranslations = {
       "mobLevel": "{level}",
       "mobEliteLevel": "{level}+",
       "afkTag": "UZAKTA",
+      "bountyTag": "Ödül {honor}",
       "pvpTag": "PvP",
       "cheaterTag": "< Hileci >",
       "pledgeTag": "{guild} Yeminlisi",
@@ -4579,12 +4598,11 @@ export const tr_TR: EnTranslations = {
       "memberSinceDays": "Discord'da {days}g",
       "roleTag": {
         "levyst": "Levy St",
-        "admin": "Yönetici",
         "coredevs": "Çekirdek Geliştirici",
         "devs": "Geliştirici",
-        "seniormods": "Kıdemli Moderatör",
+        "seniormods": "Nöbetçi",
         "mods": "Moderatör",
-        "juniormods": "Yardımcı Moderatör",
+        "juniormods": "Gözlemci",
         "artists": "Sanatçı",
         "contentcreator": "İçerik Üreticisi",
         "legend": "EFSANE",
@@ -5049,6 +5067,13 @@ export const tr_TR: EnTranslations = {
       "offlineHeader": "Çevrimdışı ({n})",
       "hideOffline": "Çevrimdışıları gizle",
       "hideOfflineTitle": "Çevrimdışı lonca üyelerini gizle",
+      "presence": {
+        "label": "Beni çevrimiçi olarak göster",
+        "everyone": "Herkes",
+        "friends": "Sadece arkadaşlar",
+        "none": "Kimse",
+        "title": "Kimin seni arkadaş listelerinde ve lonca çizelgesinde çevrimiçi göreceği, bölgen ve harita konumunla. Partun seni her zaman görür."
+      },
       "billboard": {
         "label": "Lonca Panosu",
         "empty": "Panoda henüz bir şey yok.",
@@ -7037,7 +7062,14 @@ export const tr_TR: EnTranslations = {
       "discord": "Discord'a Katıl",
       "communityWiki": "Topluluk Wiki'si",
       "rights": "World of ClaudeCraft",
-      "linksLabel": "Oyun ve topluluk bağlantıları"
+      "linksLabel": "Oyun ve topluluk bağlantıları",
+      "guidesLabel": "Oyuncu Rehberleri",
+      "guideFree": "Ücretsiz MMORPG'ler",
+      "guideGamesLikeWow": "WoW Gibi Oyunlar",
+      "guideBest": "En İyi MMORPG'ler",
+      "guideNew": "Yeni MMORPG'ler",
+      "guideBrowser": "Tarayıcı MMORPG'leri",
+      "guideGamesLikeDiablo": "Diablo Gibi Oyunlar"
     },
     "language": {
       "label": "Dil",
@@ -7549,6 +7581,8 @@ export const tr_TR: EnTranslations = {
       "arena": "Kül Kolezyumu’ndaki her iki kademedeki durumun: puan, galibiyet, mağlubiyet ve 1v1 ile 2v2 için galibiyet oranı.",
       "pvp": "World PvP flag: /pvp toggles it, /pvp on and /pvp off set it. Flagged players can fight each other anywhere; switching off takes 5 minutes.",
       "pvpZones": "Dünya PvP bayrağı: /pvp durumunu değiştirir, /pvp on açar ve /pvp off kapatır. Bayraklı oyuncular çekişmeli bölgelerde birbirleriyle savaşabilir, sığınaklarda dünya savaşlarına hiç izin verilmez ve Tepe Derdine etkinliğinin aktif çemberine girmek bayrağını açar; kapanması 5 dakika sürer.",
+      "presence": "Arkadaş listelerinde, lonca çizelgesinde ve /who'da seni çevrimiçi olarak kimin göreceği: /presence everyone (varsayılan), /presence friends (sadece arkadaş listendeki oyuncular) veya /presence none. Gizliyken, senin için hiç çevrimiçi nokta, bölge veya harita konumu görmezler, fakat fısıltılar ve davetiyeler sana ulaşmaya devam eder; grubun seni her zaman görür. Düz /presence sana hangisinin ayarlanmış olduğunu söyler.",
+      "flair": "Discord rolünü diğer oyunculara gösterir veya gizler; yani renkli adını, rol etiketini ve doğrulanmış sohbet etiketini: /flair on gösterir, /flair off gizler, yalnızca /flair ise hangisinin ayarlı olduğunu söyler. Bağlı bir Discord hesabı gerekir.",
       "listings": "Dünya Pazarı’ndaki kendi ilanların, istenen fiyat, her birinde kalan süre ve daha fazlası için ne kadar yerin olduğuyla birlikte.",
       "buyback": "Yakın zamanda bir satıcıya sattığın ve hâlâ geri alabileceğin şeyler.",
       "groupState": "Şu anda nasıl olduğun",
@@ -8311,7 +8345,8 @@ export const tr_TR: EnTranslations = {
       "warfareTradeBody": "Bu bilinçli bir değiş tokuştur. Harp teçhizatı oyuncularla dövüşmek için yapılmıştır, zindan kademelerini atlamanın bir kestirmesi değildir: bir Harp parçası aynı yuvadaki destansı bir zindan parçasının taşıdığı savaş puanlarını asla taşımaz, ve getirdiği her şey diğer oyunculara harcanır. Arenada kendini tutmak istiyorsan onu satın al. Kahramanca zindanları daha hızlı temizlemek istiyorsan teçhizatını zindanlarda kazan.",
       "warfareTradeBodyRatingSpent": "Bu, kasıtlı takastır. Harp teçhizatı zindan kademelerini atlamak için değil, oyuncularla savaşmak için yapılır: bir Harp parçası aynı yuvadaki zindan epik parçasının taşıdığı savaş derecelerini asla taşımaz; onun yerine taşıdığı Harp derecesi ve set bonusları tamamen diğer oyunculara harcanır. Arenada ayakta kalmak istiyorsan onu satın al. Kahramanca zindanları daha hızlı temizlemek istiyorsan teçhizatını zindanlardan kazan.",
       "vanguardHeading": "Vanguard Ekipmesi: Savaş Mevsimi 2",
-      "vanguardBody": "Vanguard ekipmesi, Savaş Ekipmanı'nın ikinci mevsimi olup, aynı iki çeyiz hakkanı tarafından orijinal seviyenin üstünde satılmakta ve orijinal kat satışa devam eder. Her özel dallanma kendi beş parçalık Vanguard setine sahip, baş, omuzlar, göğüs, bacaklar ve eller için ve mağaza sadece sınıfının giyebileceği üç seti listeler, bunu takip eden Vanguard silahlarını senin kullanabileceğin. Bir Vanguard parçası orijinal seviye olarak aynı Savaş Derecelendirmelerini daha yüksek bir ürün seviyesinde taşır, ve her set iki bonus, iki ve dört parçada, birini değiştirir. Orijinal setlerin aksine, bu bonuslar her yerde, canavarlar dahil çalışır, ancak oyuncu dövüşü için yerleştirilir, böylece raid seti raid içinde daha iyi seçim kalır."
+      "vanguardBody": "Vanguard ekipmesi, Savaş Ekipmanı'nın ikinci mevsimi olup, aynı iki çeyiz hakkanı tarafından orijinal seviyenin üstünde satılmakta ve orijinal kat satışa devam eder. Her özel dallanma kendi beş parçalık Vanguard setine sahip, baş, omuzlar, göğüs, bacaklar ve eller için ve mağaza sadece sınıfının giyebileceği üç seti listeler, bunu takip eden Vanguard silahlarını senin kullanabileceğin. Bir Vanguard parçası orijinal seviye olarak aynı Savaş Derecelendirmelerini daha yüksek bir ürün seviyesinde taşır, ve her set iki bonus, iki ve dört parçada, birini değiştirir. Orijinal setlerin aksine, bu bonuslar her yerde, canavarlar dahil çalışır, ancak oyuncu dövüşü için yerleştirilir, böylece raid seti raid içinde daha iyi seçim kalır.",
+      "vanguardStatsBody": "Orijinal seviyenin aksine, Öncü ekipmesi savaş puanlarını da taşır: her Öncü zırh parçası, silah ve kolyenin Kritik Puanı veya Hız Puanı vardır ve büyücü ile iyileştirici parçalar Büyü Gücü veya İyileştirme Gücü ekler. Öncü yüzükleri ve kolyeler silahların yanında satılır ve her sınıf onları giyebilir. Öncü yakın dövüş yüzüklerinden ikisi tam olarak senin sınıfının oyuncusu kadar seviyedeki saldırılarını vuracağı şansını ortadan kaldıran İsabetlilik Puanı verir ve iki büyü yüzüğü senin büyülerinin dirençli olması için aynı şeyi yapar. Çift silah tutarken otomatik saldırılar ekstra kaçırma şansını korur. İyileştirici yüzüğü bunun yerine Hız Puanı taşır."
     },
     "worldPvpPage": {
       "heading": "Dünya PvP",
@@ -8332,6 +8367,7 @@ export const tr_TR: EnTranslations = {
       "hillBody": "Her iki saatte bir Ejder Toprakları, Kırağı Diyarı veya Kehribar Vadisi'nde bir tepe belirir. Diyara on beş dakika önceden uyarı verilir ve çember açık arazide işaretlenir. Tepe otuz dakika aktif kalır. Aktif çembere girmek, baskın üyeleri dahil herkesin Dünya PvP bayrağını normal seviye kurallarına göre açar. İçeride en çok uygun oyuncusu bulunan grup, çoğunluğunu kesintisiz bir dakika koruduktan sonra tepeyi ele geçirir; tek başına oynayan biri tek kişilik grup sayılır, ancak baskın üyeleri ve PvP seviye şartının altındaki oyuncular tepeyi ele geçiremez veya tepeden Onur kazanamaz. İçeride duran her hâkim grup üyesi giderek artan hızda Onur kazanır. Ödemeler daha sık yapılır ve daha hızlı artar; böylece eski kırk beş dakikalık etkinliğin toplam Onur miktarı korunur. Tepe el değiştirdiğinde ödül artışı baştan başlar. Çemberden ayrılınca bayrağın açık kalır; /pvp off normal beş dakikalık gecikmeyi kullanır ve aktif tepenin içindeyken veya savaş sırasında tamamlanamaz. Tepe çubuğu kontrolü, oyuncu sayılarını ve ele geçirme ilerlemesini gösterir; /hill konumunu bildirir.",
       "limitsBodyHour": "Defeating the same player again and again pays less each time and soon nothing, and your count against that player only starts over about an hour after the first of those kills, so camping one victim is never worth the wait. A target far below your level pays nothing at all. Battlegrounds and Arenas run their own rules while you are inside them, and they pay more Honor than the open world, so world PvP is the slower road to the same vendor.",
       "hillBodyRamp": "Her iki saatte bir Ejder Toprakları, Kırağı Diyarı veya Kehribar Vadisi'nde bir tepe belirir. Diyara on beş dakika önceden uyarı verilir ve çember açık arazide işaretlenir. Tepe otuz dakika aktif kalır. Aktif çembere girmek, baskın üyeleri dahil herkesin Dünya PvP bayrağını normal seviye kurallarına göre açar. İçeride en çok uygun oyuncusu bulunan grup, çoğunluğunu kesintisiz bir dakika koruduktan sonra tepeyi ele geçirir; tek başına oynayan biri tek kişilik grup sayılır, ancak baskın üyeleri ve PvP seviye şartının altındaki oyuncular tepeyi ele geçiremez veya tepeden Onur kazanamaz. İçeride duran her hâkim grup üyesi giderek artan hızda Onur kazanır. Ödemeler daha sık yapılır ve daha hızlı artar; böylece eski kırk beş dakikalık etkinliğin toplam Onur miktarı korunur. Tepe el değiştirdiğinde ödül artışı baştan başlar. Çemberden ayrılınca bayrağın açık kalır; /pvp off normal beş dakikalık gecikmeyi kullanır ve aktif tepenin içindeyken veya savaş sırasında tamamlanamaz. Tepe çubuğu kontrolü, oyuncu sayılarını ve ele geçirme ilerlemesini gösterir; /hill konumunu bildirir.",
+      "hillBodyRanked": "Her iki saatte bir Ejder Toprakları, Kırağı Diyarı veya Kehribar Vadisi'nde bir tepe belirir. Diyara on beş dakika önceden uyarı verilir ve çember açık arazide işaretlenir. Tepe otuz dakika aktif kalır. Aktif çembere girmek, baskın üyeleri dahil herkesin Dünya PvP bayrağını normal seviye kurallarına göre açar. İçeride en çok uygun oyuncusu bulunan grup, çoğunluğunu kesintisiz bir dakika koruduktan sonra tepeyi ele geçirir; tek başına oynayan biri tek kişilik grup sayılır, ancak baskın üyeleri ve PvP seviye şartının altındaki oyuncular tepeyi ele geçiremez veya tepeden Onur kazanamaz. İçeride duran her hâkim grup üyesi giderek artan hızda Onur kazanır. Ödemeler daha sık yapılır ve daha hızlı artar; böylece eski kırk beş dakikalık etkinliğin toplam Onur miktarı korunur. Tepe el değiştirdiğinde ödül artışı baştan başlar. Tepe ayakta iken her beş dakikada bir diyar, konumunu ve tutma sürelerine göre sıralanmış grupları duyar. Tepe düştüğünde, onu en uzun süre tutan grup onu toplamda en az on dakika tutmuşsa, bu grup için içeride en az bir dakika duran ve hala grupta olan her oyuncu, Haftalık Kasa PvP satırı için bir galibiyet elde eder. Çemberden ayrılınca bayrağın açık kalır; /pvp off normal beş dakikalık gecikmeyi kullanır ve aktif tepenin içindeyken veya savaş sırasında tamamlanamaz. Tepe çubuğu kontrolü, oyuncu sayılarını ve ele geçirme ilerlemesini gösterir; /hill konumunu bildirir.",
       "limitsBodyRaids": "Aynı oyuncu tekrar tekrar mağlup etmek daha az az çoğu zaman hiçbir şey öder, ve o oyuncu yönü sayarınız ilk öldürülerinden bir saat sonra baştan başlar, böylece bir kurban değerli bekleme beklemez. Seviyeniz çok aşağı bir hedef hiçbir şey öder. Dövüşlü Alanları ve Arenalar onlara içinde iken kendi kuralları yürütür, ve açık dünyaya daha fazla Onur ödedikleri, böylece dünya PvP aynı satıcıya yavaş yoldur. Raid dünya öldürüleridaten hiç almaz: bir raid üyesi Onur ya da altın almaz ve başkasının hissesini kabusmaz, böylece parti olarak dövüş almak için ödenir."
     },
     "thornhollowPage": {
@@ -9675,7 +9711,14 @@ export const tr_TR: EnTranslations = {
     "whitepaper": "Teknik Doküman",
     "terms": "Hizmet Koşulları",
     "privacy": "Gizlilik Politikası",
-    "discordLabel": "Discord'a Katıl"
+    "discordLabel": "Discord'a Katıl",
+    "guidesLabel": "Oyuncu Rehberleri",
+    "guideFree": "Ücretsiz MMORPG'ler",
+    "guideGamesLikeWow": "WoW Gibi Oyunlar",
+    "guideBest": "En İyi MMORPG'ler",
+    "guideNew": "Yeni MMORPG'ler",
+    "guideBrowser": "Tarayıcı MMORPG'leri",
+    "guideGamesLikeDiablo": "Diablo Gibi Oyunlar"
   },
   "settings": {
     "languageLoading": "Dil yükleniyor...",
@@ -12772,6 +12815,7 @@ export const tr_TR: EnTranslations = {
       "dps": "(saniyede {dps} hasar)",
       "armorStat": "{value} Zırh",
       "stat": "+{value} {stat}",
+      "warfareMainHandOnly": "Savaş sadece ana elde sayılır.",
       "useFood": "Kullanım: {seconds} saniyede {amount} can yeniler. Yerken oturur kalmalısın.",
       "useDrink": "Kullanım: {seconds} saniyede {amount} mana yeniler. İçerken oturur kalmalısın.",
       "useElixir": "Kullan: {stat} niteliğini {minutes} dakika boyunca {value} artırır. Aynı nitelikteki başka bir iksir veya parşömenin yerini alır. Savaşta kullanılabilir.",
@@ -18465,6 +18509,30 @@ export const tr_TR: EnTranslations = {
       },
       "vanguard_feral_staff": {
         "name": "Öncünün Yaban Asası"
+      },
+      "vanguard_band_of_might": {
+        "name": "Öncü'nün Güç Halkası"
+      },
+      "vanguard_band_of_precision": {
+        "name": "Öncü'nün Kesinlik Halkası"
+      },
+      "vanguard_band_of_focus": {
+        "name": "Öncü'nün Odaklanma Halkası"
+      },
+      "vanguard_band_of_mending": {
+        "name": "Öncü'nün İyileştirme Halkası"
+      },
+      "vanguard_pendant_of_might": {
+        "name": "Öncü'nün Güç Kolyesi"
+      },
+      "vanguard_pendant_of_precision": {
+        "name": "Öncü'nün Kesinlik Kolyesi"
+      },
+      "vanguard_pendant_of_focus": {
+        "name": "Öncü'nün Odaklanma Kolyesi"
+      },
+      "vanguard_pendant_of_mending": {
+        "name": "Öncü'nün İyileştirme Kolyesi"
       },
       "conjured_water4": {
         "name": "Sihirle Yaratılmış Kaynak Suyu"

@@ -10,6 +10,7 @@ import {
   type QuestProgress,
   type WorldQuestProgress,
 } from '../sim/types';
+import { vaultPortalVisible } from '../sim/vault_visibility';
 import { investigationDisguiseHidden } from '../sim/world_quest_investigation_visibility';
 import {
   isWorldQuestSalvageObject,
@@ -120,6 +121,7 @@ export function resolveNearbyInteractionCandidate(
   }
 
   for (const entity of world.entities.values()) {
+    if (!vaultPortalVisible(entity, playerId, world.partyInfo?.members ?? null)) continue;
     // A disguised infiltrator or a shadow-mission guard the viewer cannot see is
     // no candidate, exactly as the renderer hides it.
     if (investigationDisguiseHidden(entity, world) || shadowGuardHidden(entity, world)) continue;

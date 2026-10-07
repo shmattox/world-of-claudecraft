@@ -438,7 +438,9 @@ export const zh_TW: EnTranslations = {
         "worldOne": "已完成{count}個世界任務",
         "worldMany": "已完成{count}個世界任務",
         "pvpOne": "已贏得{count}場積分賽",
-        "pvpMany": "已贏得{count}場積分賽"
+        "pvpMany": "已贏得{count}場積分賽",
+        "pvpWinOne": "已獲得{count}場PvP勝利",
+        "pvpWinMany": "已獲得{count}場PvP勝利"
       },
       "requiredTask": {
         "raidOne": "擊敗{count}個團隊副本首領",
@@ -448,7 +450,9 @@ export const zh_TW: EnTranslations = {
         "worldOne": "完成{count}個世界任務",
         "worldMany": "完成{count}個世界任務",
         "pvpOne": "贏得{count}場積分賽",
-        "pvpMany": "贏得{count}場積分賽"
+        "pvpMany": "贏得{count}場積分賽",
+        "pvpWinOne": "獲得{count}場PvP勝利",
+        "pvpWinMany": "獲得{count}場PvP勝利"
       },
       "readyWeeks": "未領取的週次：{count}。請先領取最早完成的那一週。",
       "claimLastWeek": "領取上週的獎勵",
@@ -594,6 +598,8 @@ export const zh_TW: EnTranslations = {
     },
     "death": {
       "resurrectAtCorpse": "在屍體旁復活",
+      "pvpResurrect": "PvP 復活",
+      "pvpResurrectTitle": "在最近的墓地以滿生命值復活，且不會新增復活後遺症。",
       "resurrectAtHealer": "靈魂醫者（復活虛弱）",
       "ghostHint": "跑回你死亡的地點，或與靈魂醫者交談以復活",
       "spiritHealerAlive": "靈魂醫者只看護逝者。你仍是生者。",
@@ -2786,8 +2792,10 @@ export const zh_TW: EnTranslations = {
     },
     "worldPvp": {
       "rewardBonus": "保持世界PvP開啟可多獲得{percent}的經驗值和陣營聲望。請求關閉時，加成立即停止。",
-      "rewardTitles": "開啟世界PvP的遊戲時間達到{thresholds}時，可獲得永久頭銜。離線或身處試煉之濱時計時暫停。關閉PvP會重置計時。",
+      "rewardTitles": "在開放世界中開啟世界PvP的遊戲時間達到{thresholds}時，可獲得永久頭銜。離線、死亡、身處副本或試煉之濱時計時暫停。關閉PvP會重置計時。",
       "rewardPaused": "目前PvP連續遊戲時間：{time}（在試煉之濱暫停）",
+      "rewardPausedDead": "目前PvP連續遊戲時間：{time}（死亡期間暫停）",
+      "rewardPausedInstance": "目前PvP連續遊戲時間：{time}（在副本中暫停）",
       "rewardProgress": "目前PvP連續遊戲時間：{time}",
       "tab": "世界 PvP",
       "title": "世界 PvP",
@@ -2843,6 +2851,15 @@ export const zh_TW: EnTranslations = {
       "falls": "將於 {minutes} 分鐘後消失",
       "pvpEntry": "進入活動圈會開啟世界 PvP。",
       "pvpBanner": "PvP",
+      "callout": {
+        "killingSpree": "{name}正在大殺特殺！",
+        "rampage": "{name}已經殺人如麻！",
+        "unstoppable": "{name}已經無人能擋！",
+        "dominating": "{name}已經主宰比賽！",
+        "godlike": "{name}已經接近神了！",
+        "legendary": "{name}已經超越神了！",
+        "shutDown": "{killer}終結了{victim}！"
+      },
       "standingRaid": "團隊成員不計入人數：只有隊伍才能佔據山丘"
     },
     "warfareShop": {
@@ -2855,7 +2872,8 @@ export const zh_TW: EnTranslations = {
       "owned": "已擁有",
       "buyAria": "以 {honor} 購買 {item}",
       "buyOwnedAria": "以 {honor} 購買 {item}，已擁有",
-      "buyConfirmBody": "用 {honor} 購買 {item}？榮譽購買後無法退款。"
+      "buyConfirmBody": "用 {honor} 購買 {item}？榮譽購買後無法退款。",
+      "buyConfirmBodyGold": "用 {price} 購買 {item}？此次購買無法退款。"
     },
     "charSheet": {
       "offense": "攻擊",
@@ -3878,8 +3896,8 @@ export const zh_TW: EnTranslations = {
         "boneSpikeHeroicSummary": "每{everyHeroic}秒，尼思拉克西斯會將{victimsHeroic}名非目前目標的團員穿刺在骨刺上。被穿刺的團員無法行動，並且每秒流失相當於最大生命值{drainHeroic}的生命，直到該尖刺被摧毀。任何人命中骨刺{hitsHeroic}次即可將其擊碎，無論傷害多寡。已被穿刺過的團員在{cooldown}秒內不會再次被選中，因此骨刺會分散到整個團隊。",
         "boneSpikeResponse": "離得最近的人攻擊骨刺：任何人命中幾次即可擊碎，無論傷害多寡。治療者在骨刺被擊碎前保住被穿刺團員的性命。",
         "graveEruptionName": "墓穴爆發",
-        "graveEruptionSummary": "每{everyNormal}秒，骸骨之手會在{countNormal}名團員腳下標記半徑{radius}碼的圓圈。{warning}秒後，每個圓圈都會爆發，造成相當於最大生命值{burstNormal}的暗影傷害，隨後化為墓焰燃燒{flameNormal}秒，對站在其中的人每秒造成相當於最大生命值{tickNormal}的傷害。",
-        "graveEruptionHeroicSummary": "每{everyHeroic}秒，骸骨之手會在{countHeroic}名團員腳下標記半徑{radius}碼的圓圈。{warning}秒後，每個圓圈都會爆發，造成相當於最大生命值{burstHeroic}的暗影傷害，隨後化為墓焰燃燒{flameHeroic}秒，對站在其中的人每秒造成相當於最大生命值{tickHeroic}的傷害。",
+        "graveEruptionSummary": "每{everyNormal}秒，骸骨之手會在{countNormal}名團員腳下標記半徑{radius}碼的圓圈。{warning}秒後，每個圓圈都會爆發，造成相當於最大生命值{burstNormal}的暗影傷害，隨後化為墓焰燃燒{flameNormal}秒，對站在其中的人每秒造成相當於最大生命值{tickNormal}的傷害。靈魂撕裂標記存在期間以及標記消失後{gap}秒內，此技能不會發動。",
+        "graveEruptionHeroicSummary": "每{everyHeroic}秒，骸骨之手會在{countHeroic}名團員腳下標記半徑{radius}碼的圓圈。{warning}秒後，每個圓圈都會爆發，造成相當於最大生命值{burstHeroic}的暗影傷害，隨後化為墓焰燃燒{flameHeroic}秒，對站在其中的人每秒造成相當於最大生命值{tickHeroic}的傷害。靈魂撕裂標記存在期間以及標記消失後{gap}秒內，此技能不會發動。",
         "graveEruptionResponse": "在每個警示圈爆發前離開範圍，並遠離燃燒地面。坦克應將尼思拉克西斯拉離火場，讓近戰保有輸出空間。",
         "bindingSigilName": "束縛印記",
         "bindingSigilSummary": "每{everyNormal}秒，一枚承載古老守印的印記會在王座兩側的兩座平台之一浮現（以團隊視角，位於開戰時尼思拉克西斯所站位置左側或右側{sideOffset}碼處），每次施放交替換邊，同時他開始不死昇華，每{ascensionEvery}秒獲得{ascensionNormal}傷害與攻擊速度。若他在{bindNormal}秒內站上印記，便會被束縛：不死昇華遭淨化，他被暈眩{stunNormal}秒，並在{boundNormal}秒內多承受{vulnerability}傷害。否則每名團員都會承受相當於最大生命值{unboundHitNormal}的暗影傷害，且他會保有{unboundBonusNormal}傷害提升，直到下一次束縛為止。",
@@ -4194,6 +4212,7 @@ export const zh_TW: EnTranslations = {
       "mobLevel": "{level}",
       "mobEliteLevel": "{level}+",
       "afkTag": "暫離",
+      "bountyTag": "懸賞 {honor}",
       "pvpTag": "PvP",
       "cheaterTag": "< 作弊者 >",
       "pledgeTag": "{guild}的宣誓者",
@@ -4579,12 +4598,11 @@ export const zh_TW: EnTranslations = {
       "memberSinceDays": "已加入 Discord {days} 天",
       "roleTag": {
         "levyst": "Levy St",
-        "admin": "管理員",
         "coredevs": "核心開發者",
         "devs": "開發者",
-        "seniormods": "資深管理員",
+        "seniormods": "哨兵",
         "mods": "管理員",
-        "juniormods": "初級管理員",
+        "juniormods": "觀察員",
         "artists": "美術",
         "contentcreator": "內容創作者",
         "legend": "傳奇",
@@ -5049,6 +5067,13 @@ export const zh_TW: EnTranslations = {
       "offlineHeader": "離線 ({n})",
       "hideOffline": "隱藏離線",
       "hideOfflineTitle": "隱藏離線公會成員",
+      "presence": {
+        "label": "對誰顯示在線",
+        "everyone": "所有人",
+        "friends": "僅好友",
+        "none": "無人",
+        "title": "誰能在好友名單和公會名單中看到你在線，以及你的區域和地圖位置。隊伍成員始終能看到你。"
+      },
       "billboard": {
         "label": "公會公告板",
         "empty": "公告板上還沒有內容。",
@@ -7037,7 +7062,14 @@ export const zh_TW: EnTranslations = {
       "discord": "加入Discord",
       "communityWiki": "社群Wiki",
       "rights": "World of ClaudeCraft",
-      "linksLabel": "遊玩與社群連結"
+      "linksLabel": "遊玩與社群連結",
+      "guidesLabel": "玩家指南",
+      "guideFree": "免費 MMORPG",
+      "guideGamesLikeWow": "類似 WoW 的遊戲",
+      "guideBest": "最佳 MMORPG",
+      "guideNew": "新 MMORPG",
+      "guideBrowser": "瀏覽器 MMORPG",
+      "guideGamesLikeDiablo": "類似《暗黑破壞神》的遊戲"
     },
     "language": {
       "label": "語言",
@@ -7549,6 +7581,8 @@ export const zh_TW: EnTranslations = {
       "arena": "你在灰燼鬥獸場兩個級別中的成績：一對一與二對二的評分、勝場、敗場與勝率。",
       "pvp": "世界 PvP 旗幟：/pvp 切換，/pvp on 與 /pvp off 直接設定。已開啟旗幟的玩家可以在任何地方互相作戰；關閉需要 5 分鐘。",
       "pvpZones": "世界 PvP 旗幟：/pvp 切換狀態，/pvp on 和 /pvp off 分別開啟和關閉。在爭奪區域，已開啟旗幟的玩家可以互相戰鬥；庇護區域禁止一切世界 PvP。進入正在進行的山丘之王活動圈會開啟旗幟；關閉需要 5 分鐘。",
+      "presence": "控制誰能在好友名單、公會名單和 /who 中看到你在線：/presence everyone（預設）、/presence friends（僅你好友名單中的玩家）或 /presence none。隱藏後，他們看不到你的在線標記、區域和地圖位置，但密語和邀請仍能送達你；隊伍成員始終能看到你。只輸入 /presence 會告訴你目前的設定。",
+      "flair": "對其他玩家顯示或隱藏你的 Discord 身分組，也就是彩色名稱、身分組標籤和聊天認證標籤：/flair on 顯示，/flair off 隱藏，只輸入 /flair 會告訴你目前的設定。需要已連結的 Discord 帳號。",
       "listings": "你自己在世界市場上的上架商品，附上開價、各自剩餘的時間，以及你還有多少上架空間。",
       "buyback": "你近期賣給商人、目前仍能買回的東西。",
       "groupState": "你此刻的狀態",
@@ -8311,7 +8345,8 @@ export const zh_TW: EnTranslations = {
       "warfareTradeBody": "這正是刻意設下的取捨。戰爭套裝是為了與玩家作戰而打造的，並不是繞過地城品級的捷徑：同一個部位的戰爭裝備，永遠不會帶有地城史詩裝的那些戰鬥屬性，而它所帶來的一切都只花在其他玩家身上。若你想在競技場裡站得住腳，就去買它。若你想更快清完英雄地城，那就到地城裡去掙你的裝備。",
       "warfareTradeBodyRatingSpent": "這正是刻意設下的取捨。戰爭套裝是為了與玩家作戰而打造的，並不是繞過地城品級的捷徑：同一個部位的戰爭裝備，永遠不會帶有地城史詩裝的那些戰鬥屬性，而它轉而帶有的戰爭等級與套裝效果，則全都花在其他玩家身上。若你想在競技場裡站得住腳，就去買它。若你想更快清完英雄地城，那就到地城裡去掙你的裝備。",
       "vanguardHeading": "先鋒裝備：戰爭套裝第二季",
-      "vanguardBody": "先鋒裝備是戰爭裝備的第二季，由同樣兩位軍需官在原本品級之上一併販售，原本品級依然在架上。每個專精都有自己專屬的先鋒套裝，共五件：頭部、肩部、胸部、腿部與手部，商店只會列出你的職業能穿的三套先鋒套裝，其後才是你能揮舞的先鋒武器。先鋒裝備件帶有與原本品級相同的戰爭評級，只是物品等級更高，而每套套裝都有兩件式與四件式加成，會改變你專精的一項技能。與原本的套裝不同，這些加成在任何地方都會生效，連對付怪物也不例外，但它們是為了對抗玩家而打造的，所以在團隊副本中，團隊套裝依然是更好的選擇。"
+      "vanguardBody": "先鋒裝備是戰爭裝備的第二季，由同樣兩位軍需官在原本品級之上一併販售，原本品級依然在架上。每個專精都有自己專屬的先鋒套裝，共五件：頭部、肩部、胸部、腿部與手部，商店只會列出你的職業能穿的三套先鋒套裝，其後才是你能揮舞的先鋒武器。先鋒裝備件帶有與原本品級相同的戰爭評級，只是物品等級更高，而每套套裝都有兩件式與四件式加成，會改變你專精的一項技能。與原本的套裝不同，這些加成在任何地方都會生效，連對付怪物也不例外，但它們是為了對抗玩家而打造的，所以在團隊副本中，團隊套裝依然是更好的選擇。",
+      "vanguardStatsBody": "與原版裝備不同，先鋒裝備還帶有戰鬥等級：每件先鋒護甲、武器和墜飾都帶有暴擊等級或急速等級，施法者和治療者的裝備還額外提供法術強度或治療強度。先鋒指環和墜飾與武器一同出售，所有職業都可以佩戴。佩戴兩枚先鋒近戰指環，恰好提供足夠的命中等級，消除你對同等級玩家攻擊的基礎未命中幾率；佩戴兩枚施法指環，則同樣消除你的法術被抵抗的幾率。雙持時的自動攻擊仍保留額外的未命中幾率。治療指環則改為提供急速等級。"
     },
     "worldPvpPage": {
       "heading": "世界 PvP",
@@ -8332,6 +8367,7 @@ export const zh_TW: EnTranslations = {
       "hillBody": "每兩小時，龍裔荒原、霜幕之境或琥珀秋境會出現一座活動山丘。全伺服器會提前十五分鐘收到預告，空地上會標出圓圈。山丘活動持續三十分鐘。進入活動圈會依一般等級規則開啟世界 PvP 旗幟，團隊成員也不例外。圈內符合條件的玩家人數最多的小隊，在連續保持人數優勢一分鐘後佔領山丘；單人視為一人小隊，但團隊成員和未達到 PvP 等級要求的玩家不能佔領或獲得山丘榮譽。佔領方每名站在圈內的成員都會以逐漸提高的速率獲得榮譽。發獎頻率和獎勵遞增速度均已加快，保留原四十五分鐘活動的榮譽總量。佔領方變更會重設獎勵遞增。離開圈後旗幟仍保留；/pvp off 使用一般的五分鐘延遲，在活動山丘內或戰鬥中無法完成。山丘狀態列顯示控制方、人數和佔領進度；/hill 顯示位置。",
       "limitsBodyHour": "反覆擊敗同一名玩家，每次的收益都會減少並很快歸零，而你對那名玩家的計數要在首次擊殺約一小時之後才會重新開始，所以蹲守同一個目標永遠不值得等待。遠低於你等級的目標不會帶來任何收益。在戰場和競技場內部適用它們自己的規則，而且它們提供的榮譽比開放世界更多，因此世界 PvP 是通往同一位商人的較慢道路。",
       "hillBodyRamp": "每兩小時，龍裔荒原、霜幕之境或琥珀秋境會出現一座活動山丘。全伺服器會提前十五分鐘收到預告，空地上會標出圓圈。山丘活動持續三十分鐘。進入活動圈會依一般等級規則開啟世界 PvP 旗幟，團隊成員也不例外。圈內符合條件的玩家人數最多的小隊，在連續保持人數優勢一分鐘後佔領山丘；單人視為一人小隊，但團隊成員和未達到 PvP 等級要求的玩家不能佔領或獲得山丘榮譽。佔領方每名站在圈內的成員都會以逐漸提高的速率獲得榮譽。發獎頻率和獎勵遞增速度均已加快，保留原四十五分鐘活動的榮譽總量。佔領方變更會重設獎勵遞增。離開圈後旗幟仍保留；/pvp off 使用一般的五分鐘延遲，在活動山丘內或戰鬥中無法完成。山丘狀態列顯示控制方、人數和佔領進度；/hill 顯示位置。",
+      "hillBodyRanked": "每兩小時，龍裔荒原、霜幕之境或琥珀秋境會出現一座活動山丘。全伺服器會提前十五分鐘收到預告，空地上會標出圓圈。山丘活動持續三十分鐘。進入活動圈會依一般等級規則開啟世界 PvP 旗幟，團隊成員也不例外。圈內符合條件的玩家人數最多的小隊，在連續保持人數優勢一分鐘後佔領山丘；單人視為一人小隊，但團隊成員和未達到 PvP 等級要求的玩家不能佔領或獲得山丘榮譽。佔領方每名站在圈內的成員都會以逐漸提高的速率獲得榮譽，佔領方變更會重設獎勵遞增。山丘活動期間，全伺服器每五分鐘會收到位置提醒和各隊伍的佔領時長排名。山丘結束時，若佔領總時長最長的隊伍累計佔領至少十分鐘，該隊伍中曾在佔領期間站在圈內至少一分鐘且仍留在隊伍中的玩家，會為每週寶庫的 PvP 獎勵進度獲得一場勝利。離開圈後旗幟仍保留；/pvp off 使用一般的五分鐘延遲，在活動山丘內或戰鬥中無法完成。山丘狀態列顯示控制方、人數和佔領進度；/hill 顯示位置。",
       "limitsBodyRaids": "反覆擊敗同一名玩家，每次的收益都會減少並很快歸零，而你對那名玩家的計數要在首次擊殺約一小時之後才會重新開始，所以蹲守同一個目標永遠不值得等待。遠低於你等級的目標不會帶來任何收益。在戰場和競技場內部適用它們自己的規則，而且它們提供的榮譽比開放世界更多，因此世界 PvP 是通往同一位商人的較慢道路。團隊無法從世界擊殺中獲得任何收益：團隊成員既得不到榮譽也得不到金幣，也不會減少其他人的份額，所以想獲得報酬就以隊伍身分作戰。"
     },
     "thornhollowPage": {
@@ -9675,7 +9711,14 @@ export const zh_TW: EnTranslations = {
     "whitepaper": "白皮書",
     "terms": "服務條款",
     "privacy": "隱私權政策",
-    "discordLabel": "加入Discord社區"
+    "discordLabel": "加入Discord社區",
+    "guidesLabel": "玩家指南",
+    "guideFree": "免費 MMORPG",
+    "guideGamesLikeWow": "類似 WoW 的遊戲",
+    "guideBest": "最佳 MMORPG",
+    "guideNew": "新 MMORPG",
+    "guideBrowser": "瀏覽器 MMORPG",
+    "guideGamesLikeDiablo": "類似《暗黑破壞神》的遊戲"
   },
   "settings": {
     "languageLoading": "正在載入語言...",
@@ -12772,6 +12815,7 @@ export const zh_TW: EnTranslations = {
       "dps": "（每秒 {dps} 傷害）",
       "armorStat": "{value} 護甲",
       "stat": "+{value} {stat}",
+      "warfareMainHandOnly": "戰爭屬性僅在主手時生效。",
       "useFood": "使用：在 {seconds} 秒內恢復 {amount} 點生命值。進食時必須保持坐下。",
       "useDrink": "使用：在 {seconds} 秒內恢復 {amount} 點法力值。飲水時必須保持坐下。",
       "useElixir": "使用：使你的{stat}提高 {value} 點，持續 {minutes} 分鐘。會取代同屬性的其他藥劑或卷軸。戰鬥中可用。",
@@ -18465,6 +18509,30 @@ export const zh_TW: EnTranslations = {
       },
       "vanguard_feral_staff": {
         "name": "先鋒野性法杖"
+      },
+      "vanguard_band_of_might": {
+        "name": "先鋒力量指環"
+      },
+      "vanguard_band_of_precision": {
+        "name": "先鋒精準指環"
+      },
+      "vanguard_band_of_focus": {
+        "name": "先鋒專注指環"
+      },
+      "vanguard_band_of_mending": {
+        "name": "先鋒癒合指環"
+      },
+      "vanguard_pendant_of_might": {
+        "name": "先鋒力量墜飾"
+      },
+      "vanguard_pendant_of_precision": {
+        "name": "先鋒精準墜飾"
+      },
+      "vanguard_pendant_of_focus": {
+        "name": "先鋒專注墜飾"
+      },
+      "vanguard_pendant_of_mending": {
+        "name": "先鋒癒合墜飾"
       },
       "conjured_water4": {
         "name": "魔法泉水"

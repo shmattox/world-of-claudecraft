@@ -3600,7 +3600,7 @@ export const DEEDS: Record<string, DeedDef> = {
   pvp_flag_1h: {
     id: 'pvp_flag_1h',
     name: 'Bold',
-    desc: 'Keep World PvP on for 1 hour of played time. Logout pauses progress; switching off resets it. Earned titles are permanent.',
+    desc: 'Keep World PvP on for 1 hour of played time in the open world. Logout, death and instances pause progress; switching off resets it. Earned titles are permanent.',
     category: 'pvp',
     renown: 5,
     trigger: { kind: 'manual' },
@@ -3609,7 +3609,7 @@ export const DEEDS: Record<string, DeedDef> = {
   pvp_flag_3h: {
     id: 'pvp_flag_3h',
     name: 'Defiant',
-    desc: 'Keep World PvP on for 3 hours of played time. Logout pauses progress; switching off resets it. Earned titles are permanent.',
+    desc: 'Keep World PvP on for 3 hours of played time in the open world. Logout, death and instances pause progress; switching off resets it. Earned titles are permanent.',
     category: 'pvp',
     renown: 10,
     trigger: { kind: 'manual' },
@@ -3618,7 +3618,7 @@ export const DEEDS: Record<string, DeedDef> = {
   pvp_flag_6h: {
     id: 'pvp_flag_6h',
     name: 'Dauntless',
-    desc: 'Keep World PvP on for 6 hours of played time. Logout pauses progress; switching off resets it. Earned titles are permanent.',
+    desc: 'Keep World PvP on for 6 hours of played time in the open world. Logout, death and instances pause progress; switching off resets it. Earned titles are permanent.',
     category: 'pvp',
     renown: 10,
     trigger: { kind: 'manual' },
@@ -3627,7 +3627,7 @@ export const DEEDS: Record<string, DeedDef> = {
   pvp_flag_24h: {
     id: 'pvp_flag_24h',
     name: 'Unyielding',
-    desc: 'Keep World PvP on for 24 hours of played time. Logout pauses progress; switching off resets it. Earned titles are permanent.',
+    desc: 'Keep World PvP on for 24 hours of played time in the open world. Logout, death and instances pause progress; switching off resets it. Earned titles are permanent.',
     category: 'pvp',
     renown: 25,
     trigger: { kind: 'manual' },
@@ -3636,7 +3636,7 @@ export const DEEDS: Record<string, DeedDef> = {
   pvp_flag_168h: {
     id: 'pvp_flag_168h',
     name: 'Indomitable',
-    desc: 'Keep World PvP on for 7 days of played time. Logout pauses progress; switching off resets it. Earned titles are permanent.',
+    desc: 'Keep World PvP on for 7 days of played time in the open world. Logout, death and instances pause progress; switching off resets it. Earned titles are permanent.',
     category: 'pvp',
     renown: 50,
     trigger: { kind: 'manual' },

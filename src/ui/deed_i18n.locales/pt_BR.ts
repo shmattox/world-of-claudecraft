@@ -1324,27 +1324,27 @@ export const table: DeedLocaleTable = {
   },
   pvp_flag_1h: {
     name: 'Ousado',
-    desc: 'Mantenha o PvP mundial ativo por 1 hora de tempo jogado. Sair do jogo pausa o progresso; desativar reinicia o progresso. Os títulos conquistados são permanentes.',
+    desc: 'Mantenha o PvP mundial ativo por 1 hora de tempo jogado no mundo aberto. Sair do jogo, morrer ou entrar em instâncias pausa o progresso; desativar reinicia o progresso. Os títulos conquistados são permanentes.',
     title: 'Ousado',
   },
   pvp_flag_3h: {
     name: 'Desafiador',
-    desc: 'Mantenha o PvP mundial ativo por 3 horas de tempo jogado. Sair do jogo pausa o progresso; desativar reinicia o progresso. Os títulos conquistados são permanentes.',
+    desc: 'Mantenha o PvP mundial ativo por 3 horas de tempo jogado no mundo aberto. Sair do jogo, morrer ou entrar em instâncias pausa o progresso; desativar reinicia o progresso. Os títulos conquistados são permanentes.',
     title: 'Desafiador',
   },
   pvp_flag_6h: {
     name: 'Destemido',
-    desc: 'Mantenha o PvP mundial ativo por 6 horas de tempo jogado. Sair do jogo pausa o progresso; desativar reinicia o progresso. Os títulos conquistados são permanentes.',
+    desc: 'Mantenha o PvP mundial ativo por 6 horas de tempo jogado no mundo aberto. Sair do jogo, morrer ou entrar em instâncias pausa o progresso; desativar reinicia o progresso. Os títulos conquistados são permanentes.',
     title: 'Destemido',
   },
   pvp_flag_24h: {
     name: 'Inflexível',
-    desc: 'Mantenha o PvP mundial ativo por 24 horas de tempo jogado. Sair do jogo pausa o progresso; desativar reinicia o progresso. Os títulos conquistados são permanentes.',
+    desc: 'Mantenha o PvP mundial ativo por 24 horas de tempo jogado no mundo aberto. Sair do jogo, morrer ou entrar em instâncias pausa o progresso; desativar reinicia o progresso. Os títulos conquistados são permanentes.',
     title: 'Inflexível',
   },
   pvp_flag_168h: {
     name: 'Indomável',
-    desc: 'Mantenha o PvP mundial ativo por 7 dias de tempo jogado. Sair do jogo pausa o progresso; desativar reinicia o progresso. Os títulos conquistados são permanentes.',
+    desc: 'Mantenha o PvP mundial ativo por 7 dias de tempo jogado no mundo aberto. Sair do jogo, morrer ou entrar em instâncias pausa o progresso; desativar reinicia o progresso. Os títulos conquistados são permanentes.',
     title: 'Indomável',
   },
 };

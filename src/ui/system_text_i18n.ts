@@ -28,6 +28,7 @@ import {
 } from './entity_display_core';
 import { formatMoney as formatLocalizedMoney, formatNumber, t } from './i18n';
 import type { TranslationKey } from './i18n.catalog';
+import { localizeRiftPlaceName } from './rift_text_i18n';
 import { localizeServerText } from './server_i18n';
 import { localizeSimText } from './sim_i18n';
 
@@ -208,7 +209,7 @@ export function localizeSystemText(text: string): string {
   match = /^(.+) is meant for a full party of (\d+)\. Tread carefully\.$/.exec(text);
   if (match) {
     return t('worldContent.dungeonPartyWarning', {
-      name: dungeonDisplayNameFromSource(match[1]),
+      name: localizeRiftPlaceName(match[1]) ?? dungeonDisplayNameFromSource(match[1]),
       count: formatNumber(Number(match[2]), { maximumFractionDigits: 0 }),
     });
   }

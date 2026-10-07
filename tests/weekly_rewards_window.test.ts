@@ -155,6 +155,7 @@ describe('weekly reward pane', () => {
     state.pvp = 10;
     state.world = 100;
     state.raids = [2, 1, 2];
+    state.raidClears = [2, 2, 1];
     const root = document.createElement('div');
     const pane = new WeeklyRewardsTab({
       world: () =>
@@ -177,11 +178,15 @@ describe('weekly reward pane', () => {
     });
     pane.renderInto(root);
     expect(root.querySelectorAll('.weekly-track-pvp .weekly-earned').length).toBeGreaterThan(0);
+    const pvpLabels = [...root.querySelectorAll('.weekly-track-pvp .weekly-milestone-label')].map(
+      (label) => label.textContent,
+    );
+    expect(pvpLabels).toEqual(['1 PvP Win', '3 PvP Wins', '5 PvP Wins']);
     expect(root.querySelectorAll('.weekly-track-world .weekly-earned')).toHaveLength(0);
     expect(root.querySelector('.weekly-confirm')).toBeNull();
     expect(root.querySelector('.weekly-choice')).toBeNull();
     const raidSlots = root.querySelectorAll('.weekly-track-raid .weekly-milestone');
-    expect(raidSlots[0]?.textContent).toContain('1 Raid Encounter Cleared');
+    expect(raidSlots[0]?.textContent).toContain('1 Raid Clear');
     expect(raidSlots[0]?.querySelector('img')?.getAttribute('src')).toBe(
       '/ui/weekly-vault/heroic.webp',
     );

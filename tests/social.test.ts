@@ -1185,8 +1185,10 @@ describe('dungeon difficulty slash command', () => {
     const sim = makeWorld();
     const p = sim.addPlayer('warrior', 'Solo');
     sim.enterDungeon('hollow_crypt', p);
-    sim.leaveDungeon(p);
+    // Flipped from inside, so the change's implicit reset is refused and the
+    // explicit /dungeon reset is what resets the claim once outside.
     sim.setDungeonDifficulty('heroic', p);
+    sim.leaveDungeon(p);
 
     sim.drainEvents();
     sim.chat('/dungeon reset', p);

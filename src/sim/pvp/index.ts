@@ -4,14 +4,19 @@ export {
   HILL_LOST_LINE,
   HILL_READOUT_NONE_LINE,
   HILL_TAKEN_LINE,
+  HILL_VAULT_LINE,
   type HillPhase,
   type HillState,
+  type HillVaultCredit,
   hillFallenLine,
   hillInfoFor,
   hillPlanFor,
+  hillRankLine,
   hillReadoutLine,
   hillRiseLine,
+  hillStillStandsLine,
   hillWarningLine,
+  NO_HILL_VAULT_CREDIT,
   newHillState,
   pickHillSpot,
   riseHillNow,
@@ -21,15 +26,38 @@ export {
   warnNextHillNow,
 } from './hill';
 export {
+  HILL_BOUNTY_BASE_HONOR,
+  HILL_BOUNTY_DEATH_STREAK_HONOR,
+  HILL_BOUNTY_KILL_STREAK_HONOR,
+  HILL_BOUNTY_REPEAT_CAP,
+  HILL_CALLOUT_SECONDS,
+  HILL_SHUTDOWN_STREAK,
+  type HillCalloutKind,
+  type HillStreakCalloutKind,
+  hillBountyHonor,
+  hillRepeatHonorMultiplier,
+  hillStreakCallout,
+} from './hill_bounty_rules';
+export {
+  HILL_RANKING_SHOWN,
+  type HillHoldRecord,
+  hillLongestHolds,
+  hillRanking,
+  hillVaultPayees,
+} from './hill_ranking';
+export {
   HILL_ACCRUAL_SECONDS,
   HILL_CAPTURE_SECONDS,
   HILL_DURATION_SECONDS,
   HILL_FIRST_WINDOW_AT_SECONDS,
   HILL_LATEST_WARN_OFFSET_SECONDS,
+  HILL_NOTICE_SECONDS,
   HILL_RADIUS,
   HILL_RAMP_MAX_HONOR,
   HILL_RAMP_STEP_HONOR,
   HILL_RAMP_STEP_SECONDS,
+  HILL_VAULT_MIN_HOLD_SECONDS,
+  HILL_VAULT_MIN_INSIDE_SECONDS,
   HILL_WARNING_SECONDS,
   HILL_WINDOW_SECONDS,
   type HillSpotProbe,
@@ -103,6 +131,7 @@ export {
 // public API in any meaningful sense: import it by path.
 export { loadHonorState, savedHonorState } from './honor_persist';
 export {
+  countsWarfareRating,
   PVP_DEFENSE_CAP,
   PVP_OFFENSE_CAP,
   PVP_RATING_PER_PCT,
@@ -113,6 +142,13 @@ export {
   pvpFractionsFromRatings,
   pvpVitalityFromRating,
 } from './power';
+export {
+  notePvpResurrectAtDeath,
+  PVP_RESURRECT_WINDOW_SECONDS,
+  type PvpResurrectDeath,
+  pvpResurrectBarred,
+  pvpResurrectEarned,
+} from './pvp_resurrect';
 export { pvpVitalityAppliesTo, updatePvpVitality } from './vitality';
 export {
   isWorldPvpFlagged,

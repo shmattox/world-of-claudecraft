@@ -29,13 +29,13 @@
 // none of it.
 
 import { talentsFor } from '../../../sim/content/talents';
-import type { PlayerClass } from '../../../sim/types';
+import type { ItemDef, PlayerClass } from '../../../sim/types';
 import { currencyIconHtml } from '../../currency_art';
 import { markDialogRoot } from '../../dialog_root';
 import { itemDisplayName, tEntity } from '../../entity_i18n';
 import { esc } from '../../esc';
 import { focusedWithin, restoreFirstEnabled } from '../../focus_restore';
-import { formatNumber, t } from '../../i18n';
+import { formatMoney, formatNumber, t } from '../../i18n';
 import { itemNameColor } from '../../item_name_color';
 import type { PainterHostPresentation } from '../../painter_host';
 import { tTalent } from '../../talent_i18n';
@@ -54,6 +54,29 @@ export interface WarfareVendorWindowDeps extends PainterHostPresentation {
 function honorText(amount: number): string {
   return t('hudChrome.warfare.honorAmount', {
     amount: formatNumber(amount, { maximumFractionDigits: 0 }),
+  });
+}
+
+/** A row's price as plain text, for the tile's accessible name: gold for the
+ *  Season 1 rows, Honor for Season 2 and the trinkets. */
+function priceText(offer: Pick<WarfareShopOffer, 'honor' | 'copper'>): string {
+  return offer.copper > 0 ? formatMoney(offer.copper, 'long') : honorText(offer.honor);
+}
+
+/** The purchase confirm's body for one item, priced the way the shop sells it.
+ *  Shared with the Hud coordinator so the dialog and the tile cannot disagree. */
+export function warfarePurchaseConfirmBody(item: ItemDef): string {
+  const name = itemDisplayName(item);
+  const copper = Math.max(0, Math.floor(item.buyValue ?? 0));
+  if (copper > 0) {
+    return t('hudChrome.warfareShop.buyConfirmBodyGold', {
+      item: name,
+      price: formatMoney(copper, 'long'),
+    });
+  }
+  return t('hudChrome.warfareShop.buyConfirmBody', {
+    item: name,
+    honor: honorText(Math.max(0, Math.floor(item.priceHonor ?? 0))),
   });
 }
 
@@ -76,7 +99,7 @@ function appendOfferTile(
   offer: WarfareShopOffer,
   deps: WarfareVendorWindowDeps,
 ): void {
-  const { itemId, item, honor, affordable, owned } = offer;
+  const { itemId, item, copper, affordable, owned } = offer;
   const tile = document.createElement('button');
   tile.type = 'button';
   tile.className = owned ? 'vendor-item ui-card warfare-owned' : 'vendor-item ui-card';
@@ -86,7 +109,7 @@ function appendOfferTile(
   // the heroic shop's one-tile-per-item identity).
   tile.dataset.focusKey = `buy:${section.key}:${itemId}`;
   const itemName = itemDisplayName(item);
-  const price = honorText(honor);
+  const price = priceText(offer);
   // An aria-label REPLACES the button's content as its accessible name, so the
   // owned marker folds into the name itself rather than being announced twice
   // or not at all. One combined key, never two concatenated t() results.
@@ -99,7 +122,13 @@ function appendOfferTile(
   const ownedMark = owned
     ? `<span class="vi-sub">${esc(t('hudChrome.warfareShop.owned'))}</span>`
     : '';
-  tile.innerHTML = `<span class="ui-socket ui-socket--bag">${deps.itemIcon(item)}</span><span class="vi-name" style="color:${itemNameColor(item)}">${esc(itemName)}${ownedMark}</span><span class="vi-price ui-money"><span class="warfare-price${affordable ? '' : ' unaffordable'}">${currencyIconHtml('honor')}${esc(price)}</span></span>`;
+  // Season 1 rows sell for gold (the coin readout every vendor uses), the rest
+  // for Honor.
+  const priceHtml =
+    copper > 0
+      ? `<span class="vi-price ui-money${affordable ? '' : ' unaffordable'}">${deps.moneyHtml(copper)}</span>`
+      : `<span class="vi-price ui-money"><span class="warfare-price${affordable ? '' : ' unaffordable'}">${currencyIconHtml('honor')}${esc(price)}</span></span>`;
+  tile.innerHTML = `<span class="ui-socket ui-socket--bag">${deps.itemIcon(item)}</span><span class="vi-name" style="color:${itemNameColor(item)}">${esc(itemName)}${ownedMark}</span>${priceHtml}`;
   tile.addEventListener('click', () => deps.onBuy(itemId));
   deps.attachTooltip(
     tile,
@@ -145,6 +174,9 @@ export function renderWarfareVendorWindow(
   const balance = document.createElement('div');
   balance.className = 'warfare-balance';
   balance.innerHTML = `${currencyIconHtml('honor')}${esc(t('hudChrome.warfare.balance', { amount: count(view.balance) }))}`;
+  // Gold rows grey out against the coin purse, so show it beside the Honor.
+  if (view.goldBalance !== null)
+    balance.innerHTML += `<span class="warfare-balance-gold ui-money">${deps.moneyHtml(view.goldBalance)}</span>`;
   el.appendChild(balance);
 
   let group: WarfareShopSection['group'] | null = null;

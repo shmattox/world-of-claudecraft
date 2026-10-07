@@ -1215,27 +1215,27 @@ export const table: DeedLocaleTable = {
   },
   pvp_flag_1h: {
     name: 'Kühn',
-    desc: 'Lasse Welt-PvP für 1 Stunde Spielzeit aktiv. Ausloggen pausiert den Fortschritt; Deaktivieren setzt ihn zurück. Verdiente Titel bleiben dauerhaft erhalten.',
+    desc: 'Lasse Welt-PvP für 1 Stunde Spielzeit in der offenen Welt aktiv. Ausloggen, Tod und Instanzen pausieren den Fortschritt; Deaktivieren setzt ihn zurück. Verdiente Titel bleiben dauerhaft erhalten.',
     title: 'Kühn',
   },
   pvp_flag_3h: {
     name: 'Trotzig',
-    desc: 'Lasse Welt-PvP für 3 Stunden Spielzeit aktiv. Ausloggen pausiert den Fortschritt; Deaktivieren setzt ihn zurück. Verdiente Titel bleiben dauerhaft erhalten.',
+    desc: 'Lasse Welt-PvP für 3 Stunden Spielzeit in der offenen Welt aktiv. Ausloggen, Tod und Instanzen pausieren den Fortschritt; Deaktivieren setzt ihn zurück. Verdiente Titel bleiben dauerhaft erhalten.',
     title: 'Trotzig',
   },
   pvp_flag_6h: {
     name: 'Furchtlos',
-    desc: 'Lasse Welt-PvP für 6 Stunden Spielzeit aktiv. Ausloggen pausiert den Fortschritt; Deaktivieren setzt ihn zurück. Verdiente Titel bleiben dauerhaft erhalten.',
+    desc: 'Lasse Welt-PvP für 6 Stunden Spielzeit in der offenen Welt aktiv. Ausloggen, Tod und Instanzen pausieren den Fortschritt; Deaktivieren setzt ihn zurück. Verdiente Titel bleiben dauerhaft erhalten.',
     title: 'Furchtlos',
   },
   pvp_flag_24h: {
     name: 'Unnachgiebig',
-    desc: 'Lasse Welt-PvP für 24 Stunden Spielzeit aktiv. Ausloggen pausiert den Fortschritt; Deaktivieren setzt ihn zurück. Verdiente Titel bleiben dauerhaft erhalten.',
+    desc: 'Lasse Welt-PvP für 24 Stunden Spielzeit in der offenen Welt aktiv. Ausloggen, Tod und Instanzen pausieren den Fortschritt; Deaktivieren setzt ihn zurück. Verdiente Titel bleiben dauerhaft erhalten.',
     title: 'Unnachgiebig',
   },
   pvp_flag_168h: {
     name: 'Unbezwingbar',
-    desc: 'Lasse Welt-PvP für 7 Tage Spielzeit aktiv. Ausloggen pausiert den Fortschritt; Deaktivieren setzt ihn zurück. Verdiente Titel bleiben dauerhaft erhalten.',
+    desc: 'Lasse Welt-PvP für 7 Tage Spielzeit in der offenen Welt aktiv. Ausloggen, Tod und Instanzen pausieren den Fortschritt; Deaktivieren setzt ihn zurück. Verdiente Titel bleiben dauerhaft erhalten.',
     title: 'Unbezwingbar',
   },
 };

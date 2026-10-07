@@ -32,7 +32,7 @@ export async function commitVaultDirectClaim(
   deps: VaultDirectClaimDeps,
   args: VaultDirectClaimArgs,
 ): Promise<VaultDirectClaimResult> {
-  const state = addVaultRewardToCharacterState(args.state, args.claim, args.attemptId, args.owner);
+  const state = addVaultRewardToCharacterState(args.state, args.claim);
   let client: VaultRewardClient;
   try {
     client = await deps.pool.connect();

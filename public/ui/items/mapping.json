@@ -7136,6 +7136,29 @@
       "itemIds": [
         "vanguard_feral_staff"
       ]
+    },
+    {
+      "batchId": "vanguard-jewelry-icons-2026-10-03",
+      "source": "Deterministic SVG compositions rendered to WebP with Sharp (scripts/generate_vanguard_jewelry_icons.mjs); no image model",
+      "owner": "World of ClaudeCraft",
+      "license": "World of ClaudeCraft project-generated art, project asset, rights reserved",
+      "styleContract": {
+        "id": "woc-item-icon-v1",
+        "document": "docs/design/item-icon-art-style.md"
+      },
+      "styleReference": "woc-item-icon-v1; existing painted item catalog (opaque dark vignette, warm top-left key, cool bottom-right shadow, centered silhouette with safe padding); Vanguard palette of the Season 2 weapons (blackened steel, crimson enamel, burnished gold, laurel motif)",
+      "commonPrompt": "Not a text-to-image prompt: each icon is an authored SVG composition (per-item vector art over a three-stop radial ground) rasterized to an opaque 128x128 sRGB WebP. The exact vector source of every item is the ITEMS_TO_GENERATE table in scripts/generate_vanguard_jewelry_icons.mjs.",
+      "provenanceRecord": "docs/achievements/vanguard-jewelry-icons-2026-10-03/",
+      "itemIds": [
+        "vanguard_band_of_focus",
+        "vanguard_band_of_mending",
+        "vanguard_band_of_might",
+        "vanguard_band_of_precision",
+        "vanguard_pendant_of_focus",
+        "vanguard_pendant_of_mending",
+        "vanguard_pendant_of_might",
+        "vanguard_pendant_of_precision"
+      ]
     }
   ]
 }

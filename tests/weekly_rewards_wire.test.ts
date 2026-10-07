@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { decodeWeeklyRewardInfo, sendWeekly } from '../src/net/weekly_rewards_wire';
 import { emptyWeeklyRewards } from '../src/sim/weekly_rewards';
+import { buildWeeklyRewardsView } from '../src/ui/weekly_rewards_view';
 import { bareClient } from './helpers/bare_client';
 
 describe('weekly reward wire', () => {
@@ -58,12 +59,36 @@ describe('weekly reward wire', () => {
       worldQuestsAvailable: false,
       readyWeeks: 0,
     };
+    info.state.raids = [2, 0, 0];
+    info.state.raidClears = [2, 1, 1];
+    info.state.raidUnlocks = [2, 0, 0];
     expect(decodeWeeklyRewardInfo(JSON.parse(JSON.stringify(info)))).toEqual(info);
     expect(decodeWeeklyRewardInfo({ ...info, nowMs: NaN })).toBeNull();
     expect(decodeWeeklyRewardInfo({ ...info, canClaim: 'yes' })).toBeNull();
     for (const playerLevel of [undefined, 0, -1, NaN, 1.5, '20'])
       expect(decodeWeeklyRewardInfo({ ...info, playerLevel })).toBeNull();
     expect(decodeWeeklyRewardInfo(null)).toBeNull();
+  });
+  it('keeps the current-week boss map through the online decoder and preview', () => {
+    const state = emptyWeeklyRewards(604800000);
+    state.bossUnlocks = { morthen: 2, ysolei: 2 };
+    state.weeklyBossUnlocks = { ysolei: 2 };
+    const info = decodeWeeklyRewardInfo(
+      JSON.parse(
+        JSON.stringify({
+          state,
+          nowMs: 1000,
+          playerLevel: 20,
+          canClaim: true,
+          worldQuestsAvailable: false,
+          readyWeeks: 0,
+        }),
+      ),
+    )!;
+    expect(info.state.weeklyBossUnlocks).toEqual({ ysolei: 2 });
+    expect(
+      buildWeeklyRewardsView(info, 'mage')[1].pools[1].tables.map((table) => table.id),
+    ).toEqual(['drowned_temple']);
   });
   it('preserves a delta-omitted ledger and clears it when the keeper gate closes', () => {
     const client = bareClient(1);
