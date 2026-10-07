@@ -1,5 +1,7 @@
+import { ITEMS } from '../../src/sim/data';
 import { describe, expect, it } from 'vitest';
 import {
+  FOREIGN_KEEPSAKE_ID,
   FOREIGN_WEAPON_ID,
   GRANT_KEY,
   itemIdForGrant,
@@ -306,8 +308,8 @@ function world() {
       const e = escrow.get(g);
       if (e?.state === 'in-transit') Object.assign(e, { state: 'held', readd: true });
     },
-    arrive(g = G1, label = 'Ember Blade') {
-      escrow.set(g, { grant: grant(g), label, state: 'held', readd: true, ackedSeq: 0 });
+    arrive(g = G1, label = 'Ember Blade', type?: string) {
+      escrow.set(g, { grant: grant(g, type), label, state: 'held', readd: true, ackedSeq: 0 });
     },
   };
 }
@@ -354,11 +356,23 @@ describe('placeschema sidecar game side (PLACE-276)', () => {
     }
   });
 
-  it('maps our own mint back to its item, a foreign blade to the stand-in, and nothing else', () => {
+  it('maps our own mint back to its item, a foreign blade to the stand-in, and anything else to a keepsake', () => {
     expect(itemIdForGrant(grant(G1, 'misc.woc.wolf_fang'))).toBe('wolf_fang');
-    expect(itemIdForGrant(grant(G1, 'armor.woc.not_an_item'))).toBeUndefined();
     expect(itemIdForGrant(grant(G1))).toBe(FOREIGN_WEAPON_ID);
-    expect(itemIdForGrant(grant(G1, 'potion.heal'))).toBeUndefined();
+    // PLACE-293: nothing is left without a body, so nothing strands pending in escrow
+    for (const type of ['armor.woc.not_an_item', 'potion.heal', 'armor.helmet', 'misc.gem'])
+      expect(itemIdForGrant(grant(G1, type))).toBe(FOREIGN_KEEPSAKE_ID);
+    expect(itemIdForGrant({ id: G1, tags: [], content: 'not json' })).toBe(FOREIGN_KEEPSAKE_ID);
+    expect(ITEMS[FOREIGN_KEEPSAKE_ID]).toMatchObject({ kind: 'junk', noVendorSell: true });
+  });
+
+  it('PLACE-293: a foreign helmet arrives as a keepsake named by its grant, and is acked', async () => {
+    const w = world();
+    w.arrive(G1, 'Diamond Helmet', 'armor.helmet');
+    await w.carry.join(w.session());
+    expect(w.inventory).toHaveLength(1);
+    expect(w.inventory[0]).toMatchObject({ itemId: FOREIGN_KEEPSAKE_ID, instance: { [GRANT_KEY]: G1, name: 'Diamond Helmet' } });
+    expect(w.escrow.get(G1)?.readd).toBe(false); // acked: nothing waits in escrow
   });
 
   it('adds an arrival once, accepts it in the same save, then acks', async () => {

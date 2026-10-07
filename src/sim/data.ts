@@ -392,6 +392,18 @@ export { STATIONS };
 
 export const ITEMS: Record<string, ItemDef> = mergeItems(
   BASE_ITEMS,
+  // PlaceSchema fork (PLACE-293): the body a carried-in foreign item that is not a weapon is held as.
+  // Its copy is signed, so item_lock_flag.ts already keeps it from being sold, destroyed or traded.
+  {
+    ps_keepsake: {
+      id: 'ps_keepsake',
+      name: 'Carried Keepsake',
+      kind: 'junk',
+      quality: 'common',
+      noVendorSell: true,
+      sellValue: 0,
+    },
+  },
   PROFESSION_ITEMS,
   APEX_PATTERN_ITEMS,
   FARM_PATTERN_ITEMS,
