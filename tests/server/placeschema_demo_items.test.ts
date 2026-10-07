@@ -308,7 +308,8 @@ describe('arriving: a carried sword by name and mesh', () => {
     await w.carry.join(w.session);
     await w.carry.join(w.session);
     await new Promise((r) => setTimeout(r, 0));
-    expect(w.frames).toEqual([
+    // PLACE-479 also sends a link-status frame on join; this test is about the skin frame only
+    expect(w.frames.filter((f) => (f as { kind?: string }).kind === 'skin')).toEqual([
       { t: 'placeschema', kind: 'skin', url: 'data:image/png;base64,AAAA', model: 'classic' },
     ]);
   });
