@@ -107,7 +107,7 @@ describe('a signed copy cannot be sold, disenchanted or salvaged', () => {
 // ---- the carry against a small model of the sidecar's /mod HTTP contract ----
 
 type Sent = { path: string; body: any };
-function carryWorld(cls: PlayerClass, opts: { look?: unknown } = {}) {
+function carryWorld(cls: PlayerClass, opts: { look?: unknown; bag?: boolean } = {}) {
   const inventory: InvSlot[] = [];
   const equipment: Record<string, InvSlot | undefined> = {};
   const accepted = new Set<string>();
@@ -115,6 +115,7 @@ function carryWorld(cls: PlayerClass, opts: { look?: unknown } = {}) {
     grant: { id: string; tags: string[][]; content: string };
     label: string;
     look?: unknown;
+    equipped?: string;
   }[] = [];
   const sent: Sent[] = [];
   let n = 0;
@@ -201,6 +202,8 @@ function carryWorld(cls: PlayerClass, opts: { look?: unknown } = {}) {
       },
       label: 'Diamond Sword',
       look,
+      // PLACE-413: held in the hand where it came from, unless the test carries it in a bag
+      ...(opts.bag ? {} : { equipped: 'grip' }),
     });
   if (opts.look) arrive(opts.look);
   return { carry, session, inventory, equipment, sent, frames, arrive };
@@ -284,6 +287,19 @@ describe('arriving: a carried sword by name and mesh', () => {
     } finally {
       delete def.requiredClass;
     }
+    expect(w.equipment.mainhand).toBeUndefined();
+    expect(w.inventory).toEqual([
+      {
+        itemId: FOREIGN_WEAPON_ID,
+        count: 1,
+        instance: { [GRANT_KEY]: G(900), name: 'Diamond Sword', [MESH_KEY]: asIs.mesh.name },
+      },
+    ]);
+  });
+
+  it('a sword carried in a bag (no equipped hint) arrives in the bag (PLACE-413)', async () => {
+    const w = carryWorld('warrior', { look: asIs, bag: true });
+    await w.carry.join(w.session);
     expect(w.equipment.mainhand).toBeUndefined();
     expect(w.inventory).toEqual([
       {

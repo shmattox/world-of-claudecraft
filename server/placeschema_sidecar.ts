@@ -128,7 +128,8 @@ export interface CarrySession {
 
 type Grant = { id: string; tags: string[][]; content: string };
 type Look = { rung: 'as-is' | 'generic'; mesh?: { name?: unknown } };
-type Added = { grant: Grant; label?: string; look?: Look };
+/** `equipped`: the slot it was held in where it came from (PLACE-413), on its first offer only. */
+type Added = { grant: Grant; label?: string; look?: Look; equipped?: string };
 
 export interface CarryDeps<S extends CarrySession> {
   sim: Pick<Sim, 'meta' | 'addItemInstance'> & Partial<Pick<Sim, 'equipItem' | 'unequipItem'>>;
@@ -277,9 +278,10 @@ export class PlaceSchemaCarry<S extends CarrySession> {
         } else {
           const inst = signedInstance(a, itemId === FOREIGN_WEAPON_ID);
           this.d.sim.addItemInstance(itemId, inst, s.pid);
-          // Decision 2: a carried weapon goes to the main hand when this class can use it, else
-          // it stays in the bag (name and mesh kept); WoC's class rules are untouched.
-          if (itemId === FOREIGN_WEAPON_ID && canEquipItem(meta.cls, ITEMS[itemId])) {
+          // Decision 2 + PLACE-413: a weapon that arrived HELD goes to the main hand when this class
+          // can use it; one carried in a bag, or one this class can't use, stays in the bag (name and
+          // mesh kept). WoC's class rules are untouched.
+          if (a.equipped && ITEMS[itemId]?.slot === 'mainhand' && canEquipItem(meta.cls, ITEMS[itemId])) {
             const at = slotOfGrant(meta.inventory, g);
             if (at >= 0) this.d.sim.equipItem?.(itemId, s.pid, 'mainhand', at);
           }
