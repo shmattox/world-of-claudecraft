@@ -431,6 +431,7 @@ import {
   sfxBlobIntegrityMatches,
 } from './static_cache';
 import { STATIC_PAGE_ALIASES, spaFallbackStatus } from './static_fallback';
+import { placeschemaStaticCors } from './placeschema_static_cors';
 import { readStaticSfxSnapshot, type StaticSfxSnapshot } from './static_sfx';
 import { stopSteamMirror } from './steam/mirror';
 import {
@@ -1512,6 +1513,7 @@ function serveStatic(req: http.IncomingMessage, res: http.ServerResponse): void 
     'Cache-Control': cacheControlFor(cachePath, actualSfxHash),
     ETag: etag,
     'Last-Modified': stats.mtime.toUTCString(),
+    ...placeschemaStaticCors(urlPath),
   };
   if (isReadMethod && isNotModified(req.headers, etag, stats.mtime)) {
     res.writeHead(304, validators);
