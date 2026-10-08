@@ -6,6 +6,7 @@
 import { describe, expect, it } from 'vitest';
 import { templateFor } from '../server/placeschema_sidecar';
 import { CLASSES } from '../src/sim/content/classes';
+import { canEquipItem } from '../src/sim/equipment_rules';
 import { PROVING_SHORE_QUEST_ORDER } from '../src/sim/content/proving_shore';
 import { ITEMS, NPCS, QUESTS } from '../src/sim/data';
 import { onMobKilledForQuests } from '../src/sim/quests/quest_credit';
@@ -42,23 +43,23 @@ describe('A Blade That Travels', () => {
       sim.acceptQuest(QUEST);
       expect(sim.questLog.get(QUEST)?.state).toBe('active');
 
+      const meta = sim.players.get(sim.playerId);
       const effigy = [...sim.entities.values()].find(
         (e) => e.kind === 'mob' && e.templateId === 'training_effigy',
       );
-      onMobKilledForQuests(sim.ctx, effigy!, sim.players.get(sim.playerId)!);
+      if (!meta || !effigy) throw new Error('missing player or effigy');
+      onMobKilledForQuests(sim.ctx, effigy, meta);
       expect(sim.questLog.get(QUEST)?.state).toBe('ready');
 
       standAt(sim, 'drillmaster_rook');
-      const before = sim.players.get(sim.playerId)!.inventory.map((s) => s.itemId);
+      const before = meta.inventory.map((s) => s.itemId);
       sim.turnInQuest(QUEST);
       expect(sim.questsDone.has(QUEST)).toBe(true);
 
-      const got = sim
-        .players.get(sim.playerId)!
-        .inventory.map((s) => s.itemId)
-        .filter((id) => !before.includes(id));
+      const got = meta.inventory.map((s) => s.itemId).filter((id) => !before.includes(id));
       expect(got).toHaveLength(1);
       expect(ITEMS[got[0]].kind).toBe('weapon');
+      expect(canEquipItem(cls, ITEMS[got[0]])).toBe(true); // the class can wield it here too
       // the demo carry policy lists weapon.woc.* (open-place e2e/woc-loop.walk.ts)
       expect(templateFor(got[0]).type).toMatch(/^weapon\.woc\./);
     });

@@ -389,7 +389,12 @@ export const PROVING_SHORE_NPCS: Record<string, NpcDef> = {
     // south-west down that path.
     facing: (3 * Math.PI) / 4,
     color: 0x7a4a4a,
-    questIds: ['q_ps_strike_true', 'q_ps_hone_the_edge', 'q_ps_shell_and_claw', 'q_ps_a_blade_that_travels'],
+    questIds: [
+      'q_ps_strike_true',
+      'q_ps_hone_the_edge',
+      'q_ps_shell_and_claw',
+      'q_ps_a_blade_that_travels',
+    ],
     greeting:
       'Straw first, shells second, $N. An effigy teaches your arm the swing; the scuttlers down the strand teach it to land on something that minds.',
   },
@@ -687,7 +692,7 @@ export const PROVING_SHORE_QUESTS: Record<string, QuestDef> = {
     name: 'A Blade That Travels',
     giverNpcId: 'ferryman_odo',
     turnInNpcId: 'drillmaster_rook',
-    text: 'Not everything I ferry stays on one shore, $N. Drillmaster Rook keeps a blade for every recruit, made to travel: carry it out of this world and into another, and it stays itself. He hands one only to a recruit who has felled a straw effigy in his practice yard, up the path west of the Gauntlet. Left-click an effigy to target it, press 1 to strike, and keep striking until it falls. Then press F on Rook.',
+    text: 'Not everything I ferry stays on one shore, $N. Drillmaster Rook keeps a blade for every recruit, made to travel: carry it out of this world and into another, and it stays itself. He hands one only to a recruit who has felled a straw effigy in his practice yard, up the path west of the Gauntlet. Left-click an effigy to target it and keep attacking until it falls; it will not strike back. Then press F on Rook.',
     completionText:
       'Straw down and your arm still attached. Here, $N: yours. Wield it here, or carry it with you wherever you go next; it will still be this blade when it gets there.',
     objectives: [
