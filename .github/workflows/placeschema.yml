@@ -1,0 +1,43 @@
+# PLACE-742: the PlaceSchema fork's own checks on every PR to main. Upstream's workflows are not
+# ours to run here; this one covers only what the fork adds: typecheck plus the PlaceSchema tests,
+# including the exactly-once accepted-grant store on a real Postgres (TEST_DATABASE_URL).
+name: placeschema
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+jobs:
+  placeschema:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: ps
+          POSTGRES_PASSWORD: ps
+          POSTGRES_DB: ps
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U ps" --health-interval 5s --health-timeout 5s --health-retries 10
+    steps:
+      - uses: actions/checkout@v6
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.34.5
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 26
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: npx tsc --noEmit -p .
+      - name: PlaceSchema tests (real Postgres for the accepted-grant store)
+        env:
+          TEST_DATABASE_URL: postgres://ps:ps@127.0.0.1:5432/ps
+        run: >-
+          npx vitest run
+          tests/server/placeschema_sidecar.test.ts
+          tests/server/placeschema_demo_items.test.ts
+          tests/server/placeschema_skin.test.ts
+          tests/server/placeschema_accepted.pg.test.ts
