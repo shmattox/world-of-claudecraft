@@ -655,6 +655,8 @@ const QUEST_IDS = [
   // the Eastbrook hub dummy lesson (content/practice_dummies.ts)
   'q_hub_know_your_numbers',
   'q_hub_healing_numbers',
+  // PlaceSchema fork (PLACE-741): the Proving Shore carry errand
+  'q_ps_a_blade_that_travels',
 ] as const;
 
 const ZONE_IDS = [

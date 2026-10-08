@@ -10,102 +10,182 @@
 
 export const pending: Record<string, readonly string[]> = {
   "es": [
+    "entities.quests.q_ps_a_blade_that_travels.completion",
+    "entities.quests.q_ps_a_blade_that_travels.objectives.0.label",
+    "entities.quests.q_ps_a_blade_that_travels.text",
+    "entities.quests.q_ps_a_blade_that_travels.title",
     "wallet.placeSchemaLink",
     "wallet.placeSchemaLinkTitle",
     "wallet.placeSchemaLinked"
   ],
   "es_ES": [
+    "entities.quests.q_ps_a_blade_that_travels.completion",
+    "entities.quests.q_ps_a_blade_that_travels.objectives.0.label",
+    "entities.quests.q_ps_a_blade_that_travels.text",
+    "entities.quests.q_ps_a_blade_that_travels.title",
     "wallet.placeSchemaLink",
     "wallet.placeSchemaLinkTitle",
     "wallet.placeSchemaLinked"
   ],
   "fr_FR": [
+    "entities.quests.q_ps_a_blade_that_travels.completion",
+    "entities.quests.q_ps_a_blade_that_travels.objectives.0.label",
+    "entities.quests.q_ps_a_blade_that_travels.text",
+    "entities.quests.q_ps_a_blade_that_travels.title",
     "wallet.placeSchemaLink",
     "wallet.placeSchemaLinkTitle",
     "wallet.placeSchemaLinked"
   ],
   "fr_CA": [
+    "entities.quests.q_ps_a_blade_that_travels.completion",
+    "entities.quests.q_ps_a_blade_that_travels.objectives.0.label",
+    "entities.quests.q_ps_a_blade_that_travels.text",
+    "entities.quests.q_ps_a_blade_that_travels.title",
     "wallet.placeSchemaLink",
     "wallet.placeSchemaLinkTitle",
     "wallet.placeSchemaLinked"
   ],
   "en_CA": [],
   "it_IT": [
+    "entities.quests.q_ps_a_blade_that_travels.completion",
+    "entities.quests.q_ps_a_blade_that_travels.objectives.0.label",
+    "entities.quests.q_ps_a_blade_that_travels.text",
+    "entities.quests.q_ps_a_blade_that_travels.title",
     "wallet.placeSchemaLink",
     "wallet.placeSchemaLinkTitle",
     "wallet.placeSchemaLinked"
   ],
   "de_DE": [
+    "entities.quests.q_ps_a_blade_that_travels.completion",
+    "entities.quests.q_ps_a_blade_that_travels.objectives.0.label",
+    "entities.quests.q_ps_a_blade_that_travels.text",
+    "entities.quests.q_ps_a_blade_that_travels.title",
     "wallet.placeSchemaLink",
     "wallet.placeSchemaLinkTitle",
     "wallet.placeSchemaLinked"
   ],
   "zh_CN": [
+    "entities.quests.q_ps_a_blade_that_travels.completion",
+    "entities.quests.q_ps_a_blade_that_travels.objectives.0.label",
+    "entities.quests.q_ps_a_blade_that_travels.text",
+    "entities.quests.q_ps_a_blade_that_travels.title",
     "wallet.placeSchemaLink",
     "wallet.placeSchemaLinkTitle",
     "wallet.placeSchemaLinked"
   ],
   "zh_TW": [
+    "entities.quests.q_ps_a_blade_that_travels.completion",
+    "entities.quests.q_ps_a_blade_that_travels.objectives.0.label",
+    "entities.quests.q_ps_a_blade_that_travels.text",
+    "entities.quests.q_ps_a_blade_that_travels.title",
     "wallet.placeSchemaLink",
     "wallet.placeSchemaLinkTitle",
     "wallet.placeSchemaLinked"
   ],
   "ko_KR": [
+    "entities.quests.q_ps_a_blade_that_travels.completion",
+    "entities.quests.q_ps_a_blade_that_travels.objectives.0.label",
+    "entities.quests.q_ps_a_blade_that_travels.text",
+    "entities.quests.q_ps_a_blade_that_travels.title",
     "wallet.placeSchemaLink",
     "wallet.placeSchemaLinkTitle",
     "wallet.placeSchemaLinked"
   ],
   "ja_JP": [
+    "entities.quests.q_ps_a_blade_that_travels.completion",
+    "entities.quests.q_ps_a_blade_that_travels.objectives.0.label",
+    "entities.quests.q_ps_a_blade_that_travels.text",
+    "entities.quests.q_ps_a_blade_that_travels.title",
     "wallet.placeSchemaLink",
     "wallet.placeSchemaLinkTitle",
     "wallet.placeSchemaLinked"
   ],
   "pt_BR": [
+    "entities.quests.q_ps_a_blade_that_travels.completion",
+    "entities.quests.q_ps_a_blade_that_travels.objectives.0.label",
+    "entities.quests.q_ps_a_blade_that_travels.text",
+    "entities.quests.q_ps_a_blade_that_travels.title",
     "wallet.placeSchemaLink",
     "wallet.placeSchemaLinkTitle",
     "wallet.placeSchemaLinked"
   ],
   "ru_RU": [
+    "entities.quests.q_ps_a_blade_that_travels.completion",
+    "entities.quests.q_ps_a_blade_that_travels.objectives.0.label",
+    "entities.quests.q_ps_a_blade_that_travels.text",
+    "entities.quests.q_ps_a_blade_that_travels.title",
     "wallet.placeSchemaLink",
     "wallet.placeSchemaLinkTitle",
     "wallet.placeSchemaLinked"
   ],
   "cs_CZ": [
+    "entities.quests.q_ps_a_blade_that_travels.completion",
+    "entities.quests.q_ps_a_blade_that_travels.objectives.0.label",
+    "entities.quests.q_ps_a_blade_that_travels.text",
+    "entities.quests.q_ps_a_blade_that_travels.title",
     "wallet.placeSchemaLink",
     "wallet.placeSchemaLinkTitle",
     "wallet.placeSchemaLinked"
   ],
   "nl_NL": [
+    "entities.quests.q_ps_a_blade_that_travels.completion",
+    "entities.quests.q_ps_a_blade_that_travels.objectives.0.label",
+    "entities.quests.q_ps_a_blade_that_travels.text",
+    "entities.quests.q_ps_a_blade_that_travels.title",
     "wallet.placeSchemaLink",
     "wallet.placeSchemaLinkTitle",
     "wallet.placeSchemaLinked"
   ],
   "pl_PL": [
+    "entities.quests.q_ps_a_blade_that_travels.completion",
+    "entities.quests.q_ps_a_blade_that_travels.objectives.0.label",
+    "entities.quests.q_ps_a_blade_that_travels.text",
+    "entities.quests.q_ps_a_blade_that_travels.title",
     "wallet.placeSchemaLink",
     "wallet.placeSchemaLinkTitle",
     "wallet.placeSchemaLinked"
   ],
   "id_ID": [
+    "entities.quests.q_ps_a_blade_that_travels.completion",
+    "entities.quests.q_ps_a_blade_that_travels.objectives.0.label",
+    "entities.quests.q_ps_a_blade_that_travels.text",
+    "entities.quests.q_ps_a_blade_that_travels.title",
     "wallet.placeSchemaLink",
     "wallet.placeSchemaLinkTitle",
     "wallet.placeSchemaLinked"
   ],
   "tr_TR": [
+    "entities.quests.q_ps_a_blade_that_travels.completion",
+    "entities.quests.q_ps_a_blade_that_travels.objectives.0.label",
+    "entities.quests.q_ps_a_blade_that_travels.text",
+    "entities.quests.q_ps_a_blade_that_travels.title",
     "wallet.placeSchemaLink",
     "wallet.placeSchemaLinkTitle",
     "wallet.placeSchemaLinked"
   ],
   "sv_SE": [
+    "entities.quests.q_ps_a_blade_that_travels.completion",
+    "entities.quests.q_ps_a_blade_that_travels.objectives.0.label",
+    "entities.quests.q_ps_a_blade_that_travels.text",
+    "entities.quests.q_ps_a_blade_that_travels.title",
     "wallet.placeSchemaLink",
     "wallet.placeSchemaLinkTitle",
     "wallet.placeSchemaLinked"
   ],
   "vi_VN": [
+    "entities.quests.q_ps_a_blade_that_travels.completion",
+    "entities.quests.q_ps_a_blade_that_travels.objectives.0.label",
+    "entities.quests.q_ps_a_blade_that_travels.text",
+    "entities.quests.q_ps_a_blade_that_travels.title",
     "wallet.placeSchemaLink",
     "wallet.placeSchemaLinkTitle",
     "wallet.placeSchemaLinked"
   ],
   "da_DK": [
+    "entities.quests.q_ps_a_blade_that_travels.completion",
+    "entities.quests.q_ps_a_blade_that_travels.objectives.0.label",
+    "entities.quests.q_ps_a_blade_that_travels.text",
+    "entities.quests.q_ps_a_blade_that_travels.title",
     "wallet.placeSchemaLink",
     "wallet.placeSchemaLinkTitle",
     "wallet.placeSchemaLinked"

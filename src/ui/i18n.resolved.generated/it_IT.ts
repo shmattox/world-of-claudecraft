@@ -23242,6 +23242,16 @@ export const it_IT: EnTranslations = {
           }
         }
       },
+      "q_ps_a_blade_that_travels": {
+        "title": "A Blade That Travels",
+        "text": "Not everything I ferry stays on one shore, {playerName}. Drillmaster Rook keeps a blade for every recruit, made to travel: carry it out of this world and into another, and it stays itself. He hands one only to a recruit who has felled a straw effigy in his practice yard, up the path west of the Gauntlet. Left-click an effigy to target it, press 1 to strike, and keep striking until it falls. Then press F on Rook.",
+        "completion": "Straw down and your arm still attached. Here, {playerName}: yours. Wield it here, or carry it with you wherever you go next; it will still be this blade when it gets there.",
+        "objectives": {
+          "0": {
+            "label": "Training Effigy felled"
+          }
+        }
+      },
       "q_drowned_choir": {
         "title": "Il Coro Annegato",
         "text": "I guadatori non agiscono da soli. Tra loro camminano i Devoti Annegati — la setta che affondò col tempio, ancora nelle loro vesti marcite, ancora intenti a cantare la preghiera dalle rocce della riva. Riducine otto al silenzio e portami sei delle offerte che recano. Voglio sapere cosa intendono donare alla loro dea.",

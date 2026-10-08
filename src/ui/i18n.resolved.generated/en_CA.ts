@@ -23242,6 +23242,16 @@ export const en_CA: EnTranslations = {
           }
         }
       },
+      "q_ps_a_blade_that_travels": {
+        "title": "A Blade That Travels",
+        "text": "Not everything I ferry stays on one shore, {playerName}. Drillmaster Rook keeps a blade for every recruit, made to travel: carry it out of this world and into another, and it stays itself. He hands one only to a recruit who has felled a straw effigy in his practice yard, up the path west of the Gauntlet. Left-click an effigy to target it, press 1 to strike, and keep striking until it falls. Then press F on Rook.",
+        "completion": "Straw down and your arm still attached. Here, {playerName}: yours. Wield it here, or carry it with you wherever you go next; it will still be this blade when it gets there.",
+        "objectives": {
+          "0": {
+            "label": "Training Effigy felled"
+          }
+        }
+      },
       "q_drowned_choir": {
         "title": "The Drowned Choir",
         "text": "The waders do not act alone. Among them walk the Drowned Votaries, the cult that sank with the temple, still in their rotted vestments, still singing the prayer from the shore-rocks. Silence eight of them, and bring me six of the offerings they carry. I would know what they mean to give their goddess.",

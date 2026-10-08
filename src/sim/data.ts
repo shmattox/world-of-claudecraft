@@ -584,6 +584,8 @@ export const QUEST_ORDER: string[] = [
   ...PROVING_SHORE_QUEST_ORDER,
   ...IGNIVAR_RAID_LORE_QUEST_ORDER,
   ...HUB_PRACTICE_QUEST_ORDER,
+  // PlaceSchema fork (PLACE-741): the Proving Shore's carry errand, off the island rail.
+  'q_ps_a_blade_that_travels',
 ];
 
 // The Book of Deeds catalog (content/deeds.ts) is deliberately NOT re-exported
