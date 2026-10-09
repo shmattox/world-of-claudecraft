@@ -1,14 +1,14 @@
-// A Minecraft skin worn on a WoC rig (PLACE-410, rigged properly in PLACE-480). Six boxes,
-// UV-mapped to the standard skin layout, each parented to its WoC bone (head, chest, upper arms,
-// upper legs) so every WoC animation drives them, and placed from the rig's BIND pose so each box
-// pivots at its joint: an arm hangs from its shoulder to its hand, a leg from its hip to the feet,
-// the head sits on the neck, the torso spans hips to neck. Widths keep Minecraft proportions on a
-// unit fitted to the WoC body (the torso spans its hips to its neck; the head grows up to 1.5x
-// toward the room above the neck, since WoC's rigs are big-headed). The hand
-// slots WoC attaches weapons to (handslot.r/l) move onto each arm box's hand, so the existing
-// attachment system holds the sword and shield there. The rig's own body meshes are hidden while
-// it is worn (held props stay). A legacy 64x32 skin has no left-limb rows: its left arm and leg
-// reuse the right ones.
+// A Minecraft skin worn on a WoC rig (PLACE-410, rigged in PLACE-480), on a true Minecraft body
+// (PLACE-946): six boxes UV-mapped to the standard skin layout, sized and placed as Minecraft's
+// player model is (32 skin pixels tall: legs 12, torso 12, head 8; arms 12 from the shoulder),
+// scaled to the character's height. WoC's rigs are chibi (big head, short legs), so a box can't
+// pivot on its WoC bone's joint: each rides a "shadow" of its bone, a node at the Minecraft joint
+// (hip, shoulder, neck, waist) that copies the bone's live rotation every frame, so every WoC
+// animation still drives it. Each limb keeps the direction its bone had in the rig's BIND pose, so
+// the boxes stay posed however the rig was authored. The hand slots WoC attaches weapons to
+// (handslot.r/l) move onto each arm box's hand, so the existing attachment system holds the sword
+// and shield there. The rig's own body meshes are hidden while it is worn (held props stay). A
+// legacy 64x32 skin has no left-limb rows: its left arm and leg reuse the right ones.
 // ponytail: limbs are one rigid box per bone (no elbow/knee bend) and the outer overlay layer is
 // not drawn; add them if a skin reads wrong in the walk.
 
@@ -85,6 +85,7 @@ const find = (root: THREE.Object3D, names: string[] | undefined) => {
 
 export const MC_SKIN_TAG = 'placeschemaMinecraftSkin';
 export const MC_HAND_TAG = 'placeschemaMinecraftHand';
+export const MC_SHADOW_TAG = 'placeschemaMinecraftShadow';
 const MC_HIDDEN = 'placeschemaMinecraftHidden';
 
 /** What a hand anchor needs to put its slot back where it was. */
@@ -138,6 +139,11 @@ export function removeMinecraftSkin(root: THREE.Object3D): void {
     slot.scale.copy(scale);
     h.removeFromParent();
   }
+  const shadows: THREE.Object3D[] = [];
+  root.traverse((o) => {
+    if (o.userData[MC_SHADOW_TAG]) shadows.push(o);
+  });
+  for (const o of shadows) o.removeFromParent();
   for (const o of (root.userData[MC_HIDDEN] as Set<THREE.Object3D> | undefined) ?? [])
     o.visible = true;
   delete root.userData[MC_HIDDEN];
@@ -220,104 +226,111 @@ export function wearMinecraftSkin(
   };
   const bind = bindPose(root);
   const pos = (o: THREE.Object3D) => new THREE.Vector3().setFromMatrixPosition(bind(o));
-  // parent `child` (posed in bind-pose world space) to `bone`, keeping that pose relative to it
-  const ride = (bone: THREE.Object3D, child: THREE.Object3D) => {
+  const feet = pos(root);
+  const up = new THREE.Vector3(0, 1, 0).transformDirection(root.matrixWorld);
+  // the rig's own facing: its left hip minus its right, crossed with up; and its left
+  const [hipR, hipL] = ['upperlegr', 'upperlegl'].map((n) => find(root, [n]));
+  const fwd =
+    hipR && hipL
+      ? pos(hipL).sub(pos(hipR)).cross(up).normalize()
+      : new THREE.Vector3(0, 0, 1).transformDirection(root.matrixWorld);
+  const left = new THREE.Vector3().crossVectors(up, fwd);
+  // one skin pixel: Minecraft's player is 32 pixels tall
+  const u = height / 32;
+  /** a point on the Minecraft body, `h` pixels up and `side` pixels to the wearer's left */
+  const at = (h: number, side = 0) =>
+    feet
+      .clone()
+      .addScaledVector(up, h * u)
+      .addScaledVector(left, side * u);
+  /** A node beside `bone` (same parent) at `joint`, copying the bone's live rotation and scale every
+   *  frame; returns it with its bind-pose world matrix. */
+  const shadow = (bone: THREE.Object3D, joint: THREE.Vector3) => {
+    const world = bind(bone).clone().setPosition(joint);
+    const s = new THREE.Object3D();
+    s.name = MC_SHADOW_TAG;
+    s.userData[MC_SHADOW_TAG] = bone; // the bone it copies
+    const parent = bone.parent ?? root;
+    bind(parent).invert().multiply(world).decompose(s.position, s.quaternion, s.scale);
+    s.updateMatrix = () => {
+      s.quaternion.copy(bone.quaternion);
+      s.scale.copy(bone.scale);
+      THREE.Object3D.prototype.updateMatrix.call(s);
+    };
+    parent.add(s);
+    return { s, world };
+  };
+  // parent `child` (posed in bind-pose world space) to the shadow, keeping that pose relative to it
+  const ride = (on: { s: THREE.Object3D; world: THREE.Matrix4 }, child: THREE.Object3D) => {
     child.updateMatrix();
-    bind(bone)
+    on.world
+      .clone()
       .invert()
       .multiply(child.matrix)
       .decompose(child.position, child.quaternion, child.scale);
-    bone.add(child);
+    on.s.add(child);
   };
-  {
-    const head = find(root, ['head']);
-    const chest = find(root, ['chest', 'spine']);
-    const feet = pos(root);
-    const up = new THREE.Vector3(0, 1, 0).transformDirection(root.matrixWorld);
-    const lenOf = (v: THREE.Vector3) => v.clone().sub(feet).dot(up);
-    const neck = head ? pos(head) : feet.clone().addScaledVector(up, height * 0.75);
-    const neckY = lenOf(neck);
-    const hips = limbs(false)
-      .filter((l) => !l.arm)
-      .map((l) => find(root, [l.bone]))
-      .filter((b): b is THREE.Object3D => !!b);
-    const hipY = hips.length
-      ? hips.reduce((a, b) => a + lenOf(pos(b)), 0) / hips.length
-      : neckY / 2;
-    // the rig's own facing: its left hip minus its right, crossed with up
-    const [hipR, hipL] = ['upperlegr', 'upperlegl'].map((n) => find(root, [n]));
-    const fwd =
-      hipR && hipL
-        ? pos(hipL).sub(pos(hipR)).cross(up).normalize()
-        : new THREE.Vector3(0, 0, 1).transformDirection(root.matrixWorld);
-    // one skin pixel: the torso's 12 pixels span the rig's hips to its neck. The head may grow up
-    // to 1.5x toward filling the room above the neck (WoC's rigs are big-headed).
-    const unit = (neckY - hipY) / 12;
-    const headUnit = Math.min(Math.max((height - neckY) / 8, unit), unit * 1.5);
-    const centre = chest ? pos(chest) : neck.clone();
-    centre.addScaledVector(up, (neckY + hipY) / 2 - lenOf(centre));
-    if (head) {
-      const m = box([8, 8, 8], [0, 0]);
-      poseBox(
-        m,
-        neck.clone().addScaledVector(up, 4 * headUnit),
-        up,
-        fwd,
-        headUnit,
-        8,
-        8 * headUnit,
-      );
-      ride(head, m);
-    }
-    if (chest) {
-      const m = box([8, 12, 4], [16, 16]);
-      poseBox(m, centre, up, fwd, unit, 12, neckY - hipY);
-      ride(chest, m);
-    }
-    for (const l of limbs(textureHeight === 32)) {
-      const bone = find(root, [l.bone]);
-      if (!bone) continue;
-      const joint = pos(bone);
-      const endBone = l.end ? find(root, l.end) : undefined;
-      // the far end: the hand for an arm, the ground under the hip for a leg
-      const far = endBone ? pos(endBone) : joint.clone().addScaledVector(up, -lenOf(joint));
-      const along = far.clone().sub(joint);
-      const length = along.length();
-      if (length < 1e-6) continue;
-      const w = l.arm && slim ? 3 : 4;
-      const m = box([w, 12, 4], l.uv);
-      poseBox(
-        m,
-        joint.clone().addScaledVector(along, 0.5),
-        along.clone().negate(),
-        fwd,
-        unit,
-        12,
-        length,
-      );
-      ride(bone, m);
-      // the hand: the slot keeps its grip relative to the hand, which now sits at the box's end
-      const slot = l.slot ? find(root, [l.slot]) : undefined;
-      const holder = slot?.parent;
-      if (slot && holder && !holder.userData[MC_HAND_TAG]) {
-        // kept across skin changes (not tagged as a skin box), so the slot never leaves the rig
-        const hand = new THREE.Object3D();
-        hand.name = MC_HAND_TAG;
-        hand.userData[MC_HAND_TAG] = {
-          slot,
-          parent: holder,
-          position: slot.position.clone(),
-          quaternion: slot.quaternion.clone(),
-          scale: slot.scale.clone(),
-        } satisfies HandRestore;
-        bind(holder).decompose(hand.position, hand.quaternion, hand.scale);
-        ride(bone, hand);
-        const local = [slot.position.clone(), slot.quaternion.clone(), slot.scale.clone()] as const;
-        hand.add(slot);
-        slot.position.copy(local[0]);
-        slot.quaternion.copy(local[1]);
-        slot.scale.copy(local[2]);
-      }
+  const head = find(root, ['head']);
+  if (head) {
+    const m = box([8, 8, 8], [0, 0]);
+    poseBox(m, at(28), up, fwd, u, 8, 8 * u);
+    ride(shadow(head, at(24)), m);
+  }
+  const chest = find(root, ['chest', 'spine']);
+  if (chest) {
+    const m = box([8, 12, 4], [16, 16]);
+    poseBox(m, at(18), up, fwd, u, 12, 12 * u);
+    ride(shadow(chest, at(12)), m);
+  }
+  for (const l of limbs(textureHeight === 32)) {
+    const bone = find(root, [l.bone]);
+    if (!bone) continue;
+    const endBone = l.end ? find(root, l.end) : undefined;
+    // the limb's bind-pose direction: toward the hand for an arm, straight down for a leg
+    const along = endBone ? pos(endBone).sub(pos(bone)) : up.clone().negate();
+    if (along.lengthSq() < 1e-12) continue;
+    along.normalize();
+    const side = (l.bone.endsWith('l') ? 1 : -1) * (l.arm ? 6 : 2);
+    // Minecraft's arm pivots 2 pixels below its shoulder top; a leg hangs from the hip
+    const joint = l.arm ? at(22, side) : at(12, side);
+    const reach = l.arm ? 10 : 12; // pivot to the box's far end
+    const m = box([l.arm && slim ? 3 : 4, 12, 4], l.uv);
+    poseBox(
+      m,
+      joint.clone().addScaledVector(along, (reach - 6) * u),
+      along.clone().negate(),
+      fwd,
+      u,
+      12,
+      12 * u,
+    );
+    const on = shadow(bone, joint);
+    ride(on, m);
+    // the hand: the slot keeps its grip relative to the hand, which now sits at the box's end
+    const slot = l.slot ? find(root, [l.slot]) : undefined;
+    const holder = slot?.parent;
+    if (slot && holder) {
+      const restore = holder.userData[MC_HAND_TAG] as HandRestore | undefined;
+      const hand = new THREE.Object3D();
+      hand.name = MC_HAND_TAG;
+      hand.userData[MC_HAND_TAG] = restore ?? {
+        slot,
+        parent: holder,
+        position: slot.position.clone(),
+        quaternion: slot.quaternion.clone(),
+        scale: slot.scale.clone(),
+      };
+      const own = restore?.parent ?? holder;
+      bind(own)
+        .setPosition(joint.clone().addScaledVector(along, reach * u))
+        .decompose(hand.position, hand.quaternion, hand.scale);
+      ride(on, hand);
+      const local = [slot.position.clone(), slot.quaternion.clone(), slot.scale.clone()] as const;
+      hand.add(slot);
+      slot.position.copy(local[0]);
+      slot.quaternion.copy(local[1]);
+      slot.scale.copy(local[2]);
+      if (restore) holder.removeFromParent(); // a skin change: the old hand goes with its shadow
     }
   }
   return added;
