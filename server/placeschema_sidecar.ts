@@ -12,6 +12,7 @@ import { randomBytes } from 'node:crypto';
 import { ITEMS, QUESTS, questRewardItemId } from '../src/sim/data';
 import { canEquipItem } from '../src/sim/equipment_rules';
 import {
+  MAX_RELEASED,
   releasePlaceschemaClaim,
   touchPlaceschemaAccepted,
   unreleasePlaceschemaClaim,
@@ -444,14 +445,19 @@ export class PlaceSchemaCarry<S extends CarrySession> {
     // Only a grant this account accepted is its own to carry: a copy traded in from someone else is
     // refused here, BEFORE anything is removed (N-b).
     const claims = await this.d.store.claims(s.accountId);
-    let grants = here.filter((g) => claims.has(g));
-    if (grants.length < here.length) {
-      if (!grants.length && only) return this.refused(s, 'not-yours');
+    const mine = here.filter((g) => claims.has(g));
+    if (mine.length < here.length) {
+      if (!mine.length && only) return this.refused(s, 'not-yours');
       this.d.notice(
         s,
         "Some items here aren't yours to carry through this portal; they stay with you.",
       );
     }
+    // A save releases at most MAX_RELEASED claims (placeschema_accepted.ts): the rest wait for the
+    // next walk through.
+    let grants = mine.slice(0, MAX_RELEASED);
+    if (grants.length < mine.length)
+      this.d.notice(s, 'More items than one crossing carries: walk through again for the rest.');
     // Remove before release (contract section 3), and SAVE the removal before the escrow is asked: a
     // crash after carry-out must not reload a bag that still holds a copy. Each item leaves and the
     // ACCOUNT's claim is released (by claim id, whichever character claimed it) in the SAME save, so a

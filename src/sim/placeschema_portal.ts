@@ -81,7 +81,10 @@ export class PlaceSchemaPortalGate {
       this.armed = !inPlaceSchemaPortal(pos.x, pos.z);
       return false;
     }
-    const entered = inPlaceSchemaPortal(pos.x, pos.z) || crossedPlaceSchemaPortal(last, pos);
+    // stepping out of the sheet is not a crossing; stepping through it from outside is
+    const entered =
+      inPlaceSchemaPortal(pos.x, pos.z) ||
+      (!inPlaceSchemaPortal(last.x, last.z) && crossedPlaceSchemaPortal(last, pos));
     if (!entered) {
       this.armed = true;
       return false;

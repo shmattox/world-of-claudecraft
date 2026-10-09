@@ -173,7 +173,12 @@ function world() {
   const deps = {
     sim: {
       meta: () =>
-        ({ inventory, placeschemaAccepted: accepted, cls: 'warrior', equipmentInstance: worn }) as never,
+        ({
+          inventory,
+          placeschemaAccepted: accepted,
+          cls: 'warrior',
+          equipmentInstance: worn,
+        }) as never,
       unequipItem: (slot: string) => {
         if (inventory.length >= bagCap) return false;
         inventory.push({ itemId: FOREIGN_WEAPON_ID, count: 1, instance: worn[slot] as never });
@@ -398,7 +403,10 @@ describe('placeschema sidecar game side (PLACE-276)', () => {
     w.arrive(G1, 'Diamond Helmet', 'armor.helmet');
     await w.carry.join(w.session());
     expect(w.inventory).toHaveLength(1);
-    expect(w.inventory[0]).toMatchObject({ itemId: FOREIGN_KEEPSAKE_ID, instance: { [GRANT_KEY]: G1, name: 'Diamond Helmet' } });
+    expect(w.inventory[0]).toMatchObject({
+      itemId: FOREIGN_KEEPSAKE_ID,
+      instance: { [GRANT_KEY]: G1, name: 'Diamond Helmet' },
+    });
     expect(w.escrow.get(G1)?.readd).toBe(false); // acked: nothing waits in escrow
   });
 
@@ -742,7 +750,11 @@ describe('PLACE-954: carrying out is a walk through the portal', () => {
 
   it('carries every own copy in one carry-out, the worn one as its slot; a traded copy stays', async () => {
     const w = await holdingTwo();
-    w.inventory.push({ itemId: FOREIGN_WEAPON_ID, count: 1, instance: { [GRANT_KEY]: G3 } as never });
+    w.inventory.push({
+      itemId: FOREIGN_WEAPON_ID,
+      count: 1,
+      instance: { [GRANT_KEY]: G3 } as never,
+    });
     walkThrough(w);
     await flush();
     expect([...w.bodies['/mod/carry-out'].grants].sort()).toEqual([G1, G2]);
@@ -832,6 +844,27 @@ describe('PLACE-954: carrying out is a walk through the portal', () => {
     expect(g.tick(inside)).toBe(false); // revived inside: not a walk-in
     expect(g.tick(outside)).toBe(false);
     expect(g.tick(inside)).toBe(true);
+  });
+
+  it('stepping out of the sheet re-arms; stepping back in fires', () => {
+    const g = new PlaceSchemaPortalGate();
+    expect(g.tick({ x: shore.x, z: shore.z })).toBe(false); // logged in inside
+    expect(g.tick({ x: shore.x, z: shore.z - 3 })).toBe(false); // out through the front
+    expect(g.tick({ x: shore.x, z: shore.z })).toBe(true);
+  });
+
+  it('one crossing carries at most the claims one save can release; the rest stay', async () => {
+    const w = world();
+    const ids = Array.from({ length: 66 }, (_, i) => i.toString(16).padStart(64, '0'));
+    for (const g of ids) w.arrive(g, `Blade ${g.slice(-2)}`);
+    await w.carry.join(w.session());
+    walkThrough(w);
+    await flush();
+    expect(w.bodies['/mod/carry-out'].grants).toHaveLength(64);
+    expect(w.inventory).toHaveLength(2);
+    expect(w.frames).toContain(
+      'More items than one crossing carries: walk through again for the rest.',
+    );
   });
 
   it('arriving from far away into the opening (a ferry, a respawn) is not a walk-in', () => {

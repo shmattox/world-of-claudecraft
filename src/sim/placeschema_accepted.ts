@@ -9,7 +9,7 @@
 
 const GRANT_ID = /^[0-9a-f]{64}$/;
 /** Released claim ids kept per character (replay-safe; the newest are the ones that matter). */
-const MAX_RELEASED = 64;
+export const MAX_RELEASED = 64;
 const touched = new WeakSet<ReadonlySet<string>>();
 const released = new WeakMap<ReadonlySet<string>, number[]>();
 
