@@ -353,7 +353,7 @@ describe('carry: a worn signed copy is carried too', () => {
     const w = carryWorld('warrior', { look: asIs });
     await w.carry.join(w.session);
     expect(w.equipment.mainhand?.instance).toMatchObject({ [GRANT_KEY]: G(900) });
-    await w.carry.carry(w.session, G(900));
+    await w.carry.carry(w.session, [G(900)]);
     const out = w.sent.filter((s) => s.path === '/mod/carry-out');
     expect(out).toHaveLength(1);
     expect(out[0].body.grants).toEqual([G(900)]);

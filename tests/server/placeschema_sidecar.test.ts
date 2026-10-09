@@ -81,6 +81,7 @@ function world() {
   const bodies: Record<string, any> = {}; // the last request body per path
   const worn: Record<string, unknown> = {}; // equipment slot -> its copy's instance
   let pos = { x: 1000, z: 1000 }; // the server's own position for the player
+  let bagCap = Number.POSITIVE_INFINITY; // how many slots the bags hold
   const frames: unknown[] = [];
   const faults: Record<string, Fault> = {};
   const clients = new Map<number, Session>();
@@ -174,6 +175,7 @@ function world() {
       meta: () =>
         ({ inventory, placeschemaAccepted: accepted, cls: 'warrior', equipmentInstance: worn }) as never,
       unequipItem: (slot: string) => {
+        if (inventory.length >= bagCap) return false;
         inventory.push({ itemId: FOREIGN_WEAPON_ID, count: 1, instance: worn[slot] as never });
         delete worn[slot];
         return true;
@@ -245,6 +247,9 @@ function world() {
     worn,
     standAt(x: number, z: number) {
       pos = { x, z };
+    },
+    bagsHold(n: number) {
+      bagCap = n;
     },
     frames,
     faults,
@@ -442,7 +447,7 @@ describe('placeschema sidecar game side (PLACE-276)', () => {
   it('finding 1: the removal is saved before carry-out, so a crash after it cannot duplicate', async () => {
     const w = await holding();
     w.faults['/mod/carry-out'] = 'crash-after';
-    void w.carry.carry(w.session(), G1);
+    void w.carry.carry(w.session(), [G1]);
     await flush();
     expect(w.calls.lastIndexOf('save')).toBeLessThan(w.calls.lastIndexOf('/mod/carry-out'));
     w.crash();
@@ -454,7 +459,7 @@ describe('placeschema sidecar game side (PLACE-276)', () => {
 
   it('walks the player to the ticket after a successful carry', async () => {
     const w = await holding();
-    await w.carry.carry(w.session(), G1);
+    await w.carry.carry(w.session(), [G1]);
     expect(w.frames.at(-1)).toEqual({
       t: 'placeschema',
       kind: 'ticket',
@@ -466,7 +471,7 @@ describe('placeschema sidecar game side (PLACE-276)', () => {
   it('a refused carry comes back only through the sidecar: cancel, then join', async () => {
     const w = await holding();
     w.faults['/mod/carry-out'] = 'refuse';
-    await w.carry.carry(w.session(), G1);
+    await w.carry.carry(w.session(), [G1]);
     expect(w.calls.slice(-4)).toEqual(['/mod/cancel', '/mod/join', 'save', '/mod/ack']);
     expect(slotOfGrant(w.saved, G1)).toBe(0);
     expect(w.frames).toContain('The item could not be carried (link-not-honoured).');
@@ -476,7 +481,7 @@ describe('placeschema sidecar game side (PLACE-276)', () => {
   it('finding 3: a player who logs off during a refused carry gets it on the next login join', async () => {
     const w = await holding();
     w.faults['/mod/carry-out'] = 'disconnect';
-    await w.carry.carry(w.session(), G1);
+    await w.carry.carry(w.session(), [G1]);
     expect(w.calls).toContain('/mod/cancel');
     w.relogin(); // the saved bag has no copy; the sidecar re-offers it
     expect(slotOfGrant(w.inventory, G1)).toBe(-1);
@@ -487,7 +492,7 @@ describe('placeschema sidecar game side (PLACE-276)', () => {
 
   it('offers the link page instead when the account is not linked', async () => {
     const w = world();
-    await w.carry.carry(w.session(), G1); // never joined: not known to be linked
+    await w.carry.carry(w.session(), [G1]); // never joined: not known to be linked
     expect(w.calls).toContain('/mod/link');
   });
 
@@ -523,7 +528,7 @@ describe('placeschema sidecar game side (PLACE-276)', () => {
   it('N2: slow relay, the game aborts, the item is traded away, then the late commit: one copy', async () => {
     const w = await holding();
     w.faults['/mod/carry-out'] = 'slow';
-    await w.carry.carry(w.session(), G1); // aborted: cancel names the attempt, join brings it back
+    await w.carry.carry(w.session(), [G1]); // aborted: cancel names the attempt, join brings it back
     expect(slotOfGrant(w.inventory, G1)).toBe(0);
     w.other.push(...w.inventory.splice(0)); // traded to another player
     const late = w.lateCommit(); // the delayed carry-out finally reaches its commit
@@ -537,7 +542,7 @@ describe('placeschema sidecar game side (PLACE-276)', () => {
     const w = await holding();
     w.faults['/mod/carry-out'] = 'lost'; // committed; the answer never came back
     w.faults['/mod/cancel'] = 'lost'; // the cancel committed too; its answer is lost
-    await w.carry.carry(w.session(), G1);
+    await w.carry.carry(w.session(), [G1]);
     expect(slotOfGrant(w.inventory, G1)).toBe(-1); // no adds while a cancel is unconfirmed
     delete w.faults['/mod/cancel'];
     delete w.faults['/mod/carry-out'];
@@ -553,7 +558,7 @@ describe('placeschema sidecar game side (PLACE-276)', () => {
   it('N1: lost carry-out answer, copy moved away, escrow timeout, join: one copy', async () => {
     const w = await holding();
     w.faults['/mod/carry-out'] = 'lost';
-    await w.carry.carry(w.session(), G1);
+    await w.carry.carry(w.session(), [G1]);
     expect(slotOfGrant(w.inventory, G1)).toBe(0); // back through cancel + join only
     w.equipment.push(...w.inventory.splice(0));
     w.timeout();
@@ -567,7 +572,7 @@ describe('placeschema sidecar game side (PLACE-276)', () => {
     w.faults['/mod/carry-out'] = 'down';
     w.faults['/mod/cancel'] = 'down';
     w.faults['/mod/join'] = 'down';
-    await w.carry.carry(w.session(), G1);
+    await w.carry.carry(w.session(), [G1]);
     expect(slotOfGrant(w.inventory, G1)).toBe(-1); // never added back by the game
     expect(w.copies(G1)).toBe(0); // out of the game, held by the sidecar: recoverable, never two
     for (const k of ['/mod/cancel', '/mod/join']) delete w.faults[k];
@@ -596,7 +601,7 @@ describe('placeschema sidecar game side (PLACE-276)', () => {
     w.faults['/mod/carry-out'] = 'down';
     w.faults['/mod/cancel'] = 'down';
     w.faults['/mod/join'] = 'down';
-    await w.carry.carry(w.session(), G1);
+    await w.carry.carry(w.session(), [G1]);
     expect([...w.cancelRows.keys()]).toEqual([G1]);
     const again = w.crash(); // the process restarts: memory is gone, the cancel row is not
     await again.join(w.session());
@@ -613,7 +618,7 @@ describe('placeschema sidecar game side (PLACE-276)', () => {
       instance: { [GRANT_KEY]: G1 } as never,
     });
     await w.carry.join(w.session()); // linked; nothing accepted by this account
-    await w.carry.carry(w.session(), G1);
+    await w.carry.carry(w.session(), [G1]);
     expect(slotOfGrant(w.inventory, G1)).toBe(0); // still there
     expect(w.calls).not.toContain('/mod/carry-out');
     expect(w.frames.at(-1)).toBe('The item could not be carried (not-yours).');
@@ -639,7 +644,7 @@ describe('placeschema sidecar game side (PLACE-276)', () => {
     w.switchCharacter(71); // B, same account, opens the mail
     w.inventory.push(copy);
     w.faults['/mod/carry-out'] = 'refuse'; // the carry fails; the sidecar re-offers it
-    await w.carry.carry(w.session(), G1);
+    await w.carry.carry(w.session(), [G1]);
     expect(slotOfGrant(w.inventory, G1)).toBe(0); // B's release deleted A's claim, so B re-claimed it
     expect(w.copies(G1)).toBe(1);
   });
@@ -704,17 +709,27 @@ describe('PLACE-954: carrying out is a walk through the portal', () => {
   const G2 = 'b'.repeat(64);
   const G3 = 'c'.repeat(64);
   const shore = PLACESCHEMA_PORTALS[0];
-
-  it('carries every own copy in one carry-out, the worn one as its slot; a traded copy stays', async () => {
-    const w = await holding(); // G1 in the bag
-    w.arrive(G2, 'Z-blade');
-    await w.carry.join(w.session()); // G2 accepted too
-    const at = slotOfGrant(w.inventory, G2);
-    w.worn.mainhand = w.inventory.splice(at, 1)[0].instance; // ...and held
-    w.inventory.push({ itemId: FOREIGN_WEAPON_ID, count: 1, instance: { [GRANT_KEY]: G3 } as never });
-    w.carry.checkPortals(); // seen outside first
+  // the shore gate faces -z: walking north (+z) goes through it
+  const before = { x: shore.x, z: shore.z - 3 };
+  const walkThrough = (w: ReturnType<typeof world>) => {
+    w.standAt(before.x, before.z);
+    w.carry.checkPortals();
     w.standAt(shore.x, shore.z);
     w.carry.checkPortals();
+  };
+  /** G1 in the bag, G2 accepted and held in the main hand */
+  async function holdingTwo() {
+    const w = await holding();
+    w.arrive(G2, 'Z-blade');
+    await w.carry.join(w.session());
+    w.worn.mainhand = w.inventory.splice(slotOfGrant(w.inventory, G2), 1)[0].instance;
+    return w;
+  }
+
+  it('carries every own copy in one carry-out, the worn one as its slot; a traded copy stays', async () => {
+    const w = await holdingTwo();
+    w.inventory.push({ itemId: FOREIGN_WEAPON_ID, count: 1, instance: { [GRANT_KEY]: G3 } as never });
+    walkThrough(w);
     await flush();
     expect([...w.bodies['/mod/carry-out'].grants].sort()).toEqual([G1, G2]);
     expect(w.bodies['/mod/carry-out'].equipped).toEqual({ grip: G2 });
@@ -731,12 +746,41 @@ describe('PLACE-954: carrying out is a walk through the portal', () => {
     expect(w.copies(G2)).toBe(1);
   });
 
+  it('full bags: the bag copy leaves first, making room for the worn one', async () => {
+    const w = await holdingTwo();
+    w.bagsHold(1); // G1 fills them
+    walkThrough(w);
+    await flush();
+    expect([...w.bodies['/mod/carry-out'].grants].sort()).toEqual([G1, G2]);
+    expect(w.bodies['/mod/carry-out'].equipped).toEqual({ grip: G2 });
+  });
+
+  it('every cancel is persisted before any is sent', async () => {
+    const w = await holdingTwo();
+    w.faults['/mod/carry-out'] = 'down';
+    w.faults['/mod/cancel'] = 'down';
+    w.faults['/mod/join'] = 'down';
+    walkThrough(w);
+    await flush();
+    expect([...w.cancelRows.keys()].sort()).toEqual([G1, G2]);
+  });
+
+  it('the bag action marks the item and points to the portal, which then carries just that', async () => {
+    const w = await holdingTwo();
+    w.carry.onCarryCommand(w.session(), slotOfGrant(w.inventory, G1));
+    await flush();
+    expect(w.calls).not.toContain('/mod/carry-out');
+    expect(String(w.frames.at(-1))).toMatch(/ready to carry: walk through the PlaceSchema portal/);
+    walkThrough(w);
+    await flush();
+    expect(w.bodies['/mod/carry-out'].grants).toEqual([G1]);
+    expect(w.worn.mainhand).toBeTruthy(); // the unmarked Z-blade stays in hand
+  });
+
   it('with nothing to carry the portal still opens, as the player', async () => {
     const w = world();
     await w.carry.join(w.session()); // linked, empty-handed
-    w.carry.checkPortals();
-    w.standAt(shore.x, shore.z);
-    w.carry.checkPortals();
+    walkThrough(w);
     await flush();
     expect(w.bodies['/mod/carry-out'].grants).toEqual([]);
     expect(w.frames.at(-1)).toMatchObject({ kind: 'ticket' });
@@ -752,13 +796,13 @@ describe('PLACE-954: carrying out is a walk through the portal', () => {
     expect(slotOfGrant(w.inventory, G1)).toBe(0);
   });
 
-  it('the bag action only points to the portal: nothing leaves', async () => {
-    const w = await holding();
-    w.carry.onCarryCommand(w.session());
-    await flush();
-    expect(w.calls).not.toContain('/mod/carry-out');
-    expect(String(w.frames.at(-1))).toMatch(/walk through the PlaceSchema portal/);
-    expect(slotOfGrant(w.inventory, G1)).toBe(0);
+  it('only the opening counts: beside the frame never fires, a run straight through always does', () => {
+    const g = new PlaceSchemaPortalGate();
+    expect(g.tick({ x: shore.x + 1.9, z: shore.z - 3 })).toBe(false);
+    expect(g.tick({ x: shore.x + 1.9, z: shore.z })).toBe(false); // alongside the frame
+    expect(g.tick({ x: shore.x + 1.9, z: shore.z + 3 })).toBe(false); // past it
+    expect(g.tick({ x: shore.x, z: shore.z + 3 })).toBe(false);
+    expect(g.tick({ x: shore.x + 0.3, z: shore.z - 2 })).toBe(true); // through the sheet between looks
   });
 
   it('the walk-in gate never fires on arriving inside, fires once on entering, then re-arms outside', () => {
@@ -771,6 +815,7 @@ describe('PLACE-954: carrying out is a walk through the portal', () => {
     expect(g.tick(inside)).toBe(false); // still standing in it (a refused carry)
     expect(g.tick(outside)).toBe(false);
     expect(g.tick(inside, true)).toBe(false); // the dead don't travel
+    expect(g.tick(outside)).toBe(false);
     expect(g.tick(inside)).toBe(true);
   });
 });

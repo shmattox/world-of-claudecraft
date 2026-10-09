@@ -6,9 +6,8 @@
 
 import * as THREE from 'three';
 import { placeSchemaLinked } from '../placeschema_skin_state';
-import { PLACESCHEMA_PORTALS, PlaceSchemaPortalGate } from '../sim/placeschema_portal';
+import { PLACESCHEMA_PORTAL_BLOCK as BLOCK, PLACESCHEMA_PORTALS } from '../sim/placeschema_portal';
 
-const BLOCK = 0.9; // one Minecraft block, in yards: the gate stands about 2.8 bodies tall, as in Minecraft
 const LOGO_URL = '/placeschema/logo-white.png';
 
 /** A 16x16 shroomlight face: warm orange cells with pale-gold highlights, drawn pixel by pixel. */
@@ -119,7 +118,6 @@ export class PlaceSchemaPortals {
     });
   }
 
-  /** First drawn when the sidecar answers: the frame, the sheet and the mark load then. */
   private build(): void {
     this.built = true;
     const tex = shroomlightTexture();
@@ -142,10 +140,11 @@ export class PlaceSchemaPortals {
     });
   }
 
-  /** Once a frame: show it once the sidecar has answered, and animate the sheet. */
+  /** Once a frame: built on the first (hidden, so it is ready before it is needed), shown once the
+   *  sidecar has answered, the sheet animated. */
   update(time: number): void {
+    if (!this.built) this.build();
     const on = placeSchemaLinked() !== null;
-    if (on && !this.built) this.build();
     this.group.visible = on;
     if (on) this.sheet.uniforms.uTime.value = time;
   }
