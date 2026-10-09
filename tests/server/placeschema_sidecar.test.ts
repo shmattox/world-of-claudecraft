@@ -188,6 +188,9 @@ function world() {
     clients,
     send: (_s: Session, f: unknown) => frames.push(f),
     notice: (_s: Session, text: string) => frames.push(text),
+    leave: () => {
+      calls.push('leave');
+    },
     save: async () => {
       // the process dies before this save's transaction commits: nothing after runs
       if (faults.save === 'crash-after') return new Promise<boolean>(() => {});
@@ -466,6 +469,15 @@ describe('placeschema sidecar game side (PLACE-276)', () => {
       url: 'http://hub.test/arrive#ps-ticket=x',
     });
     expect(w.copies(G1)).toBe(1);
+  });
+
+  it('frees the character after a successful carry, once the ticket frame has flushed (PLACE-940)', async () => {
+    const w = await holding();
+    await w.carry.carry(w.session(), [G1]);
+    expect(w.calls).not.toContain('leave');
+    await new Promise((r) => setTimeout(r, 1700));
+    expect(w.calls.filter((c: string) => c === 'leave')).toHaveLength(1);
+    expect(w.calls.lastIndexOf('leave')).toBeGreaterThan(w.calls.lastIndexOf('/mod/carry-out'));
   });
 
   it('a refused carry comes back only through the sidecar: cancel, then join', async () => {

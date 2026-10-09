@@ -2681,6 +2681,7 @@ export class GameServer {
       send: (s, frame) => this.send(s, frame),
       notice: (s, text) => this.sendSystemNotice(s, text),
       save: (s) => this.saveCharacter(s),
+      leave: (s) => void this.leave(s, 'logout'),
     });
     this.lastKeepaliveSweepAt = Date.now();
     this.keepaliveInterval = setInterval(() => {
