@@ -343,7 +343,7 @@ export const PROVING_SHORE_NPCS: Record<string, NpcDef> = {
     pos: { x: -284, z: -9 },
     facing: Math.PI,
     color: 0x4a6a8a,
-    questIds: ['q_ps_set_sail'],
+    questIds: ['q_ps_set_sail', 'q_ps_a_blade_that_travels'],
     greeting:
       'Fresh off the crossing, $N? Warden Tam keeps the Gauntlet on the strand just south of my pier: run his lanes first and your legs will thank you. Every keeper on this shore hands you to the next when your work is done, and the card at the top of your screen always knows the way. When the vale calls you back, ring the bell standing beside my pier and the crossing will set you down in Eastbrook town.',
   },
@@ -389,7 +389,12 @@ export const PROVING_SHORE_NPCS: Record<string, NpcDef> = {
     // south-west down that path.
     facing: (3 * Math.PI) / 4,
     color: 0x7a4a4a,
-    questIds: ['q_ps_strike_true', 'q_ps_hone_the_edge', 'q_ps_shell_and_claw'],
+    questIds: [
+      'q_ps_strike_true',
+      'q_ps_hone_the_edge',
+      'q_ps_shell_and_claw',
+      'q_ps_a_blade_that_travels',
+    ],
     greeting:
       'Straw first, shells second, $N. An effigy teaches your arm the swing; the scuttlers down the strand teach it to land on something that minds.',
   },
@@ -673,6 +678,29 @@ export const PROVING_SHORE_QUESTS: Record<string, QuestDef> = {
     copperReward: 50,
     itemRewards: {},
     requiresQuest: 'q_ps_the_long_walk',
+  },
+  // PlaceSchema fork (PLACE-741): a side errand OFF the rail (not in
+  // PROVING_SHORE_QUEST_ORDER) that earns a carryable weapon in minutes, for any
+  // class: offered by the ferryman a newcomer lands in front of, finished with
+  // one felled effigy, handed in to the drillmaster beside them. The rewards
+  // are the vale's own class weapons (Bandits of the Vale's), resolved per
+  // archetype by questRewardItem, and the turn-in mints through the sidecar
+  // like any quest (server/placeschema_sidecar.ts questDone). No XP or copper:
+  // the rail's level and copper budgets stay exactly as pinned.
+  q_ps_a_blade_that_travels: {
+    id: 'q_ps_a_blade_that_travels',
+    name: 'A Blade That Travels',
+    giverNpcId: 'ferryman_odo',
+    turnInNpcId: 'drillmaster_rook',
+    text: 'Not everything I ferry stays on one shore, $N. Drillmaster Rook keeps a blade for every recruit, made to travel: carry it out of this world and into another, and it stays itself. He hands one only to a recruit who has felled a straw effigy in his practice yard, up the path west of the Gauntlet. Left-click an effigy to target it and keep attacking until it falls; it will not strike back. Then press F on Rook.',
+    completionText:
+      'Straw down and your arm still attached. Here, $N: yours. Wield it here, or carry it with you wherever you go next; it will still be this blade when it gets there.',
+    objectives: [
+      { type: 'kill', targetMobId: 'training_effigy', count: 1, label: 'Training Effigy felled' },
+    ],
+    xpReward: 0,
+    copperReward: 0,
+    itemRewards: { warrior: 'redbrook_blade', mage: 'apprentice_staff', rogue: 'keen_dirk' },
   },
 };
 
