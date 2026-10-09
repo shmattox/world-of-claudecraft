@@ -69,13 +69,19 @@ export class PlaceSchemaPortalGate {
 
   tick(pos: { x: number; z: number } | undefined, dead = false): boolean {
     if (!pos || dead) {
+      // the dead and the absent re-arm only by being seen outside again
       this.last = undefined;
+      this.armed = false;
       return false;
     }
-    const entered =
-      inPlaceSchemaPortal(pos.x, pos.z) ||
-      (!!this.last && crossedPlaceSchemaPortal(this.last, pos));
+    const last = this.last;
     this.last = { x: pos.x, z: pos.z };
+    // arriving from far away (a ferry, a hearthstone, a respawn) is not walking in
+    if (!last || Math.hypot(pos.x - last.x, pos.z - last.z) > 6) {
+      this.armed = !inPlaceSchemaPortal(pos.x, pos.z);
+      return false;
+    }
+    const entered = inPlaceSchemaPortal(pos.x, pos.z) || crossedPlaceSchemaPortal(last, pos);
     if (!entered) {
       this.armed = true;
       return false;

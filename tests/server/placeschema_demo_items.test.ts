@@ -184,7 +184,7 @@ function carryWorld(cls: PlayerClass, opts: { look?: unknown; bag?: boolean } = 
           return 'claimed';
         },
         cancels: async () => [],
-        putCancel: async () => undefined,
+        putCancels: async () => undefined,
         dropCancel: async () => undefined,
       },
       fetch: (async (url: string, init: { body: string }) => {

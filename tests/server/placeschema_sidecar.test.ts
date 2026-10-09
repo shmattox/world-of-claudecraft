@@ -222,7 +222,9 @@ function world() {
         return c.character === character ? 'claimed' : 'busy'; // never taken over
       },
       cancels: async () => [...cancelRows].map(([grant, attempt]) => ({ grant, attempt })),
-      putCancel: async (_a: number, g: string, attempt: string) => void cancelRows.set(g, attempt),
+      putCancels: async (_a: number, gs: readonly string[], attempt: string) => {
+        for (const g of gs) cancelRows.set(g, attempt);
+      },
       dropCancel: async (_a: number, g: string) => void cancelRows.delete(g),
     },
     fetch: (async (url: string, init: RequestInit) => {
@@ -820,15 +822,35 @@ describe('PLACE-954: carrying out is a walk through the portal', () => {
   it('the walk-in gate never fires on arriving inside, fires once on entering, then re-arms outside', () => {
     const g = new PlaceSchemaPortalGate();
     const inside = { x: shore.x, z: shore.z };
-    const outside = { x: shore.x + 10, z: shore.z };
+    const outside = { x: shore.x, z: shore.z - 3 }; // a step in front of the sheet
     expect(g.tick(inside)).toBe(false); // logged in standing in it
     expect(g.tick(outside)).toBe(false);
     expect(g.tick(inside)).toBe(true);
     expect(g.tick(inside)).toBe(false); // still standing in it (a refused carry)
     expect(g.tick(outside)).toBe(false);
     expect(g.tick(inside, true)).toBe(false); // the dead don't travel
+    expect(g.tick(inside)).toBe(false); // revived inside: not a walk-in
     expect(g.tick(outside)).toBe(false);
     expect(g.tick(inside)).toBe(true);
+  });
+
+  it('arriving from far away into the opening (a ferry, a respawn) is not a walk-in', () => {
+    const g = new PlaceSchemaPortalGate();
+    expect(g.tick({ x: 0, z: -100 })).toBe(false);
+    expect(g.tick({ x: 0, z: -101 })).toBe(false); // armed, walking about town
+    expect(g.tick({ x: 0, z: -20 })).toBe(false); // set down in Eastbrook's opening
+  });
+
+  it('stepping back in while a carry is in flight queues nothing', async () => {
+    const w = await holding();
+    w.faults['/mod/carry-out'] = 'slow';
+    walkThrough(w);
+    w.standAt(before.x, before.z);
+    w.carry.checkPortals();
+    w.standAt(shore.x, shore.z);
+    w.carry.checkPortals();
+    await flush();
+    expect(w.calls.filter((c: string) => c === '/mod/carry-out')).toHaveLength(1);
   });
 });
 
@@ -888,7 +910,7 @@ describe("B1': one serialisation point per account, claim first (rounds 6 and 7)
           return c.character === character ? 'claimed' : 'busy';
         },
         cancels: async () => [],
-        putCancel: async () => {},
+        putCancels: async () => {},
         dropCancel: async () => {},
       },
       fetch: (async (url: string, init: RequestInit) => {

@@ -199,6 +199,8 @@ export class PlaceSchemaCarry<S extends CarrySession> {
   private readonly linking = new Set<number>();
   /** the session each skin was sent to, so a holder's skin is looked up once per session */
   private readonly skinned = new WeakMap<S, string>();
+  /** accounts with a portal carry in flight (PLACE-954) */
+  private readonly carrying = new Set<number>();
   /** the grants each session's bag marked to carry through the portal (PLACE-954) */
   private readonly marks = new WeakMap<S, Set<string>>();
   /** each session's walk-in gate for the portals (PLACE-954) */
@@ -521,8 +523,8 @@ export class PlaceSchemaCarry<S extends CarrySession> {
 
   /** Cancel a carry-out and let join bring the items back; an unreachable sidecar is retried. */
   private async giveUp(s: S, grants: string[], attempt: string, reason: string): Promise<void> {
-    // every cancel is persisted before any is sent: a crash mid-way still returns them all
-    for (const g of grants) await this.d.store.putCancel(s.accountId, g, attempt);
+    // every cancel is journalled in one statement before any is sent: a crash returns them all
+    await this.d.store.putCancels(s.accountId, grants, attempt);
     for (const g of grants) await this.cancel(s, g, attempt);
     if (this.d.clients.get(s.pid) !== s) return; // offline: their next login's join delivers it
     this.refused(s, reason);
@@ -588,11 +590,13 @@ export class PlaceSchemaCarry<S extends CarrySession> {
       const p = this.d.sim.entities?.get(s.pid);
       let gate = this.gates.get(s);
       if (!gate) this.gates.set(s, (gate = new PlaceSchemaPortalGate()));
-      if (!s.linkdead && gate.tick(p?.pos, p?.dead)) {
+      // one carry per walk-in: stepping back in while one is in flight queues nothing
+      if (!s.linkdead && gate.tick(p?.pos, p?.dead) && !this.carrying.has(s.accountId)) {
         const marked = this.marks.get(s);
-        void this.carry(s, marked?.size ? [...marked] : undefined).catch((e) =>
-          console.error('placeschema portal carry failed:', e),
-        );
+        this.carrying.add(s.accountId);
+        void this.carry(s, marked?.size ? [...marked] : undefined)
+          .catch((e) => console.error('placeschema portal carry failed:', e))
+          .finally(() => this.carrying.delete(s.accountId));
       }
     }
   }
