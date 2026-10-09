@@ -114,3 +114,15 @@ describe('the link status frame (PLACE-479)', () => {
     setPlaceSchemaLinked(null);
   });
 });
+
+describe('the ticket frame (PLACE-954)', () => {
+  it('leaves the game for the destination, and refuses a non-http url', () => {
+    const left: string[] = [];
+    const nav = { leave: (u: string) => left.push(u), open: () => undefined };
+    expect(applyPlaceSchemaFrame({ kind: 'ticket', url: 'javascript:alert(1)' }, nav)).toBeNull();
+    expect(
+      applyPlaceSchemaFrame({ kind: 'ticket', url: 'http://hub.test/arrive#ps-ticket=x' }, nav),
+    ).toBe('ticket');
+    expect(left).toEqual(['http://hub.test/arrive#ps-ticket=x']);
+  });
+});

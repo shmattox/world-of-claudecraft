@@ -16,6 +16,7 @@ import {
   touchPlaceschemaAccepted,
   unreleasePlaceschemaClaim,
 } from '../src/sim/placeschema_accepted';
+import { PlaceSchemaPortalGate } from '../src/sim/placeschema_portal';
 import type { Sim } from '../src/sim/sim';
 import type { InvSlot, ItemInstancePayload } from '../src/sim/types';
 import { type AcceptedStore, pgAcceptedStore } from './placeschema_accepted_db';
@@ -132,7 +133,8 @@ type Look = { rung: 'as-is' | 'generic'; mesh?: { name?: unknown } };
 type Added = { grant: Grant; label?: string; look?: Look; equipped?: string };
 
 export interface CarryDeps<S extends CarrySession> {
-  sim: Pick<Sim, 'meta' | 'addItemInstance'> & Partial<Pick<Sim, 'equipItem' | 'unequipItem'>>;
+  sim: Pick<Sim, 'meta' | 'addItemInstance'> &
+    Partial<Pick<Sim, 'equipItem' | 'unequipItem' | 'entities'>>;
   clients: ReadonlyMap<number, S>;
   /** a `{t:'placeschema', ...}` frame to one player */
   send(
@@ -193,6 +195,8 @@ export class PlaceSchemaCarry<S extends CarrySession> {
   private readonly linking = new Set<number>();
   /** the session each skin was sent to, so a holder's skin is looked up once per session */
   private readonly skinned = new WeakMap<S, string>();
+  /** each session's walk-in gate for the portals (PLACE-954) */
+  private readonly gates = new WeakMap<S, PlaceSchemaPortalGate>();
   /** the link status last sent to each session */
   private readonly told = new WeakMap<S, string | null>();
 
@@ -281,7 +285,11 @@ export class PlaceSchemaCarry<S extends CarrySession> {
           // Decision 2 + PLACE-413: a weapon that arrived HELD goes to the main hand when this class
           // can use it; one carried in a bag, or one this class can't use, stays in the bag (name and
           // mesh kept). WoC's class rules are untouched.
-          if (a.equipped && ITEMS[itemId]?.slot === 'mainhand' && canEquipItem(meta.cls, ITEMS[itemId])) {
+          if (
+            a.equipped &&
+            ITEMS[itemId]?.slot === 'mainhand' &&
+            canEquipItem(meta.cls, ITEMS[itemId])
+          ) {
             const at = slotOfGrant(meta.inventory, g);
             if (at >= 0) this.d.sim.equipItem?.(itemId, s.pid, 'mainhand', at);
           }
@@ -401,58 +409,88 @@ export class PlaceSchemaCarry<S extends CarrySession> {
     s.selfHeavyDirty = true;
   }
 
-  /** One Carry click: remove the copy, then escrow it out and send the player home with a ticket. */
-  carry(s: S, grantId: string): Promise<void> {
-    return this.locked(s.accountId, () => this.carryLocked(s, grantId));
+  /** Carry out through the sidecar: one grant (`only`), or, through the portal (PLACE-954), every
+   *  signed copy this account may carry. None to carry is still a hop, as the player. */
+  carry(s: S, only?: string): Promise<void> {
+    return this.locked(s.accountId, () => this.carryLocked(s, only));
   }
 
-  private async carryLocked(s: S, grantId: string): Promise<void> {
+  private async carryLocked(s: S, only?: string): Promise<void> {
     const pid = platformId(this.cfg, s.accountId);
     if (!this.linked.get(s.accountId)) return this.openLink(s);
     if (!this.cfg.home) return this.refused(s, 'no-home-world');
     const meta = this.d.sim.meta(s.pid);
     if (!meta) return;
-    // A worn copy (an arrival goes straight to the main hand) is unequipped into the bag first, so
-    // the one removal path below, and its save, carries it either way.
-    const worn = Object.entries(meta.equipmentInstance ?? {}).find(
-      ([, inst]) => (inst as Record<string, unknown> | undefined)?.[GRANT_KEY] === grantId,
-    )?.[0];
-    if (
-      slotOfGrant(meta.inventory, grantId) < 0 &&
-      worn &&
-      !this.d.sim.unequipItem?.(worn as never, s.pid)
-    )
-      return this.refused(s, 'bags-full');
-    const at = slotOfGrant(meta.inventory, grantId);
-    if (at < 0) return;
+    // Every signed copy on this character: worn (by slot) and in the bags.
+    const worn = Object.entries(meta.equipmentInstance ?? {}).flatMap(([slot, inst]) => {
+      const g = grantOfSlot({ instance: inst } as InvSlot);
+      return g ? [[slot, g] as const] : [];
+    });
+    const here = [
+      ...new Set([
+        ...worn.map(([, g]) => g),
+        ...meta.inventory.flatMap((x) => grantOfSlot(x) ?? []),
+      ]),
+    ];
     // Only a grant this account accepted is its own to carry: a copy traded in from someone else is
     // refused here, BEFORE anything is removed (N-b).
-    const claim = (await this.d.store.claims(s.accountId)).get(grantId);
-    if (claim === undefined) return this.refused(s, 'not-yours');
-    // Remove before release (contract section 3): the copy leaves the bag first.
-    // And the removal is SAVED before the escrow is asked: a crash after carry-out must not reload
-    // a bag that still holds the copy.
-    // The item leaves and the ACCOUNT's claim is released (by claim id, whichever character claimed
-    // it) in the SAME save, so a later re-offer is claimed and added once (B2).
-    const [removed] = meta.inventory.splice(at, 1);
-    const wasAccepted = meta.placeschemaAccepted.delete(grantId);
-    releasePlaceschemaClaim(meta.placeschemaAccepted, claim);
+    const claims = await this.d.store.claims(s.accountId);
+    let grants: string[];
+    if (only !== undefined) {
+      if (!here.includes(only)) return;
+      if (!claims.has(only)) return this.refused(s, 'not-yours');
+      grants = [only];
+    } else {
+      grants = here.filter((g) => claims.has(g));
+      if (grants.length < here.length)
+        this.d.notice(
+          s,
+          "Some items here aren't yours to carry through this portal; they stay with you.",
+        );
+    }
+    // What is worn travels as its slot (PLACE-329, main hand = grip), read before it leaves, so it
+    // arrives equipped. Worn copies are unequipped into the bag first, so the one removal path below,
+    // and its save, carries them either way.
+    const equipped: Record<string, string> = {};
+    for (const [slot, g] of worn) {
+      if (!grants.includes(g)) continue;
+      equipped[slot === 'mainhand' ? 'grip' : slot] = g;
+      if (slotOfGrant(meta.inventory, g) < 0 && !this.d.sim.unequipItem?.(slot as never, s.pid))
+        return this.refused(s, 'bags-full');
+    }
+    // Remove before release (contract section 3), and SAVE the removal before the escrow is asked: a
+    // crash after carry-out must not reload a bag that still holds a copy. Each item leaves and the
+    // ACCOUNT's claim is released (by claim id, whichever character claimed it) in the SAME save, so a
+    // later re-offer is claimed and added once (B2).
+    const removed: { slot: InvSlot; g: string; wasAccepted: boolean }[] = [];
+    for (const g of grants) {
+      const at = slotOfGrant(meta.inventory, g);
+      if (at < 0) continue;
+      const [slot] = meta.inventory.splice(at, 1);
+      removed.push({ slot, g, wasAccepted: meta.placeschemaAccepted.delete(g) });
+      releasePlaceschemaClaim(meta.placeschemaAccepted, claims.get(g)!);
+    }
+    grants = removed.map((r) => r.g);
+    if (only !== undefined && !grants.length) return;
     s.selfHeavyDirty = true;
     const attempt = randomBytes(16).toString('hex');
-    if (!(await this.d.save(s).catch(() => false))) {
-      // Nothing was saved and the sidecar was never asked: undo the unsaved removal.
-      meta.inventory.push(removed);
-      if (wasAccepted) meta.placeschemaAccepted.add(grantId);
-      unreleasePlaceschemaClaim(meta.placeschemaAccepted, claim);
+    if (grants.length && !(await this.d.save(s).catch(() => false))) {
+      // Nothing was saved and the sidecar was never asked: undo the unsaved removals.
+      for (const r of removed) {
+        meta.inventory.push(r.slot);
+        if (r.wasAccepted) meta.placeschemaAccepted.add(r.g);
+        unreleasePlaceschemaClaim(meta.placeschemaAccepted, claims.get(r.g)!);
+      }
       return this.refused(s, 'save-failed');
     }
     let r: { ok: boolean; status: number; body: any } | undefined;
     try {
       r = await this.call('/mod/carry-out', {
         platformId: pid,
-        grants: [grantId],
+        grants,
         destination: this.cfg.home,
         attempt,
+        ...(Object.keys(equipped).length ? { equipped } : {}),
       });
     } catch {
       r = undefined;
@@ -464,13 +502,15 @@ export class PlaceSchemaCarry<S extends CarrySession> {
     // Refused, timed out, or the answer was lost (a slow relay may still commit it later): the game
     // never adds it back itself. Cancel it at the sidecar, which refuses any late commit and
     // re-offers the item, and the next join is the one way it comes back.
-    await this.giveUp(s, grantId, attempt, r?.body?.error ?? 'sidecar-unreachable');
+    await this.giveUp(s, grants, attempt, r?.body?.error ?? 'sidecar-unreachable');
   }
 
-  /** Cancel a carry-out and let join bring the item back; an unreachable sidecar is retried. */
-  private async giveUp(s: S, grantId: string, attempt: string, reason: string): Promise<void> {
-    await this.d.store.putCancel(s.accountId, grantId, attempt); // persisted before it is sent
-    await this.cancel(s, grantId, attempt);
+  /** Cancel a carry-out and let join bring the items back; an unreachable sidecar is retried. */
+  private async giveUp(s: S, grants: string[], attempt: string, reason: string): Promise<void> {
+    for (const g of grants) {
+      await this.d.store.putCancel(s.accountId, g, attempt); // persisted before it is sent
+      await this.cancel(s, g, attempt);
+    }
     if (this.d.clients.get(s.pid) !== s) return; // offline: their next login's join delivers it
     this.refused(s, reason);
     await this.joinLocked(s).catch(() => undefined); // unreachable: the 5 s poll tries again
@@ -507,16 +547,25 @@ export class PlaceSchemaCarry<S extends CarrySession> {
       void this.questDone(s, ev.questId).catch((e) => console.error('placeschema mint failed:', e));
   }
 
-  /** The `ps_carry` command: the named bag slot's signed copy leaves through the sidecar. */
-  onCarryCommand(s: S, slot: unknown): void {
-    // a bag slot index, or an equipment slot name (the worn copy is carried from the slot)
-    const meta = this.d.sim.meta(s.pid);
-    const grant =
-      typeof slot === 'string'
-        ? grantOfSlot({ instance: meta?.equipmentInstance?.[slot as never] } as InvSlot)
-        : grantOfSlot(meta?.inventory[Number.isInteger(slot) ? Number(slot) : -1]);
-    if (grant)
-      void this.carry(s, grant).catch((e) => console.error('placeschema carry failed:', e));
+  /** The `ps_carry` command (the bag's "Carry to another world"): carrying happens by walking the
+   *  PlaceSchema portal (PLACE-954), so the bag only points the player to it. */
+  onCarryCommand(s: S, _slot?: unknown): void {
+    this.d.notice(
+      s,
+      'To carry your items to another world, walk through the PlaceSchema portal: by the pier on the Proving Shore, or south of the Eastbrook square.',
+    );
+  }
+
+  /** Every online player who walked into a PlaceSchema portal since the last look carries out
+   *  (PLACE-954). The server's own positions decide; called a few times a second. */
+  checkPortals(): void {
+    for (const s of this.d.clients.values()) {
+      const p = this.d.sim.entities?.get(s.pid);
+      let gate = this.gates.get(s);
+      if (!gate) this.gates.set(s, (gate = new PlaceSchemaPortalGate()));
+      if (!s.linkdead && gate.tick(p?.pos, p?.dead))
+        void this.carry(s).catch((e) => console.error('placeschema portal carry failed:', e));
+    }
   }
 }
 
@@ -529,5 +578,6 @@ export function startPlaceSchemaCarry<S extends CarrySession>(
   if (!cfg) return null;
   const carry = new PlaceSchemaCarry(cfg, { ...deps, store: pgAcceptedStore() });
   setInterval(() => void carry.pollAll(), 5_000).unref();
+  setInterval(() => carry.checkPortals(), 250).unref();
   return carry;
 }

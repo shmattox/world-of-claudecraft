@@ -1,5 +1,6 @@
-// The server's answer to a Carry click (server/placeschema_sidecar.ts, PLACE-276). `ticket`: the item
-// is in escrow and the player walks through to the destination world's arrival page. `link`: this
+// The server's answer to a carry (server/placeschema_sidecar.ts, PLACE-276). `ticket`: the items are
+// in escrow and the player has walked through the portal (PLACE-954): the game hands off, opening the
+// destination's arrival page and closing this tab. `link`: this
 // account has no PlaceSchema key yet, so the one-time link page opens beside the game. Refusals
 // arrive as ordinary system notices. `skin` (PLACE-410): the arriving player's Minecraft skin, as a
 // PNG data URL, for the renderer to wear. `status` (PLACE-479): whether the account is linked, for
@@ -18,12 +19,27 @@ export interface PlaceSchemaFrame {
 }
 
 export interface Nav {
-  assign(url: string): void;
+  /** leave the game for `url` */
+  leave(url: string): void;
   open(url: string): void;
 }
 
 const browserNav: Nav = {
-  assign: (url) => window.location.assign(url),
+  // Opened from a world's door (PLACE-941): the destination opens in that world's tab and this one
+  // closes. Opened any other way, a script can't close the tab, so it becomes the destination.
+  leave: (url) => {
+    try {
+      if (window.opener && !window.opener.closed) {
+        window.opener.location.href = url;
+        window.opener.focus?.();
+        window.close();
+        return;
+      }
+    } catch {
+      /* an opener we may not navigate: leave from this tab */
+    }
+    window.location.assign(url);
+  },
   open: (url) => void window.open(url, '_blank', 'noopener'),
 };
 
@@ -43,7 +59,7 @@ export function applyPlaceSchemaFrame(
   }
   const url = typeof msg.url === 'string' && SAFE.test(msg.url) ? msg.url : null;
   if (!url) return null;
-  if (msg.kind === 'ticket') nav.assign(url);
+  if (msg.kind === 'ticket') nav.leave(url);
   else if (msg.kind === 'link') nav.open(url);
   else return null;
   return msg.kind;

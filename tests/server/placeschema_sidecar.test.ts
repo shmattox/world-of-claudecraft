@@ -15,6 +15,7 @@ import {
   loadPlaceschemaAccepted,
   savedPlaceschemaAccepted,
 } from '../../src/sim/placeschema_accepted';
+import { PLACESCHEMA_PORTALS, PlaceSchemaPortalGate } from '../../src/sim/placeschema_portal';
 import type { InvSlot } from '../../src/sim/types';
 
 const G1 = 'a'.repeat(64);
@@ -77,6 +78,9 @@ function world() {
   const parked = new Map<number, Char>(); // the account's other characters, as saved
   const attempts = new Map<string, { seq: number; state: string }>();
   const calls: string[] = [];
+  const bodies: Record<string, any> = {}; // the last request body per path
+  const worn: Record<string, unknown> = {}; // equipment slot -> its copy's instance
+  let pos = { x: 1000, z: 1000 }; // the server's own position for the player
   const frames: unknown[] = [];
   const faults: Record<string, Fault> = {};
   const clients = new Map<number, Session>();
@@ -167,7 +171,14 @@ function world() {
   };
   const deps = {
     sim: {
-      meta: () => ({ inventory, placeschemaAccepted: accepted, cls: 'warrior' }) as never,
+      meta: () =>
+        ({ inventory, placeschemaAccepted: accepted, cls: 'warrior', equipmentInstance: worn }) as never,
+      unequipItem: (slot: string) => {
+        inventory.push({ itemId: FOREIGN_WEAPON_ID, count: 1, instance: worn[slot] as never });
+        delete worn[slot];
+        return true;
+      },
+      entities: { get: () => ({ pos }) },
       addItemInstance: (itemId: string, instance: never) => {
         inventory.push({ itemId, count: 1, instance });
       },
@@ -212,6 +223,7 @@ function world() {
     fetch: (async (url: string, init: RequestInit) => {
       const path = new URL(url).pathname;
       calls.push(path);
+      bodies[path] = JSON.parse(String(init.body));
       // Unreachable: the request never reaches the sidecar, so nothing commits.
       if (faults[path] === 'down') throw new Error('sidecar unreachable');
       const a = answer(path, JSON.parse(String(init.body)));
@@ -229,6 +241,11 @@ function world() {
   return {
     carry: make(),
     calls,
+    bodies,
+    worn,
+    standAt(x: number, z: number) {
+      pos = { x, z };
+    },
     frames,
     faults,
     escrow,
@@ -680,6 +697,81 @@ describe('placeschema sidecar game side (PLACE-276)', () => {
     await w.carry.questDone(w.session(), 'q_greyjaw');
     expect(w.calls).not.toContain('/mod/mint');
     expect(w.inventory).toHaveLength(0);
+  });
+});
+
+describe('PLACE-954: carrying out is a walk through the portal', () => {
+  const G2 = 'b'.repeat(64);
+  const G3 = 'c'.repeat(64);
+  const shore = PLACESCHEMA_PORTALS[0];
+
+  it('carries every own copy in one carry-out, the worn one as its slot; a traded copy stays', async () => {
+    const w = await holding(); // G1 in the bag
+    w.arrive(G2, 'Z-blade');
+    await w.carry.join(w.session()); // G2 accepted too
+    const at = slotOfGrant(w.inventory, G2);
+    w.worn.mainhand = w.inventory.splice(at, 1)[0].instance; // ...and held
+    w.inventory.push({ itemId: FOREIGN_WEAPON_ID, count: 1, instance: { [GRANT_KEY]: G3 } as never });
+    w.carry.checkPortals(); // seen outside first
+    w.standAt(shore.x, shore.z);
+    w.carry.checkPortals();
+    await flush();
+    expect([...w.bodies['/mod/carry-out'].grants].sort()).toEqual([G1, G2]);
+    expect(w.bodies['/mod/carry-out'].equipped).toEqual({ grip: G2 });
+    expect(w.frames).toContain(
+      "Some items here aren't yours to carry through this portal; they stay with you.",
+    );
+    expect(w.frames.at(-1)).toMatchObject({ kind: 'ticket' });
+    expect(w.calls.lastIndexOf('save')).toBeLessThan(w.calls.lastIndexOf('/mod/carry-out'));
+    expect(slotOfGrant(w.saved, G1)).toBe(-1);
+    expect(slotOfGrant(w.saved, G2)).toBe(-1);
+    expect(slotOfGrant(w.saved, G3)).toBe(0); // not this account's: it stays
+    expect(w.worn.mainhand).toBeUndefined();
+    expect(w.copies(G1)).toBe(1);
+    expect(w.copies(G2)).toBe(1);
+  });
+
+  it('with nothing to carry the portal still opens, as the player', async () => {
+    const w = world();
+    await w.carry.join(w.session()); // linked, empty-handed
+    w.carry.checkPortals();
+    w.standAt(shore.x, shore.z);
+    w.carry.checkPortals();
+    await flush();
+    expect(w.bodies['/mod/carry-out'].grants).toEqual([]);
+    expect(w.frames.at(-1)).toMatchObject({ kind: 'ticket' });
+  });
+
+  it('logging in inside the portal carries nothing until the player steps out and back in', async () => {
+    const w = await holding();
+    w.standAt(shore.x, shore.z);
+    w.carry.checkPortals();
+    w.carry.checkPortals();
+    await flush();
+    expect(w.calls).not.toContain('/mod/carry-out');
+    expect(slotOfGrant(w.inventory, G1)).toBe(0);
+  });
+
+  it('the bag action only points to the portal: nothing leaves', async () => {
+    const w = await holding();
+    w.carry.onCarryCommand(w.session());
+    await flush();
+    expect(w.calls).not.toContain('/mod/carry-out');
+    expect(String(w.frames.at(-1))).toMatch(/walk through the PlaceSchema portal/);
+    expect(slotOfGrant(w.inventory, G1)).toBe(0);
+  });
+
+  it('the walk-in gate never fires on arriving inside, fires once on entering, then re-arms outside', () => {
+    const g = new PlaceSchemaPortalGate();
+    const inside = { x: shore.x, z: shore.z };
+    const outside = { x: shore.x + 10, z: shore.z };
+    expect(g.tick(inside)).toBe(false); // logged in standing in it
+    expect(g.tick(outside)).toBe(false);
+    expect(g.tick(inside)).toBe(true);
+    expect(g.tick(inside)).toBe(false); // still standing in it (a refused carry)
+    expect(g.tick(outside)).toBe(false);
+    expect(g.tick(inside, true)).toBe(false); // the dead don't travel
+    expect(g.tick(inside)).toBe(true);
   });
 });
 

@@ -204,7 +204,7 @@ import {
   resolvedCharacterForm,
 } from './characters/form_visual_selection_core';
 import { visualKeyFor, weaponSkinModelUrl } from './characters/manifest';
-import { heldWeaponId, wearCarriedSkin } from './characters/placeschema_carry_view';
+import { heldWeaponId, PlaceSchemaPortals, wearCarriedSkin } from './characters/placeschema_carry_view';
 import { modularLookChanged } from './characters/player_look_core';
 import { PooledVisualLifecycle } from './characters/pooled_visual_lifecycle';
 import { playerRangedAttackStartsAtLaunch } from './characters/skin_attack';
@@ -2262,7 +2262,7 @@ export class Renderer {
       LOW_GFX ? 325 : 700,
     );
     setRenderCategory(this.umbralAnchorMarker.group, 'vfx');
-    this.scene.add(this.umbralAnchorMarker.group);
+    this.scene.add(this.umbralAnchorMarker.group, this.placeSchemaPortals.group);
     this.detailFogFar = (this.scene.fog as THREE.Fog).far;
 
     // The biome haze field, built BEFORE any surface that samples it (the
@@ -8653,6 +8653,7 @@ export class Renderer {
   private readonly evilEyeMarkers = new EvilEyeMarkers();
   private readonly burningPactMarkers = new BurningPactMarkers();
   private readonly umbralAnchorMarker = new UmbralAnchorMarker(this.groundSample);
+  private readonly placeSchemaPortals = new PlaceSchemaPortals(this.groundSample); // PLACE-954
   // The approved Maledict Eye is cosmetic: one local, non-targetable Affliction familiar.
   private readonly afflictionFamiliar = new AfflictionFamiliar(() => this.worldCompileGate());
   // Delve module interiors build asynchronously; the tracker also retires a
@@ -11586,6 +11587,7 @@ export class Renderer {
       this.lowGfx,
     );
     this.afflictionFamiliar.update(this.sim, this.views, this.reducedMotion(), this.time);
+    this.placeSchemaPortals.update(this.time);
     worldStart = this.markRendererWorldPhase(worldPhaseMs, 'vfx', worldStart);
 
     this.camYaw += deckCameraTurn(sim, this.camBoom, this.lastLocalPos, this.camMirror);
