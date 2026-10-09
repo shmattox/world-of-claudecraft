@@ -243,22 +243,38 @@ export function wearMinecraftSkin(
       .clone()
       .addScaledVector(up, h * u)
       .addScaledVector(left, side * u);
-  /** A node beside `bone` (same parent) at `joint`, copying the bone's live rotation and scale every
-   *  frame; returns it with its bind-pose world matrix. */
+  /** A node at `joint` that turns as `bone` does. It hangs from the shadow of the nearest ancestor
+   *  that has one (head and arms ride the torso's, so a turning chest carries them together) and
+   *  copies, every frame, the rotation of each bone from there down to `bone`; with no shadowed
+   *  ancestor it sits beside the bone. Returns it with its bind-pose world matrix. */
+  const shadows = new Map<THREE.Object3D, { s: THREE.Object3D; world: THREE.Matrix4 }>();
   const shadow = (bone: THREE.Object3D, joint: THREE.Vector3) => {
     const world = bind(bone).clone().setPosition(joint);
+    const chain = [bone];
+    let above = bone.parent;
+    while (above && above !== root && !shadows.has(above)) {
+      chain.unshift(above);
+      above = above.parent;
+    }
+    const host = above ? shadows.get(above) : undefined;
+    if (!host) chain.splice(0, chain.length - 1); // beside the bone: copy only its own turn
     const s = new THREE.Object3D();
     s.name = MC_SHADOW_TAG;
     s.userData[MC_SHADOW_TAG] = bone; // the bone it copies
-    const parent = bone.parent ?? root;
-    bind(parent).invert().multiply(world).decompose(s.position, s.quaternion, s.scale);
+    const parent = host?.s ?? bone.parent ?? root;
+    (host ? host.world.clone() : bind(parent))
+      .invert()
+      .multiply(world)
+      .decompose(s.position, s.quaternion, s.scale);
     s.updateMatrix = () => {
-      s.quaternion.copy(bone.quaternion);
-      s.scale.copy(bone.scale);
+      s.quaternion.identity();
+      for (const b of chain) s.quaternion.multiply(b.quaternion);
       THREE.Object3D.prototype.updateMatrix.call(s);
     };
     parent.add(s);
-    return { s, world };
+    const made = { s, world };
+    shadows.set(bone, made);
+    return made;
   };
   // parent `child` (posed in bind-pose world space) to the shadow, keeping that pose relative to it
   const ride = (on: { s: THREE.Object3D; world: THREE.Matrix4 }, child: THREE.Object3D) => {
@@ -270,17 +286,18 @@ export function wearMinecraftSkin(
       .decompose(child.position, child.quaternion, child.scale);
     on.s.add(child);
   };
-  const head = find(root, ['head']);
-  if (head) {
-    const m = box([8, 8, 8], [0, 0]);
-    poseBox(m, at(28), up, fwd, u, 8, 8 * u);
-    ride(shadow(head, at(24)), m);
-  }
+  // the torso first: the head and arms ride its shadow
   const chest = find(root, ['chest', 'spine']);
   if (chest) {
     const m = box([8, 12, 4], [16, 16]);
     poseBox(m, at(18), up, fwd, u, 12, 12 * u);
     ride(shadow(chest, at(12)), m);
+  }
+  const head = find(root, ['head']);
+  if (head) {
+    const m = box([8, 8, 8], [0, 0]);
+    poseBox(m, at(28), up, fwd, u, 8, 8 * u);
+    ride(shadow(head, at(24)), m);
   }
   for (const l of limbs(textureHeight === 32)) {
     const bone = find(root, [l.bone]);
@@ -290,7 +307,8 @@ export function wearMinecraftSkin(
     const along = endBone ? pos(endBone).sub(pos(bone)) : up.clone().negate();
     if (along.lengthSq() < 1e-12) continue;
     along.normalize();
-    const side = (l.bone.endsWith('l') ? 1 : -1) * (l.arm ? 6 : 2);
+    // an arm's centre line sits beside the torso (5.5 px for a slim 3-px arm), a leg's under the hip
+    const side = (l.bone.endsWith('l') ? 1 : -1) * (l.arm ? (slim ? 5.5 : 6) : 2);
     // Minecraft's arm pivots 2 pixels below its shoulder top; a leg hangs from the hip
     const joint = l.arm ? at(22, side) : at(12, side);
     const reach = l.arm ? 10 : 12; // pivot to the box's far end

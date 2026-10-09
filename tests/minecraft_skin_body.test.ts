@@ -43,10 +43,13 @@ function rig(facing = 0) {
   return root;
 }
 
-// the box riding `bone`'s shadow (a sibling of the bone that copies its rotation)
+// the box riding `bone`'s shadow (the node that turns as the bone does, at the Minecraft joint)
 const box = (root: THREE.Object3D, bone: string) => {
   const b = root.getObjectByName(bone);
-  const shadow = b?.parent?.children.find((c) => c.userData[MC_SHADOW_TAG] === b);
+  let shadow: THREE.Object3D | undefined;
+  root.traverse((c) => {
+    if (b && c.userData[MC_SHADOW_TAG] === b) shadow = c;
+  });
   return shadow?.children.find((c) => c.userData[MC_SKIN_TAG]) as THREE.Mesh;
 };
 const U = 2 / 32; // one skin pixel on a 2-unit-tall character
@@ -106,6 +109,32 @@ describe('wearMinecraftSkin', () => {
     // a skin change keeps the slot on the rig
     wearMinecraftSkin(root, 2, new THREE.Texture(), true);
     expect(root.getObjectByName('handslot.l')?.parent?.userData[MC_HAND_TAG]).toBeTruthy();
+  });
+
+  it('a turning chest carries the head and arms with the torso, joined at the neck and shoulders', () => {
+    const root = rig();
+    wearMinecraftSkin(root, 2, new THREE.Texture(), false);
+    const chest = root.getObjectByName('chest') as THREE.Object3D;
+    chest.rotation.z = 0.6; // a lean
+    root.updateMatrixWorld(true);
+    const [, torsoTop] = ends(box(root, 'chest'));
+    const [, , neck] = ends(box(root, 'head'));
+    expect(neck.distanceTo(torsoTop)).toBeLessThan(1e-6);
+    // the arm's pivot keeps its place on the torso: 2 px below the shoulder line, 6 px out
+    const arm = box(root, 'upperarm.l');
+    const torso = box(root, 'chest');
+    const local = arm.parent!.getWorldPosition(new THREE.Vector3());
+    torso.worldToLocal(local);
+    expect(local.x).toBeCloseTo(6); // in the torso's own skin pixels
+    expect(local.y).toBeCloseTo(4);
+  });
+
+  it('slim arms sit against the torso', () => {
+    const root = rig();
+    wearMinecraftSkin(root, 2, new THREE.Texture(), true);
+    const arm = box(root, 'upperarm.r');
+    const [mid] = ends(arm); // T-posed: the arm's centre is 4 px out from its pivot
+    expect(Math.abs(mid.x)).toBeCloseTo(5.5 * U + 4 * U);
   });
 
   it('faces the boxes the way the rig faces, not the root', () => {
