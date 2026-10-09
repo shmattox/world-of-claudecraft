@@ -781,6 +781,18 @@ describe('PLACE-954: carrying out is a walk through the portal', () => {
     expect(w.bodies['/mod/carry-out'].equipped).toEqual({ grip: G2 });
   });
 
+  it('full of ordinary items, a held copy asks for room and nothing leaves', async () => {
+    const w = await holdingTwo();
+    w.carry.onCarryCommand(w.session(), 'mainhand'); // only the Z-blade
+    w.bagsHold(1); // G1 fills the bags and is not leaving
+    walkThrough(w);
+    await flush();
+    expect(w.calls).not.toContain('/mod/carry-out');
+    expect(String(w.frames.at(-1))).toMatch(/Make room for one item in your bags/);
+    expect(w.worn.mainhand).toBeTruthy();
+    expect(slotOfGrant(w.inventory, G1)).toBe(0);
+  });
+
   it('every cancel is persisted before any is sent', async () => {
     const w = await holdingTwo();
     w.faults['/mod/carry-out'] = 'down';

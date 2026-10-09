@@ -429,6 +429,10 @@ export class PlaceSchemaCarry<S extends CarrySession> {
     const pid = platformId(this.cfg, s.accountId);
     if (!this.linked.get(s.accountId)) return this.openLink(s);
     if (!this.cfg.home) return this.refused(s, 'no-home-world');
+    // Only a grant this account accepted is its own to carry: a copy traded in from someone else is
+    // refused here, BEFORE anything is removed (N-b). Read before the character, so nothing below
+    // awaits until the removal is saved: what is worn and bagged can't change under it.
+    const claims = await this.d.store.claims(s.accountId);
     const meta = this.d.sim.meta(s.pid);
     if (!meta) return;
     // Every signed copy on this character: worn (by slot) and in the bags.
@@ -442,9 +446,6 @@ export class PlaceSchemaCarry<S extends CarrySession> {
         ...meta.inventory.flatMap((x) => grantOfSlot(x) ?? []),
       ]),
     ].filter((g) => !only || only.includes(g));
-    // Only a grant this account accepted is its own to carry: a copy traded in from someone else is
-    // refused here, BEFORE anything is removed (N-b).
-    const claims = await this.d.store.claims(s.accountId);
     const mine = here.filter((g) => claims.has(g));
     if (mine.length < here.length) {
       if (!mine.length && only) return this.refused(s, 'not-yours');
@@ -490,7 +491,10 @@ export class PlaceSchemaCarry<S extends CarrySession> {
       if (!grants.includes(g)) continue;
       if (!this.d.sim.unequipItem?.(slot as never, s.pid)) {
         undo();
-        return this.refused(s, 'bags-full');
+        return this.d.notice(
+          s,
+          'Make room for one item in your bags, then walk through again: what you hold travels through them.',
+        );
       }
       equipped[slot === 'mainhand' ? 'grip' : slot] = g;
       take(g, slot);
