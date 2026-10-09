@@ -144,6 +144,10 @@ export interface CarryDeps<S extends CarrySession> {
   notice(session: S, text: string): void;
   /** persist this live session's character now; false if the save was refused */
   save(session: S): Promise<boolean>;
+  /** PLACE-940: end this session cleanly (a deliberate logout, no linkdead grace). A carry-out sends the page to the
+   *  Hub, so without this the character stays in the world for the linkdead grace and the player cannot re-enter
+   *  before the arrival's join window closes. */
+  leave?(session: S): void;
   /** the ACCOUNT's accepted grants and unconfirmed cancels (placeschema_accepted_db.ts) */
   store: AcceptedStore;
   fetch?: typeof fetch;
@@ -459,6 +463,8 @@ export class PlaceSchemaCarry<S extends CarrySession> {
     }
     if (r?.ok && typeof r.body.url === 'string') {
       this.d.send(s, { t: 'placeschema', kind: 'ticket', url: r.body.url });
+      // The page navigates away now; let the frame flush, then free the character (PLACE-940).
+      if (this.d.leave) setTimeout(() => this.d.leave?.(s), 1500);
       return;
     }
     // Refused, timed out, or the answer was lost (a slow relay may still commit it later): the game
