@@ -5,11 +5,14 @@ import {
   FOREIGN_WEAPON_ID,
   GRANT_KEY,
   itemIdForGrant,
+  nativeFeatures,
+  nativeOf,
   PENDING_KEY,
   PlaceSchemaCarry,
   platformId,
   sidecarConfig,
   slotOfGrant,
+  templateFor,
 } from '../../server/placeschema_sidecar';
 import {
   loadPlaceschemaAccepted,
@@ -19,6 +22,8 @@ import { PLACESCHEMA_PORTALS, PlaceSchemaPortalGate } from '../../src/sim/places
 import type { InvSlot } from '../../src/sim/types';
 
 const G1 = 'a'.repeat(64);
+/** the sidecar's own key: its manifest's `owner`, and the `minter` of every grant it mints */
+const OWNER = 'f'.repeat(64);
 const cfg = {
   url: 'http://sidecar.test',
   token: 't'.repeat(32),
@@ -127,7 +132,8 @@ function world() {
       return { status: 200, body: { ok: true } };
     }
     if (path === '/mod/mint') {
-      const g = grant(G1, b.template.type);
+      // the sidecar signs the template it was given, as its own minter (PLACE-990 reads it back)
+      const g = { id: G1, tags: [], content: JSON.stringify({ ...b.template, minter: OWNER }) };
       escrow.set(G1, {
         grant: g,
         label: b.template.label,
@@ -240,7 +246,10 @@ function world() {
       bodies[path] = init?.body ? JSON.parse(String(init.body)) : undefined;
       // Unreachable: the request never reaches the sidecar, so nothing commits.
       if (faults[path] === 'down') throw new Error('sidecar unreachable');
-      const a = answer(path, bodies[path]);
+      const a =
+        new URL(url).host === 'sidecar.test' && path === '/.well-known/placeschema.json'
+          ? { status: 200, body: { owner: OWNER } }
+          : answer(path, bodies[path]);
       if (faults[path] === 'disconnect') clients.delete(1);
       // The sidecar committed, then the game server died before reading the answer.
       if (faults[path] === 'crash-after') return new Promise<Response>(() => {});
@@ -1042,5 +1051,72 @@ describe("B1': one serialisation point per account, claim first (rounds 6 and 7)
     expect(w.calls).not.toContain('/mod/ack');
     await w.carry.join(w.clients.get(2)! as never); // 70 is online with it pending: busy
     expect(w.copies()).toBe(1);
+  });
+});
+
+describe('PLACE-990: a copy carries its own WoC data and comes home whole', () => {
+  const enchanted: InvSlot = {
+    itemId: 'redbrook_blade',
+    count: 1,
+    instance: {
+      enchant: 'ench_example',
+      rolled: { stats: { str: 2 } },
+      signer: 'Smith',
+      boundTo: 7,
+      [GRANT_KEY]: G1,
+      [PENDING_KEY]: 'redbrook_blade',
+    } as never,
+  };
+  const minted = (slot: InvSlot, minter = OWNER) => ({
+    id: G1,
+    tags: [],
+    content: JSON.stringify({ ...templateFor(slot.itemId, slot), minter }),
+  });
+
+  it('round-trips the slot and the catalog def through the grant, never our own bookkeeping', () => {
+    const n = nativeOf(minted(enchanted), OWNER);
+    expect(n).toEqual({
+      v: 1,
+      itemId: 'redbrook_blade',
+      count: 1,
+      instance: {
+        enchant: 'ench_example',
+        rolled: { stats: { str: 2 } },
+        signer: 'Smith',
+        boundTo: 7,
+      },
+      def: JSON.parse(JSON.stringify(ITEMS.redbrook_blade)),
+    });
+  });
+
+  it('fits the template limits: every feature at most 525 chars, the content under 4096 bytes', () => {
+    const t = templateFor('redbrook_blade', enchanted);
+    expect(t.features.every((f) => f.length <= 525)).toBe(true);
+    expect(Buffer.byteLength(JSON.stringify({ ...t, minter: OWNER }))).toBeLessThan(4096);
+  });
+
+  it('trusts native data only from our own minter: anyone else could write any stats there', () => {
+    expect(nativeOf(minted(enchanted, 'e'.repeat(64)), OWNER)).toBeUndefined();
+    expect(nativeOf(minted(enchanted), undefined)).toBeUndefined();
+  });
+
+  it('too big to fit: mints by id only, with no partial native data', () => {
+    const huge = { ...enchanted, instance: { signer: 'x'.repeat(4000) } as never };
+    expect(nativeFeatures(huge)).toEqual([]);
+  });
+
+  it('WoC -> away -> WoC: the copy that left is the copy that comes back, field for field', async () => {
+    const w = world();
+    await w.carry.join(w.session());
+    w.inventory.push({ itemId: 'greyjaw_pelt_cloak', count: 1 });
+    await w.carry.questDone(w.session(), 'q_greyjaw');
+    const before = clone(w.inventory[0]);
+    // the label no longer overwrites the copy's own (player-chosen) name field
+    expect(before.instance).toEqual({ [GRANT_KEY]: G1 });
+    await w.carry.carry(w.session());
+    expect(slotOfGrant(w.inventory, G1)).toBe(-1);
+    w.timeout(); // it comes home
+    await w.carry.join(w.session());
+    expect(w.inventory).toEqual([before]);
   });
 });
