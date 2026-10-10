@@ -14,6 +14,18 @@ let skin: CarriedSkin | null = null;
 
 export const carriedSkin = (): CarriedSkin | null => skin;
 
+/** PLACE-412: other players' carried skins, by entity id (the server sends them with a pid). Never
+ *  remembered: the server resets them on every connection and sends those of everyone still here.
+ *  ponytail: grows with arrivals during one connection, no eviction (evicting would undress a visible player). */
+const peers = new Map<number, CarriedSkin>();
+export const carriedSkinFor = (pid: number): CarriedSkin | null => peers.get(pid) ?? null;
+export function setPeerSkin(pid: number, next: CarriedSkin): void {
+  peers.set(pid, next);
+}
+export function clearPeerSkins(): void {
+  peers.clear();
+}
+
 /** PLACE-479: is this account linked to PlaceSchema? null until the sidecar has answered (no
  *  sidecar, offline: the bag shows no link button at all). */
 let linked: boolean | null = null;

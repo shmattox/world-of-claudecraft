@@ -146,8 +146,12 @@ export interface CarryDeps<S extends CarrySession> {
           kind: 'ticket' | 'link' | 'skin' | 'portal';
           url: string;
           model?: string;
+          /** PLACE-412: whose skin (another player's); absent = this player's own */
+          pid?: number;
         }
-      | { t: 'placeschema'; kind: 'status'; linked: boolean },
+      | { t: 'placeschema'; kind: 'status'; linked: boolean }
+      /** PLACE-412: forget other players' skins; the ones still here follow */
+      | { t: 'placeschema'; kind: 'skins' },
   ): void;
   notice(session: S, text: string): void;
   /** persist this live session's character now; false if the save was refused */
@@ -205,6 +209,10 @@ export class PlaceSchemaCarry<S extends CarrySession> {
   private readonly linking = new Set<number>();
   /** the session each skin was sent to, so a holder's skin is looked up once per session */
   private readonly skinned = new WeakMap<S, string>();
+  /** PLACE-412: each live player's carried Minecraft skin, shown to everyone else (by entity id) */
+  private readonly skins = new Map<number, { s: S; url: string; model: string }>();
+  /** sockets already sent the skins: a resumed session gets a new socket, a fresh page or a restart a new session */
+  private readonly skinsShown = new WeakSet<object>();
   /** accounts with a portal carry in flight (PLACE-954) */
   private readonly carrying = new Set<number>();
   /** the grants each session's bag marked to carry through the portal (PLACE-954) */
@@ -349,6 +357,7 @@ export class PlaceSchemaCarry<S extends CarrySession> {
       this.d.send(s, { t: 'placeschema', kind: 'status', linked: !!holder });
     }
     if (holder) this.wearSkin(s, holder);
+    this.showSkins(s);
   }
 
   /** The destination's own picture, from its manifest's `preview` (PLACE-183), for the portal to show
@@ -407,13 +416,44 @@ export class PlaceSchemaCarry<S extends CarrySession> {
   private wearSkin(s: S, holder: string): void {
     if (this.skinned.get(s) === holder) return;
     this.skinned.set(s, holder);
-    const look = this.d.skin ?? ((h: string) => skinForHolder(h, this.cfg.relays ?? []));
+    const look =
+      this.d.skin ??
+      ((h: string) =>
+        skinForHolder(h, this.cfg.relays ?? [], {
+          allowLoopback: process.env.PLACESCHEMA_ALLOW_LOOPBACK === '1',
+        }));
     void look(holder)
       .then((skin) => {
-        if (skin && this.d.clients.get(s.pid) === s)
-          this.d.send(s, { t: 'placeschema', kind: 'skin', url: skin.url, model: skin.model });
+        if (!skin || this.d.clients.get(s.pid) !== s) return;
+        this.d.send(s, { t: 'placeschema', kind: 'skin', url: skin.url, model: skin.model });
+        // PLACE-412: everyone else wears it on this player too (cosmetic: the woc-leg spec §2)
+        this.skins.set(s.pid, { s, url: skin.url, model: skin.model });
+        for (const other of this.d.clients.values())
+          if (other !== s)
+            this.d.send(other, {
+              t: 'placeschema',
+              kind: 'skin',
+              url: skin.url,
+              model: skin.model,
+              pid: s.pid,
+            });
       })
       .catch(() => undefined);
+  }
+
+  /** PLACE-412: once per socket (a fresh page, a reconnect, a resumed session), the client forgets the
+   *  skins it had and gets those of everyone still here. Entity ids are not reused while the server
+   *  runs; after a restart the reset clears any stale id first. */
+  private showSkins(s: S): void {
+    const socket = (s as { ws?: object }).ws ?? s;
+    if (this.skinsShown.has(socket)) return;
+    this.skinsShown.add(socket);
+    this.d.send(s, { t: 'placeschema', kind: 'skins' });
+    for (const [pid, e] of this.skins) {
+      if (this.d.clients.get(pid) !== e.s) this.skins.delete(pid);
+      else if (pid !== s.pid)
+        this.d.send(s, { t: 'placeschema', kind: 'skin', url: e.url, model: e.model, pid });
+    }
   }
 
   /** A quest turn-in: the reward becomes a signed grant held by the player's did (if linked). */
@@ -630,7 +670,10 @@ export class PlaceSchemaCarry<S extends CarrySession> {
     const grant = grantOfSlot({ instance: inst } as InvSlot);
     if (!grant) return;
     let marked = this.marks.get(s);
-    if (!marked) this.marks.set(s, (marked = new Set()));
+    if (!marked) {
+      marked = new Set();
+      this.marks.set(s, marked);
+    }
     marked.add(grant);
     const name = (inst as { name?: unknown } | undefined)?.name;
     this.d.notice(
@@ -645,7 +688,10 @@ export class PlaceSchemaCarry<S extends CarrySession> {
     for (const s of this.d.clients.values()) {
       const p = this.d.sim.entities?.get(s.pid);
       let gate = this.gates.get(s);
-      if (!gate) this.gates.set(s, (gate = new PlaceSchemaPortalGate()));
+      if (!gate) {
+        gate = new PlaceSchemaPortalGate();
+        this.gates.set(s, gate);
+      }
       // one carry per walk-in: stepping back in while one is in flight queues nothing
       if (!s.linkdead && gate.tick(p?.pos, p?.dead) && !this.carrying.has(s.accountId)) {
         const marked = this.marks.get(s);

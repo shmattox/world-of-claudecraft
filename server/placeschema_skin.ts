@@ -1,23 +1,20 @@
 // The arriving player's Minecraft skin (PLACE-410, open-place spec 2026-10-02-woc-leg.md section 2).
 //
 // The sidecar's /mod/join names the holder did. Their linked accounts are one kind 30082 event on the
-// relay (spec/nostr.md section 11); its `minecraft` entry is a Mojang UUID, whose skin comes live from
+// relay (spec/nostr.md section 11); its world-attested `minecraft` entry (placeschema_links.ts, PLACE-412)
+// is a Mojang UUID, whose skin comes live from
 // Mojang's session server, as the open-place Minecraft resolver does. Never stored: the PNG travels
 // to the player's own client as a data URL and is forgotten with the session.
 
-import { createHash } from 'node:crypto';
-import { schnorr } from '@noble/curves/secp256k1';
 import { WebSocket } from 'ws';
-
-type NostrEvent = {
-  id: string;
-  pubkey: string;
-  created_at: number;
-  kind: number;
-  tags: string[][];
-  content: string;
-  sig: string;
-};
+import {
+  attestedMinecraftUuid,
+  type LinkDeps,
+  type LinkFilter,
+  manifestFacts,
+  type NostrEvent,
+  readCapped,
+} from './placeschema_links';
 
 export interface Skin {
   /** data:image/png;base64,... */
@@ -26,65 +23,17 @@ export interface Skin {
 }
 
 const HEX64 = /^[0-9a-f]{64}$/;
-const MC_UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 const TEXTURE_URL = /^https?:\/\/textures\.minecraft\.net\/texture\/[0-9a-f]+$/;
 const MAX_PNG = 64 * 1024;
 const MAX_PROFILE = 64 * 1024;
 const MAX_EVENTS = 16;
 
-/** A response body read up to `max` bytes: undefined (and the stream cancelled) once it passes. */
-export async function readCapped(r: Response, max: number): Promise<Buffer | undefined> {
-  if (Number(r.headers.get('content-length') ?? 0) > max) {
-    await r.body?.cancel().catch(() => undefined);
-    return undefined;
-  }
-  const chunks: Uint8Array[] = [];
-  let n = 0;
-  const reader = r.body?.getReader();
-  if (!reader) return Buffer.alloc(0);
-  for (;;) {
-    const { done, value } = await reader.read();
-    if (done) return Buffer.concat(chunks);
-    n += value.byteLength;
-    if (n > max) {
-      await reader.cancel().catch(() => undefined);
-      return undefined;
-    }
-    chunks.push(value);
-  }
-}
-
-/** A well-formed event the holder really signed (NIP-01 id + BIP-340 signature). */
-export function signedBy(ev: NostrEvent, holder: string): boolean {
-  try {
-    if (ev.pubkey !== holder || !HEX64.test(ev.id)) return false;
-    const id = createHash('sha256')
-      .update(JSON.stringify([0, ev.pubkey, ev.created_at, ev.kind, ev.tags, ev.content]))
-      .digest('hex');
-    return id === ev.id && schnorr.verify(ev.sig, id, ev.pubkey);
-  } catch {
-    return false;
-  }
-}
-
-/** The holder's Minecraft UUID from their newest signed 30082 links record. Cosmetic use only:
- *  ponytail: the entry's world attestation is not checked (a skin is public anyway); check it with
- *  the sidecar's readLinks if a link here ever gates more than a look. */
-export function minecraftUuidOf(events: NostrEvent[], holder: string): string | undefined {
-  const newest = events
-    .filter(
-      (e) =>
-        e.kind === 30082 &&
-        e.tags.some((t) => t[0] === 'd' && t[1] === 'placeschema.links') &&
-        signedBy(e, holder),
-    )
-    .sort((a, b) => b.created_at - a.created_at)[0];
-  const id = newest?.tags.find((t) => t[0] === 'link' && t[1] === 'minecraft')?.[2];
-  return id && MC_UUID.test(id) ? id : undefined;
-}
-
 /** One REQ to one relay, collected until EOSE or the timeout. */
-export function queryRelay(url: string, holder: string, timeoutMs = 5_000): Promise<NostrEvent[]> {
+export function queryRelay(
+  url: string,
+  filter: LinkFilter,
+  timeoutMs = 5_000,
+): Promise<NostrEvent[]> {
   return new Promise((resolve) => {
     const out: NostrEvent[] = [];
     let ws: WebSocket;
@@ -101,15 +50,7 @@ export function queryRelay(url: string, holder: string, timeoutMs = 5_000): Prom
     } catch {
       return done();
     }
-    ws.on('open', () =>
-      ws.send(
-        JSON.stringify([
-          'REQ',
-          'skin',
-          { kinds: [30082], authors: [holder], '#d': ['placeschema.links'], limit: 4 },
-        ]),
-      ),
-    );
+    ws.on('open', () => ws.send(JSON.stringify(['REQ', 'skin', { ...filter, limit: MAX_EVENTS }])));
     ws.on('message', (data) => {
       try {
         const m = JSON.parse(String(data));
@@ -149,15 +90,26 @@ export async function mojangSkin(uuid: string, f: typeof fetch = fetch): Promise
   };
 }
 
-/** holder did -> their Minecraft skin, or undefined (no relay, no link, default skin, Mojang down). */
+/** holder did -> their Minecraft skin, or undefined (no relay, no attested link, default skin, Mojang
+ *  down). The link is read as spec/nostr.md section 11 requires (placeschema_links.ts): an unattested or
+ *  withdrawn Minecraft link shows nothing. */
 export async function skinForHolder(
   holder: string,
   relays: string[],
-  deps: { query?: typeof queryRelay; fetch?: typeof fetch } = {},
+  deps: {
+    query?: (url: string, filter: LinkFilter) => Promise<NostrEvent[]>;
+    fetch?: typeof fetch;
+    originFacts?: LinkDeps['originFacts'];
+    allowLoopback?: boolean;
+    now?: number;
+  } = {},
 ): Promise<Skin | undefined> {
-  if (!HEX64.test(holder)) return undefined;
+  if (!HEX64.test(holder) || !relays.length) return undefined;
   const query = deps.query ?? queryRelay;
-  const events = (await Promise.all(relays.map((u) => query(u, holder)))).flat();
-  const uuid = minecraftUuidOf(events, holder);
+  const uuid = await attestedMinecraftUuid(holder, {
+    query: async (filter) => (await Promise.all(relays.map((u) => query(u, filter)))).flat(),
+    originFacts: deps.originFacts ?? manifestFacts(deps.allowLoopback ?? false, deps.fetch),
+    now: deps.now ?? Math.floor(Date.now() / 1000),
+  });
   return uuid ? mojangSkin(uuid, deps.fetch).catch(() => undefined) : undefined;
 }

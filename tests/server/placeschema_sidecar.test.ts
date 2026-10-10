@@ -1,4 +1,3 @@
-import { ITEMS } from '../../src/sim/data';
 import { describe, expect, it } from 'vitest';
 import {
   FOREIGN_KEEPSAKE_ID,
@@ -11,6 +10,7 @@ import {
   sidecarConfig,
   slotOfGrant,
 } from '../../server/placeschema_sidecar';
+import { ITEMS } from '../../src/sim/data';
 import {
   loadPlaceschemaAccepted,
   savedPlaceschemaAccepted,
@@ -683,7 +683,7 @@ describe('placeschema sidecar game side (PLACE-276)', () => {
     void w.carry.join(w.session());
     await flush();
     expect(w.claims.get(G1)).toMatchObject({ character: 70, pending: true }); // claimed, never saved
-    expect(w.frames.filter((f: any) => f?.kind !== 'status')).toEqual([]); // nothing announced before the save landed
+    expect(w.frames.filter((f: any) => f?.kind !== 'status' && f?.kind !== 'skins')).toEqual([]); // nothing announced before the save landed
     const again = w.crash();
     expect(slotOfGrant(w.inventory, G1)).toBe(-1);
     await again.join(w.session()); // re-offered; the pending claim is ours: added once
