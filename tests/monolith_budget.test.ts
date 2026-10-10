@@ -1717,7 +1717,9 @@ const MONOLITHS: MonolithRow[] = [
     // server/placeschema_sidecar.ts; game.ts gains only its construction (with
     // the save hook), the event-drain call and the ps_carry command arm.
     // Lowered 9852 -> 9829 at the PLACE-611 resync (upstream's extractions); wc -l on the merged tree.
-    ceiling: 9829,
+    // PlaceSchema fork, PLACE-940 (#14): +1, its `leave` wiring for the carry ticket (one line in the
+    // startPlaceSchemaCarry deps), merged without a re-pin. Exact count, zero slack.
+    ceiling: 9830,
     seam: 'a sibling server module; see the hot-path seams in server/CLAUDE.md',
   },
   {

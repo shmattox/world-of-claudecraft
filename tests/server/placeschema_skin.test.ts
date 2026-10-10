@@ -126,3 +126,14 @@ describe('the ticket frame (PLACE-954)', () => {
     expect(left).toEqual(['http://hub.test/arrive#ps-ticket=x']);
   });
 });
+
+describe('the portal frame (PLACE-954)', () => {
+  it("keeps the destination's picture for the portal, and refuses a non-http url", async () => {
+    const { portalDestinationPicture } = await import('../../src/placeschema_skin_state');
+    expect(applyPlaceSchemaFrame({ kind: 'portal', url: 'javascript:alert(1)' })).toBeNull();
+    expect(applyPlaceSchemaFrame({ kind: 'portal', url: 'https://hub.test/assets/p.jpg' })).toBe(
+      'portal',
+    );
+    expect(portalDestinationPicture()).toBe('https://hub.test/assets/p.jpg');
+  });
+});

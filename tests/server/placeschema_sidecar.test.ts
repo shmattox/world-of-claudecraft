@@ -82,6 +82,7 @@ function world() {
   const worn: Record<string, unknown> = {}; // equipment slot -> its copy's instance
   let pos = { x: 1000, z: 1000 }; // the server's own position for the player
   let bagCap = Number.POSITIVE_INFINITY; // how many slots the bags hold
+  let manifest: unknown = {}; // the destination's /.well-known/placeschema.json
   const frames: unknown[] = [];
   const faults: Record<string, Fault> = {};
   const clients = new Map<number, Session>();
@@ -106,6 +107,7 @@ function world() {
     };
   };
   const answer = (path: string, b: any): { status: number; body: unknown } => {
+    if (path === '/.well-known/placeschema.json') return { status: 200, body: manifest };
     if (path === '/mod/join')
       return {
         status: 200,
@@ -235,10 +237,10 @@ function world() {
     fetch: (async (url: string, init: RequestInit) => {
       const path = new URL(url).pathname;
       calls.push(path);
-      bodies[path] = JSON.parse(String(init.body));
+      bodies[path] = init?.body ? JSON.parse(String(init.body)) : undefined;
       // Unreachable: the request never reaches the sidecar, so nothing commits.
       if (faults[path] === 'down') throw new Error('sidecar unreachable');
-      const a = answer(path, JSON.parse(String(init.body)));
+      const a = answer(path, bodies[path]);
       if (faults[path] === 'disconnect') clients.delete(1);
       // The sidecar committed, then the game server died before reading the answer.
       if (faults[path] === 'crash-after') return new Promise<Response>(() => {});
@@ -260,6 +262,9 @@ function world() {
     },
     bagsHold(n: number) {
       bagCap = n;
+    },
+    destinationDeclares(m: unknown) {
+      manifest = m;
     },
     frames,
     faults,
@@ -813,6 +818,23 @@ describe('PLACE-954: carrying out is a walk through the portal', () => {
     await flush();
     expect(w.bodies['/mod/carry-out'].grants).toEqual([G1]);
     expect(w.worn.mainhand).toBeTruthy(); // the unmarked Z-blade stays in hand
+  });
+
+  it("the portal shows the destination's own picture, once per session, never a foreign one", async () => {
+    const w = world();
+    w.destinationDeclares({ preview: '/assets/preview-1.jpg' });
+    await w.carry.join(w.session());
+    await w.carry.join(w.session());
+    await flush();
+    const shown = w.frames.filter((f) => (f as { kind?: string }).kind === 'portal');
+    expect(shown).toEqual([
+      { t: 'placeschema', kind: 'portal', url: 'http://hub.test/assets/preview-1.jpg' },
+    ]);
+    const other = world();
+    other.destinationDeclares({ preview: 'https://evil.test/beacon.jpg' });
+    await other.carry.join(other.session());
+    await flush();
+    expect(other.frames.some((f) => (f as { kind?: string }).kind === 'portal')).toBe(false);
   });
 
   it('with nothing to carry the portal still opens, as the player', async () => {

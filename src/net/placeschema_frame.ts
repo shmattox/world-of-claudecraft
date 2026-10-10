@@ -6,7 +6,11 @@
 // PNG data URL, for the renderer to wear. `status` (PLACE-479): whether the account is linked, for
 // the bag's "Link PlaceSchema account" button.
 
-import { setCarriedSkin, setPlaceSchemaLinked } from '../placeschema_skin_state';
+import {
+  setCarriedSkin,
+  setPlaceSchemaLinked,
+  setPortalDestinationPicture,
+} from '../placeschema_skin_state';
 
 const SAFE = /^https?:\/\//;
 const SKIN = /^data:image\/png;base64,[A-Za-z0-9+/]+={0,2}$/;
@@ -46,7 +50,7 @@ const browserNav: Nav = {
 export function applyPlaceSchemaFrame(
   msg: PlaceSchemaFrame,
   nav: Nav = browserNav,
-): 'ticket' | 'link' | 'skin' | 'status' | null {
+): 'ticket' | 'link' | 'skin' | 'status' | 'portal' | null {
   if (msg.kind === 'status') {
     if (typeof msg.linked !== 'boolean') return null;
     setPlaceSchemaLinked(msg.linked);
@@ -59,6 +63,13 @@ export function applyPlaceSchemaFrame(
   }
   const url = typeof msg.url === 'string' && SAFE.test(msg.url) ? msg.url : null;
   if (!url) return null;
+  if (msg.kind === 'portal') {
+    // PLACE-954: the destination's picture for the portal; the server checked it is the
+    // destination's own
+    if (url.length > 2048) return null;
+    setPortalDestinationPicture(url);
+    return 'portal';
+  }
   if (msg.kind === 'ticket') nav.leave(url);
   else if (msg.kind === 'link') nav.open(url);
   else return null;

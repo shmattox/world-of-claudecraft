@@ -141,7 +141,12 @@ export interface CarryDeps<S extends CarrySession> {
   send(
     session: S,
     frame:
-      | { t: 'placeschema'; kind: 'ticket' | 'link' | 'skin'; url: string; model?: string }
+      | {
+          t: 'placeschema';
+          kind: 'ticket' | 'link' | 'skin' | 'portal';
+          url: string;
+          model?: string;
+        }
       | { t: 'placeschema'; kind: 'status'; linked: boolean },
   ): void;
   notice(session: S, text: string): void;
@@ -330,10 +335,42 @@ export class PlaceSchemaCarry<S extends CarrySession> {
   private setLinked(s: S, holder: string | null): void {
     this.linked.set(s.accountId, holder);
     if (this.told.get(s) !== holder) {
+      // the first status of a session also shows the portal what lies beyond it (PLACE-954)
+      if (!this.told.has(s)) this.showDestination(s);
       this.told.set(s, holder);
       this.d.send(s, { t: 'placeschema', kind: 'status', linked: !!holder });
     }
     if (holder) this.wearSkin(s, holder);
+  }
+
+  /** The destination's own picture, from its manifest's `preview` (PLACE-183), for the portal to show
+   *  (PLACE-954). Only a picture on the destination's own origin, over http(s), as hubs accept it
+   *  (open-place protocol isSafeDeclaredUrl). Fetched once; a failed fetch is tried again later. */
+  private preview: Promise<string | undefined> | undefined;
+  private showDestination(s: S): void {
+    const home = this.cfg.home;
+    if (!home) return;
+    this.preview ??= (async () => {
+      const r = await (this.d.fetch ?? fetch)(
+        `${home.replace(/\/$/, '')}/.well-known/placeschema.json`,
+        {
+          signal: AbortSignal.timeout(10_000),
+        },
+      );
+      const value = r.ok ? ((await r.json()) as { preview?: unknown }).preview : undefined;
+      if (typeof value !== 'string') return undefined;
+      const url = new URL(value, home);
+      return /^https?:$/.test(url.protocol) && url.origin === new URL(home).origin
+        ? url.href
+        : undefined;
+    })().catch(() => {
+      this.preview = undefined;
+      return undefined;
+    });
+    void this.preview.then((url) => {
+      if (url && this.d.clients.get(s.pid) === s)
+        this.d.send(s, { t: 'placeschema', kind: 'portal', url });
+    });
   }
 
   /** The bag's link button (PLACE-479): the one-time link page, with no item needed. Linked already:

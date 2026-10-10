@@ -1,11 +1,12 @@
 // The PlaceSchema portal (PLACE-954), drawn as the Minecraft plugin's gate: a 4x5 nether-portal frame
-// of shroomlight blocks around a swirling purple sheet carrying the PlaceSchema mark, so a player who
-// came through Minecraft's portal knows this one. Drawing only: the server notices the walk-in and
+// of shroomlight blocks (its public rim) around a swirling purple sheet showing the destination's own
+// picture, as the plugin's map-pane thumbnail did (the PlaceSchema mark until it arrives), so a player
+// who came through Minecraft's portal knows this one. Drawing only: the server notices the walk-in and
 // carries everything out (sim/placeschema_portal.ts holds the spots). Drawn only while the realm has
 // a PlaceSchema sidecar (the link status has arrived).
 
 import * as THREE from 'three';
-import { placeSchemaLinked } from '../placeschema_skin_state';
+import { placeSchemaLinked, portalDestinationPicture } from '../placeschema_skin_state';
 import { PLACESCHEMA_PORTAL_BLOCK as BLOCK, PLACESCHEMA_PORTALS } from '../sim/placeschema_portal';
 
 const LOGO_URL = '/placeschema/logo-white.png';
@@ -39,14 +40,17 @@ const SHEET_VERTEX = /* glsl */ `
   }
 `;
 
-// The nether sheet: pixel-quantised (16 texels per block, as Minecraft draws it) violet swirl, with
-// the PlaceSchema mark in its middle. uv.x flips on back faces so the mark reads the same from both
-// sides.
+// The nether sheet: pixel-quantised (16 texels per block, as Minecraft draws it) violet swirl over
+// the destination's own picture (its manifest preview, the plugin's map-pane thumbnail), or, until
+// one arrives, the PlaceSchema mark. uv.x flips on back faces so it reads the same from both sides.
 const SHEET_FRAGMENT = /* glsl */ `
   uniform float uTime;
   uniform vec2 uTexels;
   uniform sampler2D uLogo;
   uniform float uHasLogo;
+  uniform sampler2D uPreview;
+  uniform float uHasPreview;
+  uniform float uPreviewAspect;
   varying vec2 vUv;
   float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
   float noise(vec2 p) {
@@ -63,7 +67,15 @@ const SHEET_FRAGMENT = /* glsl */ `
     vec3 col = mix(vec3(0.24, 0.02, 0.48), vec3(0.62, 0.22, 0.95), swirl);
     col = mix(col, vec3(0.86, 0.62, 1.0), smoothstep(0.78, 0.95, swirl));
     float a = 0.82;
-    if (uHasLogo > 0.5) {
+    if (uHasPreview > 0.5) {
+      // the destination, cover-cropped into the 2:3 sheet at the swirl's chunky texels, tinted by it
+      vec2 q = px + 0.5 / uTexels;
+      float sheet = 2.0 / 3.0;
+      if (uPreviewAspect > sheet) q.x = 0.5 + (q.x - 0.5) * sheet / uPreviewAspect;
+      else q.y = 0.5 + (q.y - 0.5) * uPreviewAspect / sheet;
+      col = mix(texture2D(uPreview, q).rgb, col, 0.12 + 0.2 * swirl * swirl);
+      a = 0.96;
+    } else if (uHasLogo > 0.5) {
       // the mark, square, in the sheet's middle (sheet is 2:3)
       vec2 l = (uv - vec2(0.5, 0.55)) * vec2(2.0, 3.0) / 1.25 + 0.5;
       if (l.x > 0.0 && l.x < 1.0 && l.y > 0.0 && l.y < 1.0) {
@@ -99,6 +111,8 @@ export class PlaceSchemaPortals {
   readonly group = new THREE.Group();
   private readonly sheet: THREE.ShaderMaterial;
   private built = false;
+  /** the destination picture shown (or being loaded) */
+  private picture: string | null = null;
 
   constructor(private readonly ground: (x: number, z: number) => number) {
     this.group.name = 'placeschema-portals';
@@ -109,6 +123,9 @@ export class PlaceSchemaPortals {
         uTexels: { value: new THREE.Vector2(32, 48) },
         uLogo: { value: null },
         uHasLogo: { value: 0 },
+        uPreview: { value: null },
+        uHasPreview: { value: 0 },
+        uPreviewAspect: { value: 1 },
       },
       vertexShader: SHEET_VERTEX,
       fragmentShader: SHEET_FRAGMENT,
@@ -146,6 +163,20 @@ export class PlaceSchemaPortals {
     if (!this.built) this.build();
     const on = placeSchemaLinked() !== null;
     this.group.visible = on;
-    if (on) this.sheet.uniforms.uTime.value = time;
+    if (!on) return;
+    this.sheet.uniforms.uTime.value = time;
+    const want = portalDestinationPicture();
+    if (want && want !== this.picture) {
+      this.picture = want;
+      new THREE.TextureLoader().setCrossOrigin('anonymous').load(want, (pic) => {
+        if (this.picture !== want) return pic.dispose();
+        pic.colorSpace = THREE.SRGBColorSpace;
+        (this.sheet.uniforms.uPreview.value as THREE.Texture | null)?.dispose();
+        const img = pic.image as { width: number; height: number };
+        this.sheet.uniforms.uPreview.value = pic;
+        this.sheet.uniforms.uPreviewAspect.value = img.width / Math.max(1, img.height);
+        this.sheet.uniforms.uHasPreview.value = 1;
+      });
+    }
   }
 }
