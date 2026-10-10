@@ -22,8 +22,9 @@ export const PLACESCHEMA_PORTALS: readonly PlaceSchemaPortalSpot[] = [
 /** One Minecraft block in yards: the gate is 4x5 of them around a 2x3 opening, so it stands about
  *  2.8 bodies tall, as in Minecraft. */
 export const PLACESCHEMA_PORTAL_BLOCK = 0.9;
-/** The opening: one block either side of the centre line, and this deep through the sheet. */
-const HALF_WIDTH = PLACESCHEMA_PORTAL_BLOCK;
+/** The gate: two blocks either side of the centre line (its whole visible width: the frame has no
+ *  collider, so stepping through a frame block is stepping through the gate), and this deep. */
+const HALF_WIDTH = 2 * PLACESCHEMA_PORTAL_BLOCK;
 const DEPTH = 0.6;
 
 /** (x, z) in a portal's frame: `depth` through the sheet along its normal, `side` across it. */
@@ -35,7 +36,7 @@ function frameOf(p: PlaceSchemaPortalSpot, x: number, z: number) {
   return { depth: dx * nx + dz * nz, side: dx * nz - dz * nx };
 }
 
-/** True when (x, z) stands in a portal's opening (not beside its frame). */
+/** True when (x, z) stands in a portal (within its frame's width, not beside it). */
 export function inPlaceSchemaPortal(x: number, z: number): boolean {
   return PLACESCHEMA_PORTALS.some((p) => {
     const f = frameOf(p, x, z);
@@ -43,7 +44,7 @@ export function inPlaceSchemaPortal(x: number, z: number): boolean {
   });
 }
 
-/** True when a step from `a` to `b` passed through a portal's opening, however fast: the server sees
+/** True when a step from `a` to `b` passed through a portal, however fast: the server sees
  *  positions a few times a second, and a running player can cross the sheet between two looks. */
 export function crossedPlaceSchemaPortal(
   a: { x: number; z: number },
@@ -60,8 +61,8 @@ export function crossedPlaceSchemaPortal(
 }
 
 /**
- * Walk-THROUGH arm/latch: fires once the player is seen outside every opening and then steps into
- * or through one, so logging in or arriving inside an opening never fires. After firing it waits for
+ * Walk-THROUGH arm/latch: fires once the player is seen outside every gate and then steps into
+ * or through one, so logging in or arriving inside a gate never fires. After firing it waits for
  * the player to step out again (a refused carry leaves them standing in it) before it can fire once
  * more.
  */

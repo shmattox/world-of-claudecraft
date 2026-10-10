@@ -867,7 +867,13 @@ describe('PLACE-954: carrying out is a walk through the portal', () => {
     expect(slotOfGrant(w.inventory, G1)).toBe(0);
   });
 
-  it('only the opening counts: beside the frame never fires, a run straight through always does', () => {
+  it('stepping through a frame block counts: the frame has no collider, so it is the gate too', () => {
+    const g = new PlaceSchemaPortalGate();
+    expect(g.tick({ x: shore.x + 1.4, z: shore.z - 3 })).toBe(false);
+    expect(g.tick({ x: shore.x + 1.4, z: shore.z + 3 })).toBe(true);
+  });
+
+  it('only the gate counts: beside its frame never fires, a run straight through always does', () => {
     const g = new PlaceSchemaPortalGate();
     expect(g.tick({ x: shore.x + 1.9, z: shore.z - 3 })).toBe(false);
     expect(g.tick({ x: shore.x + 1.9, z: shore.z })).toBe(false); // alongside the frame
