@@ -21,6 +21,8 @@ import type { Entity, InvSlot, PlayerClass, SimEvent } from '../../src/sim/types
 import { bagItemNewActions } from '../../src/ui/bag_item_context_menu';
 import { completeEnchantFamilyCast } from '../helpers/enchant_family_cast';
 
+/** the sidecar's own key: its manifest's `owner` and the minter of what it mints */
+const OWNER = 'f'.repeat(64);
 const G = (n: number) => n.toString(16).padStart(64, '0');
 const signed = (n: number) => ({ [GRANT_KEY]: G(n), name: 'Diamond Sword' }) as never;
 
@@ -133,7 +135,9 @@ function carryWorld(cls: PlayerClass, opts: { look?: unknown; bag?: boolean } = 
     if (path === '/mod/carry-out') return { url: `${body.destination}/arrive#ps-ticket=x` };
     if (path === '/mod/mint') {
       // PLACE-386: every mint is distinct (the sidecar stamps a serial), so every mint is a new id
-      const grant = { id: G(++n), tags: [], content: JSON.stringify(body.template) };
+      // signed as the sidecar's own minter, the `owner` its manifest names (PLACE-990)
+      const content = JSON.stringify({ ...body.template, minter: OWNER });
+      const grant = { id: G(++n), tags: [], content };
       queue.push({ grant, label: body.template.label });
       return { grant };
     }
@@ -189,8 +193,11 @@ function carryWorld(cls: PlayerClass, opts: { look?: unknown; bag?: boolean } = 
         putCancels: async () => undefined,
         dropCancel: async () => undefined,
       },
-      fetch: (async (url: string, init: { body: string }) => {
-        const body = reply(new URL(url).pathname, JSON.parse(init.body));
+      fetch: (async (url: string, init: { body?: string }) => {
+        const path = new URL(url).pathname;
+        if (path === '/.well-known/placeschema.json')
+          return new Response(JSON.stringify({ owner: OWNER }), { status: 200 });
+        const body = reply(path, JSON.parse(init.body ?? '{}'));
         return new Response(JSON.stringify(body), { status: 200 });
       }) as never,
     },
