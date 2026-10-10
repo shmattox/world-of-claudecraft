@@ -5,7 +5,7 @@
 // (public/models/chars/modular/warrior_modular.glb). That file also holds the body, hair and faces and
 // has no CREDITS.md row, so it is never served whole: this keeps only the `Armor_<kit>_<part>` nodes
 // of one kit's one piece, with the skeleton they are skinned to (KayKit Character Pack Adventures 1.0,
-// CC0 1.0), and writes into public/models/placeschema/garments/:
+// CC0 1.0), and writes into public/placeschema/garments/:
 //   <kit>_<piece>.glb        one garment per kit and piece the kit has
 //   provenance.json          each file's source nodes, author, source url and licence
 //   sidecar-looks.json       SIDECAR_LOOKS: {"armor.woc.<id>": "<origin>/models/.../<file>"}

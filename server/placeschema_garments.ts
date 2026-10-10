@@ -4,7 +4,7 @@
 // CREDITS.md), carved into slots inside the modular body. An armor item has no look of its own here
 // (every character wears its class kit), so its armor type picks the kit: cloth wears the mage kit,
 // leather the ranger's, mail the knight's (approved 2026-10-10). The garments are extracted by
-// scripts/assets/placeschema_garments.ts into public/models/placeschema/garments/, and the WoC
+// scripts/assets/placeschema_garments.ts into public/placeschema/garments/, and the WoC
 // sidecar stamps them as `render-asset:` through SIDECAR_LOOKS / SIDECAR_OPEN_LOOKS.
 
 import type { ArmorType, EquipSlot } from '../src/sim/types';
@@ -37,7 +37,10 @@ export const PIECE_PARTS: Record<string, string[]> = {
   back: ['Back', 'Back1'],
 };
 
-export const GARMENT_DIR = 'models/placeschema/garments';
+/** Outside public/models on purpose: these are for other worlds, so WoC's own model gates (KTX2-only
+ *  textures, the generated media manifest) do not apply, and they ship PNG (deployed PlaceSchema worlds
+ *  cannot run the KTX2 transcoder). */
+export const GARMENT_DIR = 'placeschema/garments';
 
 /** The garment file for an armor item (e.g. `knight_legs.glb`), or undefined when it has none. Whether
  *  that kit has the piece is decided by the files the extraction wrote (`exists`). */

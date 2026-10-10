@@ -27,10 +27,12 @@ Each armor item's template also carries its worn anchor, so the other world know
 
 ## The files
 
-`npx tsx scripts/assets/placeschema_garments.ts [--origin https://woc.placeschema.com]` keeps only the `Armor_<kit>_<part>` nodes, with their skeleton. The modular body that holds them is never served whole: it also holds body, hair and face art that has no licence row. The script writes `public/models/placeschema/garments/`:
+`npx tsx scripts/assets/placeschema_garments.ts [--origin https://woc.placeschema.com]` keeps only the `Armor_<kit>_<part>` nodes, with their skeleton. The modular body that holds them is never served whole: it also holds body, hair and face art that has no licence row. The script writes `public/placeschema/garments/`:
 - `<kit>_<piece>.glb`: 19 garments, about 45 KB each.
 - `provenance.json`: each file's source nodes, author, source and licence.
 - `sidecar-looks.json`: the WoC sidecar's `SIDECAR_LOOKS`, one `armor.woc.<id>` per item that has a garment.
 - `sidecar-open-looks.txt`: its `SIDECAR_OPEN_LOOKS`, every garment URL. They are CC0, so the sidecar may stamp them into grants as `render-asset:`.
+
+The folder sits outside `public/models` on purpose. These files are for other worlds, so WoC's own model gates don't apply to them: the KTX2-only texture rule (`public/models/CLAUDE.md`) and the generated media manifest. They ship PNG because deployed PlaceSchema worlds can't run the KTX2 transcoder.
 
 Re-run the script when the armor catalog or the modular body changes. Set the two sidecar variables from the last two files, with `--origin` matching where the WoC client serves `public/`.
