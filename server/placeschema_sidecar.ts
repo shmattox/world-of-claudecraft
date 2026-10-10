@@ -23,7 +23,8 @@ import type { InvSlot, ItemInstancePayload } from '../src/sim/types';
 import { type AcceptedStore, pgAcceptedStore } from './placeschema_accepted_db';
 import { type Skin, skinForHolder } from './placeschema_skin';
 
-/** The carried grant's id rides on the item copy; the copy's `name` is the grant's minted label. */
+/** The carried grant's id rides on the item copy. A foreign copy's `name` is the grant's minted label;
+ *  our own copy coming home keeps the name (and the rest of its instance) it left with (PLACE-990). */
 export const GRANT_KEY = 'psGrant';
 const HEX64 = /^[0-9a-f]{64}$/;
 /** A cancel answer that settles it for good: nothing of this holder's is there to return. */
@@ -35,8 +36,86 @@ export const FOREIGN_WEAPON_ID = 'worn_sword';
 export const FOREIGN_KEEPSAKE_ID = 'ps_keepsake';
 const WOC_TYPE = /^(?:weapon|armor|misc)\.woc\.([a-z0-9_]{1,48})$/;
 
+/**
+ * PLACE-990: the copy's own WoC data rides in its grant, untouched, in this game's namespace: the
+ * bag slot (count, instance, crafting marks) and the item's catalog def, so the Hub holds the whole
+ * item and a return rebuilds this exact copy. Base64url JSON split over `woc.native:<i>:` features,
+ * because a feature is at most 525 chars (open-place protocol MAX_FEATURE_LEN) and the whole grant
+ * content at most 4096 bytes (MAX_GRANT_CONTENT_BYTES). Our own bookkeeping keys never travel.
+ */
+export const NATIVE_PREFIX = 'woc.native:';
+// `InvSlot.slot` (the bag cell it sat in) is placement, not the item: a returning copy takes a free cell.
+const NATIVE_CHUNK = 480;
+const NATIVE_MAX = 2800; // leaves the rest of the 4096-byte grant to the template itself
+export interface WocNative {
+  v: 1;
+  itemId: string;
+  count: number;
+  instance?: ItemInstancePayload;
+  craftedRecipeId?: string;
+  materialSources?: InvSlot['materialSources'];
+  materialSeparated?: true;
+  def?: unknown;
+}
+
+export function nativeFeatures(slot: InvSlot): string[] {
+  const instance = Object.fromEntries(
+    Object.entries(slot.instance ?? {}).filter(
+      ([k]) => k !== GRANT_KEY && k !== PENDING_KEY && k !== MESH_KEY,
+    ),
+  ) as ItemInstancePayload;
+  const native: WocNative = {
+    v: 1,
+    itemId: slot.itemId,
+    count: slot.count,
+    ...(Object.keys(instance).length ? { instance } : {}),
+    ...(slot.craftedRecipeId ? { craftedRecipeId: slot.craftedRecipeId } : {}),
+    ...(slot.materialSources ? { materialSources: slot.materialSources } : {}),
+    ...(slot.materialSeparated ? { materialSeparated: true as const } : {}),
+    def: ITEMS[slot.itemId],
+  };
+  const b = Buffer.from(JSON.stringify(native)).toString('base64url');
+  if (b.length > NATIVE_MAX) {
+    // The finding PLACE-993 needs: what today's template cannot hold. The item still mints, by id.
+    console.warn(
+      `placeschema: ${slot.itemId} native data is ${b.length} chars, over ${NATIVE_MAX}; minted by id only`,
+    );
+    return [];
+  }
+  const out: string[] = [];
+  for (let i = 0; i * NATIVE_CHUNK < b.length; i++)
+    out.push(`${NATIVE_PREFIX}${i}:${b.slice(i * NATIVE_CHUNK, (i + 1) * NATIVE_CHUNK)}`);
+  return out;
+}
+
+/** The copy's own data from a grant `minter` signed, or undefined (none, malformed, or someone else's). */
+export function nativeOf(grant: Grant, minter: string | undefined): WocNative | undefined {
+  try {
+    const t = JSON.parse(grant.content) as { minter?: unknown; features?: unknown };
+    if (!minter || t.minter !== minter || !Array.isArray(t.features)) return undefined;
+    const parts = t.features
+      .filter((f): f is string => typeof f === 'string' && f.startsWith(NATIVE_PREFIX))
+      .map((f) => /^(\d+):(.*)$/.exec(f.slice(NATIVE_PREFIX.length)))
+      .filter((m): m is RegExpExecArray => !!m)
+      .sort((a, b) => Number(a[1]) - Number(b[1]));
+    if (!parts.length || parts.some((m, i) => Number(m[1]) !== i)) return undefined;
+    const n = JSON.parse(
+      Buffer.from(parts.map((m) => m[2]).join(''), 'base64url').toString('utf8'),
+    ) as WocNative;
+    return n?.v === 1 &&
+      typeof n.itemId === 'string' &&
+      ITEMS[n.itemId] &&
+      Number.isInteger(n.count) &&
+      n.count >= 1
+      ? n
+      : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 /** A WoC item as a template (protocol/src/vocabulary.ts categories: weapon, armor, misc). */
-export function templateFor(itemId: string) {
+export function templateFor(itemId: string, slot: InvSlot = { itemId, count: 1 }) {
   const def = ITEMS[itemId];
   const shape =
     def.kind === 'weapon'
@@ -47,7 +126,7 @@ export function templateFor(itemId: string) {
   return {
     type: `${shape.category}.woc.${itemId}`,
     label: def.name,
-    features: [`woc:${itemId}`],
+    features: [`woc:${itemId}`, ...nativeFeatures(slot)],
     palette: ['#8a6d3b'],
     style_hint: 'woc',
     dimensions: { l: 0.9, w: 0.2, h: 0.1 },
@@ -118,6 +197,10 @@ const signedInstance = (a: Added, foreign = false): ItemInstancePayload => {
     (inst as Record<string, unknown>)[MESH_KEY] = mesh;
   return inst;
 };
+
+/** Our own copy rebuilt from the data it left with, holding its grant id again. */
+const ownInstance = (n: WocNative, g: string): ItemInstancePayload =>
+  ({ ...n.instance, [GRANT_KEY]: g }) as ItemInstancePayload;
 
 export interface CarrySession {
   accountId: number;
@@ -250,6 +333,26 @@ export class PlaceSchemaCarry<S extends CarrySession> {
     return { ok: r.ok, status: r.status, body: await r.json().catch(() => ({})) };
   }
 
+  /** This realm's own minter: the sidecar's key, from its manifest's `owner`. Only grants it signed
+   *  may rebuild a copy from their native data (any other minter could write any stats there).
+   *  Fetched once; a failed fetch is tried again on the next arrival. */
+  private owner: Promise<string | undefined> | undefined;
+  private minter(): Promise<string | undefined> {
+    this.owner ??= (async () => {
+      const r = await (this.d.fetch ?? fetch)(`${this.cfg.url}/.well-known/placeschema.json`, {
+        signal: AbortSignal.timeout(10_000),
+      });
+      if (!r.ok) throw new Error(`manifest ${r.status}`);
+      const owner = ((await r.json()) as { owner?: unknown }).owner;
+      if (typeof owner !== 'string' || !HEX64.test(owner)) throw new Error('manifest has no owner');
+      return owner;
+    })().catch(() => {
+      this.owner = undefined;
+      return undefined;
+    });
+    return this.owner;
+  }
+
   /** Deliver pending arrivals to every online player (and learn who is linked). */
   async pollAll(): Promise<void> {
     for (const s of this.d.clients.values()) {
@@ -278,14 +381,21 @@ export class PlaceSchemaCarry<S extends CarrySession> {
       });
       if (!r.ok) return;
       this.setLinked(s, r.body.holder ?? null);
+      const offered = (r.body.add ?? []) as Added[];
+      // PLACE-990: our own minter, known BEFORE anything is claimed (no await between a claim and its
+      // item). Unknown (the manifest fetch failed): a grant carrying native data waits for a later join,
+      // unclaimed and unacked, rather than coming home rebuilt from the catalog.
+      const hasNative = (a: Added) => !!a?.grant?.content?.includes(NATIVE_PREFIX);
+      const minter = offered.some(hasNative) ? await this.minter() : undefined;
       const meta = this.d.sim.meta(s.pid);
       if (!meta || this.d.clients.get(s.pid) !== s) return;
       // Exactly once PER ACCOUNT, claim first: each offered grant is claimed for the account in its own
       // committed statement BEFORE its item is added (placeschema_accepted_db.ts has the crash cases).
       const toAck: string[] = [];
       const notices: string[] = [];
-      for (const a of (r.body.add ?? []) as Added[]) {
+      for (const a of offered) {
         if (!a?.grant || !HEX64.test(a.grant.id)) continue;
+        if (hasNative(a) && !minter) continue;
         const itemId = itemIdForGrant(a.grant);
         const g = a.grant.id;
         const outcome = await this.d.store.claim(s.accountId, g, s.characterId);
@@ -296,12 +406,25 @@ export class PlaceSchemaCarry<S extends CarrySession> {
         if (outcome === 'held' || meta.placeschemaAccepted.has(g)) continue;
         meta.placeschemaAccepted.add(g); // the save confirms (un-pends) the claim in its transaction
         touchPlaceschemaAccepted(meta.placeschemaAccepted);
+        // PLACE-990: our own copy coming home is rebuilt from the data it left with, not the catalog
+        const native = hasNative(a) ? nativeOf(a.grant, minter) : undefined;
+        const own = native?.itemId === itemId ? native : undefined;
         const pending = meta.inventory.find((x) => pendingOf(x) === itemId);
         if (pending) {
           // Our own quest reward, tagged before the mint: that exact copy becomes the signed one, and
           // the blade earned to carry is held at once (PLACE-955: "Wield it here, or carry it").
-          pending.instance = signedInstance(a);
+          pending.instance = own ? ownInstance(own, g) : signedInstance(a);
           this.hold(meta, itemId, g, s.pid);
+          notices.push(`${a.label ?? 'Your item'} is now yours to carry to other worlds.`);
+        } else if (own) {
+          this.d.sim.addItemInstance(itemId, ownInstance(own, g), s.pid, own.count, {
+            craftedRecipeId: own.craftedRecipeId,
+          });
+          // the sim keeps material marks only on materials; the copy that left had them, so it gets them back
+          const back = meta.inventory[slotOfGrant(meta.inventory, g)];
+          if (back && own.materialSources) back.materialSources = own.materialSources;
+          if (back && own.materialSeparated) back.materialSeparated = true;
+          if (a.equipped) this.hold(meta, itemId, g, s.pid);
           notices.push(`${a.label ?? 'Your item'} is now yours to carry to other worlds.`);
         } else {
           const inst = signedInstance(a, itemId === FOREIGN_WEAPON_ID);
@@ -473,10 +596,11 @@ export class PlaceSchemaCarry<S extends CarrySession> {
     // No plain copy in the bag (it went elsewhere): no mint, never two copies.
     const at = meta.inventory.findIndex((x) => x.itemId === itemId && !x.instance);
     if (at < 0) return;
-    const slot = meta.inventory[at];
+    let slot = meta.inventory[at];
     if (slot.count > 1) {
       slot.count--;
-      meta.inventory.push({ itemId, count: 1, instance: { [PENDING_KEY]: itemId } as never });
+      slot = { itemId, count: 1, instance: { [PENDING_KEY]: itemId } as never };
+      meta.inventory.push(slot);
     } else slot.instance = { [PENDING_KEY]: itemId } as never;
     s.selfHeavyDirty = true;
     if (!(await this.d.save(s))) return this.untag(s, itemId);
@@ -484,7 +608,7 @@ export class PlaceSchemaCarry<S extends CarrySession> {
     try {
       r = await this.call('/mod/mint', {
         platformId: platformId(this.cfg, s.accountId),
-        template: templateFor(itemId),
+        template: templateFor(itemId, slot),
       });
     } catch {
       r = undefined;
