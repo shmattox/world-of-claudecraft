@@ -1,5 +1,6 @@
 // PLACE-1018: the PlaceSchema menu a linked account gets in game. Once the sidecar says the account
-// is linked: the PlaceSchema mark (top left) and a double-hamburger (top right) open one panel with
+// is linked: the PlaceSchema mark (top left, the "you're connected" signal) and a double-hamburger
+// (top right) that opens one panel with
 // the linked key, the copies carried from other worlds, and the avatar choice (WoC's own body, the
 // carried Minecraft skin, or PlaceSchema's generic black-and-white body), which switches live and is
 // kept per WoC account. WoC's Esc menu also gets a PlaceSchema row (options_view.ts), so the menu is

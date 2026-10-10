@@ -1480,3 +1480,18 @@
     --bank-meter-gilt-glow: color-mix(in srgb, var(--color-gold-600) 55%, transparent) !important;
   }
 }
+
+/* PLACE-1018: the PlaceSchema menu a linked account gets in game (src/ui/placeschema_menu.ts).
+   PlaceSchema's black-and-white hairline tokens, copied from open-place world-kit/src/ui/tokens.ts
+   (dark set): world-kit's ./ui is not a published entry point. */
+:root {
+  --ps-bg: #000000;
+  --ps-fg: #f2f2f2;
+  --ps-fg-strong: #ffffff;
+  --ps-fg-55: rgba(242, 242, 242, 0.55);
+  --ps-hairline: #292929;
+  --ps-bg-raised: #111111;
+  --ps-hover: rgba(255, 255, 255, 0.06);
+  --ps-font-sans: 'Geist', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --ps-font-mono: 'Geist Mono', ui-monospace, 'SF Mono', monospace;
+}
