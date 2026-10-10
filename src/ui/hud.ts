@@ -16283,7 +16283,10 @@ export class Hud {
       previewKey,
       look,
       // PLACE-955: a carried copy's own mesh and the carried skin, as the world draws them
-      mainhand: carriedWeaponVisualId(mainhand, this.sim.player.equippedInstances?.mainhand),
+      mainhand: carriedWeaponVisualId(mainhand, this.sim.player.equippedInstances?.mainhand, () => {
+        if (($('#char-window') as HTMLElement | null)?.style.display === 'block')
+          this.renderCharPreview();
+      }),
       carried: true,
       offhand: this.sim.equipment.offhand ?? null,
       // The paperdoll wears the world's Armory skin: one shared rule (class + hands + loadout).

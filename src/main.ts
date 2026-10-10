@@ -6876,7 +6876,9 @@ function showCharselectCharacter(c: CharacterSummary): void {
   const held = carriedWeaponVisualId(
     c.mainhandItemId ?? null,
     { psMesh: (c as { mainhandMesh?: unknown }).mainhandMesh },
-    () => charselectSelected === c && showCharselectCharacter(c),
+    // still this row on the char-select stage (not since moved to creation or redesign)
+    () =>
+      charselectSelected === c && characterPreview?.wearingCarried && showCharselectCharacter(c),
   );
   const look = charselectLook(c);
   if (!look) {

@@ -304,6 +304,9 @@ export class CharacterPreview {
       // mixer and cloned skeleton bone textures, so a genuine replacement must
       // release those resources.
       this.characterGroup.remove(this.currentVisual.root);
+      // the carried skin's boxes are this preview's own, not the visual's: release them too
+      if (this.currentVisual.root?.userData?.[MC_SKIN_TAG])
+        removeMinecraftSkin(this.currentVisual.root);
       this.currentVisual.dispose();
       this.currentVisual = null;
       // three releases a program with the last material holding it, so a
@@ -341,6 +344,11 @@ export class CharacterPreview {
    *  skin here as in the world (the char sheet, char-select); off for anyone else (inspect). */
   wearCarried(on: boolean): void {
     this.carried = on;
+  }
+
+  /** Whether this turntable is showing the local player (see wearCarried). */
+  get wearingCarried(): boolean {
+    return this.carried;
   }
 
   /** Apply or clear the Armory weapon-skin cosmetic; persists across
@@ -759,7 +767,7 @@ export class CharacterPreview {
       this.currentVisual.update(dt, PREVIEW_ANIM_STATE, true);
       // PLACE-955: the local player's carried Minecraft skin, as the world draws it
       if (this.carried) wearCarriedSkin(this.currentVisual.root, this.currentVisual.height);
-      else if (this.currentVisual.root?.userData[MC_SKIN_TAG])
+      else if (this.currentVisual.root?.userData?.[MC_SKIN_TAG])
         removeMinecraftSkin(this.currentVisual.root);
     }
 
@@ -921,6 +929,9 @@ export class CharacterPreview {
     this.hideStandIn();
     if (this.currentVisual) {
       this.characterGroup.remove(this.currentVisual.root);
+      // the carried skin's boxes are this preview's own, not the visual's: release them too
+      if (this.currentVisual.root?.userData?.[MC_SKIN_TAG])
+        removeMinecraftSkin(this.currentVisual.root);
       this.currentVisual.dispose();
       this.currentVisual = null;
       // three releases a program with the last material holding it, so a
