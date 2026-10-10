@@ -149,7 +149,9 @@ export interface CarryDeps<S extends CarrySession> {
           /** PLACE-412: whose skin (another player's); absent = this player's own */
           pid?: number;
         }
-      | { t: 'placeschema'; kind: 'status'; linked: boolean },
+      | { t: 'placeschema'; kind: 'status'; linked: boolean }
+      /** PLACE-412: forget other players' skins; the ones still here follow */
+      | { t: 'placeschema'; kind: 'skins' },
   ): void;
   notice(session: S, text: string): void;
   /** persist this live session's character now; false if the save was refused */
@@ -209,6 +211,8 @@ export class PlaceSchemaCarry<S extends CarrySession> {
   private readonly skinned = new WeakMap<S, string>();
   /** PLACE-412: each live player's carried Minecraft skin, shown to everyone else (by entity id) */
   private readonly skins = new Map<number, { s: S; url: string; model: string }>();
+  /** sockets already sent the skins: a resumed session gets a new socket, a fresh page or a restart a new session */
+  private readonly skinsShown = new WeakSet<object>();
   /** accounts with a portal carry in flight (PLACE-954) */
   private readonly carrying = new Set<number>();
   /** the grants each session's bag marked to carry through the portal (PLACE-954) */
@@ -348,14 +352,12 @@ export class PlaceSchemaCarry<S extends CarrySession> {
     this.linked.set(s.accountId, holder);
     if (this.told.get(s) !== holder) {
       // the first status of a session also shows the portal what lies beyond it (PLACE-954)
-      if (!this.told.has(s)) {
-        this.showDestination(s);
-        this.showSkins(s);
-      }
+      if (!this.told.has(s)) this.showDestination(s);
       this.told.set(s, holder);
       this.d.send(s, { t: 'placeschema', kind: 'status', linked: !!holder });
     }
     if (holder) this.wearSkin(s, holder);
+    this.showSkins(s);
   }
 
   /** The destination's own picture, from its manifest's `preview` (PLACE-183), for the portal to show
@@ -434,9 +436,14 @@ export class PlaceSchemaCarry<S extends CarrySession> {
       .catch(() => undefined);
   }
 
-  /** PLACE-412: a session's first status brings the skins of everyone still here. Entity ids are
-   *  never reused, so a left player's entry is only dropped, never mistaken for a newcomer. */
+  /** PLACE-412: once per socket (a fresh page, a reconnect, a resumed session), the client forgets the
+   *  skins it had and gets those of everyone still here. Entity ids are not reused while the server
+   *  runs; after a restart the reset clears any stale id first. */
   private showSkins(s: S): void {
+    const socket = (s as { ws?: object }).ws ?? s;
+    if (this.skinsShown.has(socket)) return;
+    this.skinsShown.add(socket);
+    this.d.send(s, { t: 'placeschema', kind: 'skins' });
     for (const [pid, e] of this.skins) {
       if (this.d.clients.get(pid) !== e.s) this.skins.delete(pid);
       else if (pid !== s.pid)

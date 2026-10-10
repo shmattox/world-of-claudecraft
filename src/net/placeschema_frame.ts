@@ -7,6 +7,7 @@
 // the bag's "Link PlaceSchema account" button.
 
 import {
+  clearPeerSkins,
   setCarriedSkin,
   setPeerSkin,
   setPlaceSchemaLinked,
@@ -54,7 +55,11 @@ export function applyPlaceSchemaFrame(
   msg: PlaceSchemaFrame,
   nav: Nav = browserNav,
   ownPid?: number,
-): 'ticket' | 'link' | 'skin' | 'status' | 'portal' | null {
+): 'ticket' | 'link' | 'skin' | 'skins' | 'status' | 'portal' | null {
+  if (msg.kind === 'skins') {
+    clearPeerSkins(); // PLACE-412: a new connection; the server sends the current ones next
+    return 'skins';
+  }
   if (msg.kind === 'status') {
     if (typeof msg.linked !== 'boolean') return null;
     setPlaceSchemaLinked(msg.linked);

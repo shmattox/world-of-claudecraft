@@ -12,6 +12,8 @@ import {
   setPeerSkin,
 } from '../../src/placeschema_skin_state';
 
+type Session = CarrySession & { ws?: object };
+
 const cfg = {
   url: 'http://sidecar.test',
   token: 't'.repeat(32),
@@ -22,13 +24,17 @@ const SKIN_A = 'data:image/png;base64,QUFB';
 const flush = () => new Promise((r) => setTimeout(r, 20));
 
 function realm() {
-  const clients = new Map<number, CarrySession>();
+  const clients = new Map<number, Session>();
+  const sessions = new Map<number, Session>();
   const got = new Map<number, unknown[]>(); // frames each player's client received
   const deps = {
-    sim: { meta: () => ({ inventory: [], placeschemaAccepted: new Set() }), addItemInstance: () => {} },
+    sim: {
+      meta: () => ({ inventory: [], placeschemaAccepted: new Set() }),
+      addItemInstance: () => {},
+    },
     clients,
-    send: (s: CarrySession, f: { kind: string }) => {
-      if (f.kind === 'skin') got.get(s.pid)?.push(f);
+    send: (s: Session, f: { kind: string }) => {
+      if (f.kind === 'skin' || f.kind === 'skins') got.get(s.pid)?.push(f);
     },
     notice: () => {},
     save: async () => true,
@@ -47,12 +53,32 @@ function realm() {
       return Response.json({ holder: `h${account}`, add: [] });
     }) as typeof fetch,
   };
-  const carry = new PlaceSchemaCarry<CarrySession>(cfg, deps as never);
+  const carry = new PlaceSchemaCarry<Session>(cfg, deps as never);
   return {
     got,
     async enter(pid: number) {
-      const s = { accountId: pid, characterId: pid * 10, pid, selfHeavyDirty: false };
+      const s: Session = {
+        accountId: pid,
+        characterId: pid * 10,
+        pid,
+        selfHeavyDirty: false,
+        ws: {},
+      };
       clients.set(pid, s);
+      sessions.set(pid, s);
+      got.set(pid, []);
+      await carry.join(s);
+      await flush();
+    },
+    /** the join poll again (every 5 s) */
+    async poll(pid: number) {
+      await carry.join(sessions.get(pid)!);
+      await flush();
+    },
+    /** the same session on a new socket (GameServer.resumeSession) */
+    async resume(pid: number) {
+      const s = sessions.get(pid)!;
+      s.ws = {};
       got.set(pid, []);
       await carry.join(s);
       await flush();
@@ -68,17 +94,24 @@ describe('the carried skin, seen by every player (PLACE-412)', () => {
     const r = realm();
     await r.enter(2); // B is already here
     await r.enter(1); // A arrives with a skin
-    expect(r.got.get(1)).toEqual([{ t: 'placeschema', kind: 'skin', url: SKIN_A, model: 'slim' }]);
+    expect(r.got.get(1)).toEqual([
+      { t: 'placeschema', kind: 'skins' },
+      { t: 'placeschema', kind: 'skin', url: SKIN_A, model: 'slim' },
+    ]);
     expect(r.got.get(2)).toEqual([
+      { t: 'placeschema', kind: 'skins' },
       { t: 'placeschema', kind: 'skin', url: SKIN_A, model: 'slim', pid: 1 },
     ]);
     await r.enter(3); // C joins later
     expect(r.got.get(3)).toEqual([
+      { t: 'placeschema', kind: 'skins' },
       { t: 'placeschema', kind: 'skin', url: SKIN_A, model: 'slim', pid: 1 },
     ]);
+    await r.poll(3); // later polls send nothing again
+    expect(r.got.get(3)).toHaveLength(2);
     r.leave(1);
     await r.enter(4); // D joins after A left
-    expect(r.got.get(4)).toEqual([]);
+    expect(r.got.get(4)).toEqual([{ t: 'placeschema', kind: 'skins' }]);
   });
 
   it("A2: another player's skin never touches the local player's own", () => {
@@ -97,9 +130,22 @@ describe('the carried skin, seen by every player (PLACE-412)', () => {
     expect(carriedSkinFor(42)).toBeNull();
   });
 
-  it('keeps at most 64 peers, oldest out', () => {
-    for (let pid = 1000; pid < 1065; pid++) setPeerSkin(pid, { url: SKIN_A, model: 'classic' });
+  it('a resumed session (new socket) is reset and gets the skins again', async () => {
+    const r = realm();
+    await r.enter(1);
+    await r.enter(2);
+    await r.resume(2);
+    expect(r.got.get(2)).toEqual([
+      { t: 'placeschema', kind: 'skins' },
+      { t: 'placeschema', kind: 'skin', url: SKIN_A, model: 'slim', pid: 1 },
+    ]);
+  });
+
+  it('the reset frame forgets every peer (a restarted server reuses entity ids)', () => {
+    for (let pid = 1000; pid < 1100; pid++) setPeerSkin(pid, { url: SKIN_A, model: 'classic' });
+    expect(carriedSkinFor(1000)).not.toBeNull(); // no eviction: a visible player keeps their skin
+    expect(applyPlaceSchemaFrame({ kind: 'skins' })).toBe('skins');
     expect(carriedSkinFor(1000)).toBeNull();
-    expect(carriedSkinFor(1064)).not.toBeNull();
+    expect(carriedSkinFor(1099)).toBeNull();
   });
 });
