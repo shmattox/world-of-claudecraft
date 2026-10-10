@@ -50,6 +50,9 @@ For reference-image reconstruction and procedural GLB authoring, read the living
   the release pkg with `pkgutil --expand-full`, add its `bin/` to PATH). The one
   sanctioned exception, WEAPON_VFX skin models, is excluded automatically (their
   emissive derivation must drawImage the baseColor; see the test header).
+  This rule covers `public/models` only: `placeschema_garments.ts` writes PNG garments to
+  `public/placeschema/garments/` on purpose (they are for other PlaceSchema worlds, whose
+  deployed CSP blocks the KTX2 transcoder), so never run the compressor over them.
 - **Per-asset procedural exporters** author GLBs from reference images. Each is a
   subdirectory here (`banker_chest/`, the `eastbrook_*` family, `fenbridge_town/`,
   `terrorspark_groundshaker/`; `ls` for the live set) holding a deterministic factory

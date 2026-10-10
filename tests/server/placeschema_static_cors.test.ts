@@ -8,11 +8,17 @@ describe('placeschemaStaticCors', () => {
       'Access-Control-Allow-Origin': '*',
     });
   });
+  it('opens the PlaceSchema garments to any origin (PLACE-490)', () => {
+    expect(placeschemaStaticCors('/placeschema/garments/ranger_legs.glb')).toEqual({
+      'Access-Control-Allow-Origin': '*',
+    });
+  });
   it('leaves every other static path same-origin', () => {
     for (const p of [
       '/index.html',
       '/models/characters/knight.glb',
       '/models/weapons',
+      '/placeschema/logo-white.png',
       '/assets/x.js',
     ])
       expect(placeschemaStaticCors(p)).toEqual({});

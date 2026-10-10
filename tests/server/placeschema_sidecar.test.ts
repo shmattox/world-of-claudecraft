@@ -1158,6 +1158,23 @@ describe('PLACE-990: a copy carries its own WoC data and comes home whole', () =
     });
   });
 
+  it('PLACE-490: armor is worn at its slot as a protocol anchor; neck, rings and trinkets at none', () => {
+    const anchorsOf = (slot: string) => {
+      const id = Object.keys(ITEMS).find(
+        (k) => ITEMS[k].kind === 'armor' && ITEMS[k].slot === slot,
+      );
+      return id ? templateFor(id).anchors : 'no item';
+    };
+    expect(
+      ['helmet', 'chest', 'legs', 'gloves', 'feet', 'shoulder', 'waist'].map(anchorsOf),
+    ).toEqual([['head'], ['torso'], ['legs'], ['hands'], ['feet'], ['shoulder'], ['waist']]);
+    for (const slot of ['neck', 'ring1', 'trinket']) {
+      const a = anchorsOf(slot);
+      if (a !== 'no item') expect(a).toEqual([]);
+    }
+    expect(templateFor('redbrook_blade').anchors).toEqual(['grip']);
+  });
+
   it('fits the template limits: every feature at most 525 chars, the content under 4096 bytes', () => {
     const t = templateFor('redbrook_blade', enchanted);
     expect(t.features.every((f) => f.length <= 525)).toBe(true);

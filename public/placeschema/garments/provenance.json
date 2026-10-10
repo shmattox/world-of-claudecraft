@@ -1,0 +1,300 @@
+{
+  "mage_head.glb": {
+    "kit": "mage",
+    "piece": "head",
+    "nodes": [
+      "Armor_mage_Head"
+    ],
+    "author": "Kay Lousberg (KayKit)",
+    "source": "KayKit Character Pack: Adventurers 2.0",
+    "sourceUrl": "https://kaylousberg.itch.io/kaykit-adventurers",
+    "licence": "CC0-1.0",
+    "extractedFrom": "public/models/chars/modular/warrior_modular.glb (armor nodes only)",
+    "kitFor": [
+      "cloth"
+    ]
+  },
+  "mage_chest.glb": {
+    "kit": "mage",
+    "piece": "chest",
+    "nodes": [
+      "Armor_mage_Chest"
+    ],
+    "author": "Kay Lousberg (KayKit)",
+    "source": "KayKit Character Pack: Adventurers 2.0",
+    "sourceUrl": "https://kaylousberg.itch.io/kaykit-adventurers",
+    "licence": "CC0-1.0",
+    "extractedFrom": "public/models/chars/modular/warrior_modular.glb (armor nodes only)",
+    "kitFor": [
+      "cloth"
+    ]
+  },
+  "mage_arms.glb": {
+    "kit": "mage",
+    "piece": "arms",
+    "nodes": [
+      "Armor_mage_ArmL",
+      "Armor_mage_ArmR"
+    ],
+    "author": "Kay Lousberg (KayKit)",
+    "source": "KayKit Character Pack: Adventurers 2.0",
+    "sourceUrl": "https://kaylousberg.itch.io/kaykit-adventurers",
+    "licence": "CC0-1.0",
+    "extractedFrom": "public/models/chars/modular/warrior_modular.glb (armor nodes only)",
+    "kitFor": [
+      "cloth"
+    ]
+  },
+  "mage_legs.glb": {
+    "kit": "mage",
+    "piece": "legs",
+    "nodes": [
+      "Armor_mage_LegL",
+      "Armor_mage_LegR"
+    ],
+    "author": "Kay Lousberg (KayKit)",
+    "source": "KayKit Character Pack: Adventurers 2.0",
+    "sourceUrl": "https://kaylousberg.itch.io/kaykit-adventurers",
+    "licence": "CC0-1.0",
+    "extractedFrom": "public/models/chars/modular/warrior_modular.glb (armor nodes only)",
+    "kitFor": [
+      "cloth"
+    ]
+  },
+  "mage_feet.glb": {
+    "kit": "mage",
+    "piece": "feet",
+    "nodes": [
+      "Armor_mage_FootL",
+      "Armor_mage_FootR"
+    ],
+    "author": "Kay Lousberg (KayKit)",
+    "source": "KayKit Character Pack: Adventurers 2.0",
+    "sourceUrl": "https://kaylousberg.itch.io/kaykit-adventurers",
+    "licence": "CC0-1.0",
+    "extractedFrom": "public/models/chars/modular/warrior_modular.glb (armor nodes only)",
+    "kitFor": [
+      "cloth"
+    ]
+  },
+  "mage_back.glb": {
+    "kit": "mage",
+    "piece": "back",
+    "nodes": [
+      "Armor_mage_Back"
+    ],
+    "author": "Kay Lousberg (KayKit)",
+    "source": "KayKit Character Pack: Adventurers 2.0",
+    "sourceUrl": "https://kaylousberg.itch.io/kaykit-adventurers",
+    "licence": "CC0-1.0",
+    "extractedFrom": "public/models/chars/modular/warrior_modular.glb (armor nodes only)",
+    "kitFor": [
+      "cloth"
+    ]
+  },
+  "ranger_chest.glb": {
+    "kit": "ranger",
+    "piece": "chest",
+    "nodes": [
+      "Armor_ranger_Chest"
+    ],
+    "author": "Kay Lousberg (KayKit)",
+    "source": "KayKit Character Pack: Adventurers 2.0",
+    "sourceUrl": "https://kaylousberg.itch.io/kaykit-adventurers",
+    "licence": "CC0-1.0",
+    "extractedFrom": "public/models/chars/modular/warrior_modular.glb (armor nodes only)",
+    "kitFor": [
+      "leather"
+    ]
+  },
+  "ranger_arms.glb": {
+    "kit": "ranger",
+    "piece": "arms",
+    "nodes": [
+      "Armor_ranger_ArmL",
+      "Armor_ranger_ArmR"
+    ],
+    "author": "Kay Lousberg (KayKit)",
+    "source": "KayKit Character Pack: Adventurers 2.0",
+    "sourceUrl": "https://kaylousberg.itch.io/kaykit-adventurers",
+    "licence": "CC0-1.0",
+    "extractedFrom": "public/models/chars/modular/warrior_modular.glb (armor nodes only)",
+    "kitFor": [
+      "leather"
+    ]
+  },
+  "ranger_hands.glb": {
+    "kit": "ranger",
+    "piece": "hands",
+    "nodes": [
+      "Armor_ranger_HandL",
+      "Armor_ranger_HandR"
+    ],
+    "author": "Kay Lousberg (KayKit)",
+    "source": "KayKit Character Pack: Adventurers 2.0",
+    "sourceUrl": "https://kaylousberg.itch.io/kaykit-adventurers",
+    "licence": "CC0-1.0",
+    "extractedFrom": "public/models/chars/modular/warrior_modular.glb (armor nodes only)",
+    "kitFor": [
+      "leather"
+    ]
+  },
+  "ranger_legs.glb": {
+    "kit": "ranger",
+    "piece": "legs",
+    "nodes": [
+      "Armor_ranger_LegL",
+      "Armor_ranger_LegR"
+    ],
+    "author": "Kay Lousberg (KayKit)",
+    "source": "KayKit Character Pack: Adventurers 2.0",
+    "sourceUrl": "https://kaylousberg.itch.io/kaykit-adventurers",
+    "licence": "CC0-1.0",
+    "extractedFrom": "public/models/chars/modular/warrior_modular.glb (armor nodes only)",
+    "kitFor": [
+      "leather"
+    ]
+  },
+  "ranger_feet.glb": {
+    "kit": "ranger",
+    "piece": "feet",
+    "nodes": [
+      "Armor_ranger_FootL",
+      "Armor_ranger_FootR"
+    ],
+    "author": "Kay Lousberg (KayKit)",
+    "source": "KayKit Character Pack: Adventurers 2.0",
+    "sourceUrl": "https://kaylousberg.itch.io/kaykit-adventurers",
+    "licence": "CC0-1.0",
+    "extractedFrom": "public/models/chars/modular/warrior_modular.glb (armor nodes only)",
+    "kitFor": [
+      "leather"
+    ]
+  },
+  "ranger_back.glb": {
+    "kit": "ranger",
+    "piece": "back",
+    "nodes": [
+      "Armor_ranger_Back",
+      "Armor_ranger_Back1"
+    ],
+    "author": "Kay Lousberg (KayKit)",
+    "source": "KayKit Character Pack: Adventurers 2.0",
+    "sourceUrl": "https://kaylousberg.itch.io/kaykit-adventurers",
+    "licence": "CC0-1.0",
+    "extractedFrom": "public/models/chars/modular/warrior_modular.glb (armor nodes only)",
+    "kitFor": [
+      "leather"
+    ]
+  },
+  "knight_head.glb": {
+    "kit": "knight",
+    "piece": "head",
+    "nodes": [
+      "Armor_knight_Head",
+      "Armor_knight_Head1"
+    ],
+    "author": "Kay Lousberg (KayKit)",
+    "source": "KayKit Character Pack: Adventurers 2.0",
+    "sourceUrl": "https://kaylousberg.itch.io/kaykit-adventurers",
+    "licence": "CC0-1.0",
+    "extractedFrom": "public/models/chars/modular/warrior_modular.glb (armor nodes only)",
+    "kitFor": [
+      "mail"
+    ]
+  },
+  "knight_chest.glb": {
+    "kit": "knight",
+    "piece": "chest",
+    "nodes": [
+      "Armor_knight_Chest"
+    ],
+    "author": "Kay Lousberg (KayKit)",
+    "source": "KayKit Character Pack: Adventurers 2.0",
+    "sourceUrl": "https://kaylousberg.itch.io/kaykit-adventurers",
+    "licence": "CC0-1.0",
+    "extractedFrom": "public/models/chars/modular/warrior_modular.glb (armor nodes only)",
+    "kitFor": [
+      "mail"
+    ]
+  },
+  "knight_arms.glb": {
+    "kit": "knight",
+    "piece": "arms",
+    "nodes": [
+      "Armor_knight_ArmL",
+      "Armor_knight_ArmR"
+    ],
+    "author": "Kay Lousberg (KayKit)",
+    "source": "KayKit Character Pack: Adventurers 2.0",
+    "sourceUrl": "https://kaylousberg.itch.io/kaykit-adventurers",
+    "licence": "CC0-1.0",
+    "extractedFrom": "public/models/chars/modular/warrior_modular.glb (armor nodes only)",
+    "kitFor": [
+      "mail"
+    ]
+  },
+  "knight_hands.glb": {
+    "kit": "knight",
+    "piece": "hands",
+    "nodes": [
+      "Armor_knight_HandL",
+      "Armor_knight_HandR"
+    ],
+    "author": "Kay Lousberg (KayKit)",
+    "source": "KayKit Character Pack: Adventurers 2.0",
+    "sourceUrl": "https://kaylousberg.itch.io/kaykit-adventurers",
+    "licence": "CC0-1.0",
+    "extractedFrom": "public/models/chars/modular/warrior_modular.glb (armor nodes only)",
+    "kitFor": [
+      "mail"
+    ]
+  },
+  "knight_legs.glb": {
+    "kit": "knight",
+    "piece": "legs",
+    "nodes": [
+      "Armor_knight_LegL",
+      "Armor_knight_LegR"
+    ],
+    "author": "Kay Lousberg (KayKit)",
+    "source": "KayKit Character Pack: Adventurers 2.0",
+    "sourceUrl": "https://kaylousberg.itch.io/kaykit-adventurers",
+    "licence": "CC0-1.0",
+    "extractedFrom": "public/models/chars/modular/warrior_modular.glb (armor nodes only)",
+    "kitFor": [
+      "mail"
+    ]
+  },
+  "knight_feet.glb": {
+    "kit": "knight",
+    "piece": "feet",
+    "nodes": [
+      "Armor_knight_FootL",
+      "Armor_knight_FootR"
+    ],
+    "author": "Kay Lousberg (KayKit)",
+    "source": "KayKit Character Pack: Adventurers 2.0",
+    "sourceUrl": "https://kaylousberg.itch.io/kaykit-adventurers",
+    "licence": "CC0-1.0",
+    "extractedFrom": "public/models/chars/modular/warrior_modular.glb (armor nodes only)",
+    "kitFor": [
+      "mail"
+    ]
+  },
+  "knight_back.glb": {
+    "kit": "knight",
+    "piece": "back",
+    "nodes": [
+      "Armor_knight_Back"
+    ],
+    "author": "Kay Lousberg (KayKit)",
+    "source": "KayKit Character Pack: Adventurers 2.0",
+    "sourceUrl": "https://kaylousberg.itch.io/kaykit-adventurers",
+    "licence": "CC0-1.0",
+    "extractedFrom": "public/models/chars/modular/warrior_modular.glb (armor nodes only)",
+    "kitFor": [
+      "mail"
+    ]
+  }
+}
