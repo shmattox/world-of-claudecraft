@@ -613,7 +613,8 @@ export class PlaceSchemaCarry<S extends CarrySession> {
       this.d.skin ?? ((_h: string, id: string) => sidecarSkin(this.cfg, id, this.d.fetch));
     void look(holder, pid)
       .then((skin) => {
-        if (!skin || this.d.clients.get(s.pid) !== s) return;
+        // only the newest read counts: a slower read for a holder this session has since left is dropped
+        if (!skin || this.skinned.get(s) !== holder || this.d.clients.get(s.pid) !== s) return;
         this.d.send(s, { t: 'placeschema', kind: 'skin', url: skin.url, model: skin.model });
         // PLACE-412: everyone else wears it on this player too (cosmetic: the woc-leg spec §2)
         this.skins.set(s.pid, { s, url: skin.url, model: skin.model });
