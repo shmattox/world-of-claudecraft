@@ -552,7 +552,9 @@ const MONOLITHS: MonolithRow[] = [
     // src/ui/hud/death/death_prompt_view.ts. wc -l on the merged tree.
     // RECORDED RAISE at the PLACE-611 resync to upstream v0.44.4: upstream lowered this ceiling
     // while the PlaceSchema fork's additions (PLACE-276/410/479/480) sit on top. wc -l on the merged tree.
-    ceiling: 18029,
+    // PlaceSchema fork, PLACE-955: +4 so the char sheet shows the local player's carried skin and a
+    // carried copy's own mesh (the preview's wearCarried lives in render/characters/preview.ts).
+    ceiling: 18033,
     seam: 'pure view core + thin painter on PainterHost (src/ui/CLAUDE.md)',
   },
   {

@@ -114,3 +114,29 @@ describe('the link status frame (PLACE-479)', () => {
     setPlaceSchemaLinked(null);
   });
 });
+
+describe('the carried skin, remembered per WoC account for char-select (PLACE-955)', () => {
+  it('char-select restores this account skin, and never another account skin', async () => {
+    const { restoreCarriedSkin } = await import('../../src/placeschema_skin_state');
+    const store = new Map<string, string>();
+    const ls = {
+      getItem: (k: string) => store.get(k) ?? null,
+      setItem: (k: string, v: string) => void store.set(k, v),
+    };
+    (globalThis as { localStorage?: unknown }).localStorage = ls;
+    try {
+      const as = (username: string) => ls.setItem('woc_session', JSON.stringify({ username }));
+      as('alex');
+      setCarriedSkin({ url: 'data:image/png;base64,AAAA', model: 'slim' });
+      setCarriedSkin(null); // a fresh page: nothing in memory
+      restoreCarriedSkin();
+      expect(carriedSkin()).toEqual({ url: 'data:image/png;base64,AAAA', model: 'slim' });
+      as('sam'); // another account in the same browser
+      restoreCarriedSkin();
+      expect(carriedSkin()).toBeNull();
+    } finally {
+      delete (globalThis as { localStorage?: unknown }).localStorage;
+      setCarriedSkin(null);
+    }
+  });
+});

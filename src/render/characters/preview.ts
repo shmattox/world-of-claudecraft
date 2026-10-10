@@ -17,6 +17,7 @@ import {
 } from '../texture_prewarm';
 import { mechAssetsReady, preloadMechAssets } from './assets';
 import { modularVisualKey, VISUALS, type WeaponLayoutOverride } from './manifest';
+import { MC_SKIN_TAG, removeMinecraftSkin, wearCarriedSkin } from './minecraft_skin_body';
 import {
   type ArmorLoadout,
   type ModularAppearance,
@@ -135,6 +136,8 @@ export class CharacterPreview {
   private touchQueue: LinkedProgramTouchQueue | null = null;
   private yieldToMain: () => Promise<void> = yieldToMainThread;
   private destroyed = false;
+  /** PLACE-955: this turntable shows the local player (their carried skin is worn) */
+  private carried = false;
 
   // Drag controls
   private isDragging = false;
@@ -332,6 +335,12 @@ export class CharacterPreview {
     } catch (err) {
       console.error(`Failed to load preview character visual for ${visualKey}:`, err);
     }
+  }
+
+  /** PLACE-955: whether this turntable shows the LOCAL player, who wears their carried Minecraft
+   *  skin here as in the world (the char sheet, char-select); off for anyone else (inspect). */
+  wearCarried(on: boolean): void {
+    this.carried = on;
   }
 
   /** Apply or clear the Armory weapon-skin cosmetic; persists across
@@ -748,6 +757,10 @@ export class CharacterPreview {
     // Update animations inside visual
     if (this.currentVisual) {
       this.currentVisual.update(dt, PREVIEW_ANIM_STATE, true);
+      // PLACE-955: the local player's carried Minecraft skin, as the world draws it
+      if (this.carried) wearCarriedSkin(this.currentVisual.root, this.currentVisual.height);
+      else if (this.currentVisual.root?.userData[MC_SKIN_TAG])
+        removeMinecraftSkin(this.currentVisual.root);
     }
 
     this.renderer.render(this.scene, this.camera);

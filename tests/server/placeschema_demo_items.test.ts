@@ -168,6 +168,8 @@ function carryWorld(cls: PlayerClass, opts: { look?: unknown; bag?: boolean } = 
         equipItem: (itemId: string, _pid?: unknown, slot?: unknown, at?: number) => {
           const [moved] = inventory.splice(at!, 1);
           expect(moved.itemId).toBe(itemId);
+          const was = equipment[String(slot)];
+          if (was) inventory.push(was); // the worn piece goes back to the bag, as the sim does
           equipment[String(slot)] = moved;
         },
       },
@@ -237,9 +239,32 @@ describe('earning: a quest turn-in mints through /mod/mint', () => {
         false,
       );
     }
-    const copies = w.inventory.filter((s) => s.itemId === itemId);
+    // PLACE-955: each earned copy is held at once; the one it replaces goes back to the bag
+    expect(w.equipment.mainhand?.instance).toMatchObject({ [GRANT_KEY]: G(2) });
+    const copies = [...w.inventory, w.equipment.mainhand!].filter((s) => s.itemId === itemId);
     expect(copies).toHaveLength(2);
     expect(new Set(copies.map((s) => (s.instance as any)?.[GRANT_KEY])).size).toBe(2);
+  });
+});
+
+describe('the blade earned to carry is held at once (PLACE-955)', () => {
+  it('A Blade That Travels: the warrior turns it in and holds the Redbrook Militia Blade', async () => {
+    const w = carryWorld('warrior');
+    await w.carry.join(w.session);
+    w.inventory.push({ itemId: 'redbrook_blade', count: 1 }); // Rook's reward, plain
+    await w.carry.questDone(w.session, 'q_ps_a_blade_that_travels');
+    expect(w.equipment.mainhand).toMatchObject({ itemId: 'redbrook_blade' });
+    expect((w.equipment.mainhand?.instance as any)?.[GRANT_KEY]).toBeTruthy();
+    expect(w.inventory.some((s) => s.itemId === 'redbrook_blade')).toBe(false);
+  });
+
+  it('a class that cannot use the reward keeps it in the bag', async () => {
+    const w = carryWorld('mage');
+    const { id, itemId } = weaponQuest('warrior'); // a warrior's sword
+    await w.carry.join(w.session);
+    w.inventory.push({ itemId, count: 1 });
+    await w.carry.questDone(w.session, id);
+    expect(w.equipment.mainhand).toBeUndefined();
   });
 });
 

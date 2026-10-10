@@ -348,6 +348,7 @@ import {
   setModularLookProvider,
 } from './render/characters';
 import {
+  carriedWeaponVisualId,
   charactersReady,
   ensureCharacterUrl,
   modularCacheStats,
@@ -355,6 +356,7 @@ import {
   startStreamedCharacterPreloads,
 } from './render/characters/assets';
 import { skinCount, weaponSkinModelUrl } from './render/characters/manifest';
+import { restoreCarriedSkin } from './placeschema_skin_state';
 import {
   ARMOR_SETS,
   type ArmorLoadout,
@@ -5491,6 +5493,7 @@ function creationLoadout(cls: PlayerClass): ArmorLoadout {
  *  def (class clips + starter weapons). */
 function previewClassBody(cls: PlayerClass): void {
   if (!characterPreview) return;
+  characterPreview.wearCarried(false); // creating a body: show the WoC look being made (PLACE-955)
   const look = modularLookForClass(cls);
   if (look) characterPreview.setModular(look.app, look.worn, cls);
   else characterPreview.setClass(cls);
@@ -6865,24 +6868,28 @@ const activeClassDetailsTimeouts: Record<string, number | null> = {};
  *  with a unit test. */
 function showCharselectCharacter(c: CharacterSummary): void {
   if (!characterPreview) return;
+  // PLACE-955: as the world draws it, the account's carried Minecraft skin (remembered by this
+  // browser) and a carried copy's own mesh in the hand (the roster's mainhandMesh; once it loads,
+  // the turntable is shown again holding it).
+  restoreCarriedSkin();
+  characterPreview.wearCarried(true);
+  const held = carriedWeaponVisualId(
+    c.mainhandItemId ?? null,
+    { psMesh: (c as { mainhandMesh?: unknown }).mainhandMesh },
+    () => charselectSelected === c && showCharselectCharacter(c),
+  );
   const look = charselectLook(c);
   if (!look) {
     // Same on-demand weapon-skin warmup the composed path below performs
     // (mech lazy-load: iOS WebKit streams Armory skins after world entry).
     ensureCharacterUrl(weaponSkinModelUrl(c.weaponSkinId ?? null));
-    characterPreview.setAppearance(previewAppearanceForRow(c));
+    characterPreview.setAppearance({ ...previewAppearanceForRow(c), mainhandItemId: held });
     return;
   }
   // Same on-demand weapon-skin warmup the plain-appearance arm above
   // performs: the composed turntable holds the skinned weapon too.
   ensureCharacterUrl(weaponSkinModelUrl(c.weaponSkinId ?? null));
-  characterPreview.setModular(
-    look.app,
-    look.worn,
-    c.class,
-    c.mainhandItemId ?? null,
-    c.offhandItemId ?? null,
-  );
+  characterPreview.setModular(look.app, look.worn, c.class, held, c.offhandItemId ?? null);
   characterPreview.setWeaponSkin(c.weaponSkinId ?? null);
 }
 
@@ -6893,6 +6900,7 @@ function showCharselectCharacter(c: CharacterSummary): void {
 const redesignEditor = new CharselectRedesignEditor({
   previewModular: (app, worn, cls, mainhandItemId, offhandItemId, weaponSkinId) => {
     if (!characterPreview) return;
+    characterPreview.wearCarried(false); // the WoC look being redesigned, not the carried skin
     ensureCharacterUrl(weaponSkinModelUrl(weaponSkinId));
     characterPreview.setModular(app, worn, cls, mainhandItemId, offhandItemId);
     characterPreview.setWeaponSkin(weaponSkinId);

@@ -430,13 +430,17 @@ const carriedSize = new THREE.Vector3();
 export function carriedWeaponVisualId(
   mainhandItemId: string | null,
   mainhandInstance: unknown,
+  /** called once the mesh is resident, when it was not yet (a preview re-applies then) */
+  onReady?: () => void,
 ): string | null {
   const name = (mainhandInstance as { psMesh?: unknown } | undefined)?.psMesh;
   if (!mainhandItemId || typeof name !== 'string' || !CARRIED_MEDIA.test(name))
     return mainhandItemId;
   const url = `/api/placeschema/media/${name}`;
   if (characterAssetResident(url)) return `${CARRIED_MESH}${url}`;
-  void prepareCharacterUrl(url).catch(() => undefined);
+  void prepareCharacterUrl(url)
+    .then(onReady)
+    .catch(() => undefined);
   return mainhandItemId;
 }
 

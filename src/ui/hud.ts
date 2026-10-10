@@ -35,7 +35,7 @@ import {
   modularLookFor,
   type PreviewFramingName,
 } from '../render/characters';
-import { preloadMechAssets } from '../render/characters/assets';
+import { carriedWeaponVisualId, preloadMechAssets } from '../render/characters/assets';
 import { mechHeldWeaponOverride } from '../render/characters/manifest';
 import type { ModularLook } from '../render/characters/modular';
 import { helmSlotAvailableForEntity } from '../render/characters/player_look_core';
@@ -16220,6 +16220,7 @@ export class Hud {
       /** The active Armory weapon-skin cosmetic (null = the item's own model). */
       weaponSkinId: string | null;
       framing: PreviewFramingName;
+      carried?: boolean; // the local player: wears their carried Minecraft skin (PLACE-955)
       /** Compose the turntable from this authored look instead of mounting the
        *  stock class rig. Set for the SELF sheet, whose body must match the one
        *  the world draws; null for a stage showing someone else. */
@@ -16256,6 +16257,7 @@ export class Hud {
     this.charPreview.setSkin(opts.skin);
     this.charPreview.setWeaponSkin(opts.weaponSkinId);
     this.charPreview.setFraming(opts.framing);
+    this.charPreview.wearCarried(opts.carried === true);
     armPreviewOpen(this.charPreview, container, { cls: opts.cls, skin: opts.skin }, this.renderer);
   }
 
@@ -16280,7 +16282,9 @@ export class Hud {
       skin,
       previewKey,
       look,
-      mainhand,
+      // PLACE-955: a carried copy's own mesh and the carried skin, as the world draws them
+      mainhand: carriedWeaponVisualId(mainhand, this.sim.player.equippedInstances?.mainhand),
+      carried: true,
       offhand: this.sim.equipment.offhand ?? null,
       // The paperdoll wears the world's Armory skin: one shared rule (class + hands + loadout).
       weaponSkinId: resolveActiveWeaponSkin(

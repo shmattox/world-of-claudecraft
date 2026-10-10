@@ -394,6 +394,9 @@ export function buildCharacterList(
       // character select renders the same body and held items as the live world.
       skinCatalog: c.state?.skinCatalog === 'mech' ? 'mech' : 'class',
       mainhandItemId: c.state?.equipment?.mainhand ?? null,
+      // PLACE-955: a carried PlaceSchema copy's own mesh (its media name), so char-select holds it
+      mainhandMesh:
+        (c.state?.equipmentInstance?.mainhand as { psMesh?: unknown } | undefined)?.psMesh ?? null,
       offhandItemId: c.state?.equipment?.offhand ?? null,
       // The account's active Armory weapon skin for THIS character's class and
       // held hands (the same shared rule the world and paperdoll use), so
