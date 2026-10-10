@@ -844,6 +844,7 @@ describe('enchant_apply_view: preservedReplaceTraits (#2421)', () => {
       'lootQuality',
       'name',
       'perfected',
+      'psMesh', // PLACE-947: a carried copy's own mesh name, cosmetic
       'rift',
       'rolled',
       'signer',

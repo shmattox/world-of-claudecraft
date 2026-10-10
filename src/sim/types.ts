@@ -1621,6 +1621,9 @@ export interface ItemInstancePayload {
   lootQuality?: LootQualityDescriptor;
   /** Player name that signed/crafted this specific copy, if any. */
   signer?: string;
+  /** PLACE-947: a carried copy's own mesh, the PlaceSchema sidecar's content-addressed media name
+   *  (server/placeschema_sidecar.ts MESH_KEY). Cosmetic: every viewer draws the item with it. */
+  psMesh?: string;
   /** Remaining charges for a per-effect-limited item, keyed by effect id. */
   charges?: Record<string, number>;
   /** Quality/stat values baked into this specific copy at creation time.
