@@ -1,95 +1,48 @@
-// PLACE-410: the arriving player's Minecraft skin, from the holder's signed 30082 links record and
-// Mojang's live profile, to the client as a PNG data URL (never stored).
+// PLACE-410: the arriving player's carried skin, read from the sidecar (PLACE-1085: GET
+// /v1/players/:id/skin, section 11 attested links only) and sent to the client as a PNG data URL.
 
-import { createHash } from 'node:crypto';
-import { schnorr } from '@noble/curves/secp256k1';
 import { describe, expect, it } from 'vitest';
-import { mojangSkin, skinForHolder } from '../../server/placeschema_skin';
+import { sidecarSkin } from '../../server/placeschema_skin';
 import { applyPlaceSchemaFrame } from '../../src/net/placeschema_frame';
 import { carriedSkin, setCarriedSkin } from '../../src/placeschema_skin_state';
 
-const sk = new Uint8Array(32).fill(7);
-const holder = Buffer.from(schnorr.getPublicKey(sk)).toString('hex');
-const UUID = '069a79f4-44e9-4726-a5be-fca90e38aaf5';
-
-function links(tags: string[][], created_at = 100, key = sk) {
-  const pubkey = Buffer.from(schnorr.getPublicKey(key)).toString('hex');
-  const ev = { pubkey, created_at, kind: 30082, tags, content: '' };
-  const id = createHash('sha256')
-    .update(JSON.stringify([0, ev.pubkey, ev.created_at, ev.kind, ev.tags, ev.content]))
-    .digest('hex');
-  return { ...ev, id, sig: Buffer.from(schnorr.sign(id, key)).toString('hex') };
-}
-const D = ['d', 'placeschema.links'];
-function sign(kind: number, tags: string[][], created_at: number, key: Uint8Array) {
-  const pubkey = Buffer.from(schnorr.getPublicKey(key)).toString('hex');
-  const ev = { pubkey, created_at, kind, tags, content: '' };
-  const id = createHash('sha256')
-    .update(JSON.stringify([0, ev.pubkey, ev.created_at, ev.kind, ev.tags, ev.content]))
-    .digest('hex');
-  return { ...ev, id, sig: Buffer.from(schnorr.sign(id, key)).toString('hex') };
-}
-
 const PNG = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 1, 2, 3]);
-const mojang = (skin: object | null) =>
-  (async (url: string) => {
-    if (url.startsWith('https://sessionserver.mojang.com/'))
-      return Response.json({
-        properties: [
-          {
-            name: 'textures',
-            value: Buffer.from(JSON.stringify({ textures: skin ? { SKIN: skin } : {} })).toString(
-              'base64',
-            ),
-          },
-        ],
-      });
-    if (url === 'https://textures.minecraft.net/texture/abc') return new Response(PNG);
+const SIDE = { url: 'http://sidecar.test', token: 'tok' };
+const PID = '7@woc.test';
+const TEXTURE = 'https://textures.minecraft.net/texture/abc';
+/** The sidecar answers the skin it read (or none); the texture host serves the PNG. Records each call. */
+function world(skin: object | null, calls: { url: string; auth?: string }[] = []) {
+  return (async (url: string, init?: RequestInit) => {
+    calls.push({ url, auth: (init?.headers as Record<string, string> | undefined)?.authorization });
+    if (url === `${SIDE.url}/v1/players/${encodeURIComponent(PID)}/skin`)
+      return Response.json({ holder: 'h', platform: 'woc', platformId: PID, skin });
+    if (url === TEXTURE) return new Response(PNG);
     return new Response('', { status: 404 });
   }) as typeof fetch;
+}
 
-describe('mojangSkin', () => {
-  it('fetches the skin PNG live as a data URL', async () => {
-    const skin = await mojangSkin(
-      UUID,
-      mojang({ url: 'http://textures.minecraft.net/texture/abc', metadata: { model: 'slim' } }),
-    );
+describe('sidecarSkin (PLACE-1085)', () => {
+  it("asks the sidecar with the game's bearer and wears the attested skin as a data URL", async () => {
+    const calls: { url: string; auth?: string }[] = [];
+    const skin = await sidecarSkin(SIDE, PID, world({ url: TEXTURE, model: 'slim' }, calls));
     expect(skin).toEqual({ url: `data:image/png;base64,${PNG.toString('base64')}`, model: 'slim' });
+    expect(calls[0]).toEqual({
+      url: `${SIDE.url}/v1/players/7%40woc.test/skin`,
+      auth: 'Bearer tok',
+    });
   });
 
-  it('gives nothing for the default skin or a texture off Mojang', async () => {
-    expect(await mojangSkin(UUID, mojang(null))).toBeUndefined();
+  it('no attested skin (unattested or withdrawn link, default skin): nothing, WoC keeps its own body', async () => {
+    expect(await sidecarSkin(SIDE, PID, world(null))).toBeUndefined();
+  });
+
+  it('refuses a texture that is not https or not a PNG, and a sidecar that errors', async () => {
     expect(
-      await mojangSkin(UUID, mojang({ url: 'https://evil.test/texture/abc' })),
+      await sidecarSkin(SIDE, PID, world({ url: 'http://textures.minecraft.net/texture/abc' })),
     ).toBeUndefined();
-  });
-
-  it('skinForHolder: an attested link -> uuid -> skin; an unattested one -> nothing (PLACE-412)', async () => {
-    const world = new Uint8Array(32).fill(3);
-    const owner = Buffer.from(schnorr.getPublicKey(world)).toString('hex');
-    const tags = [
-      ['platform', 'minecraft'],
-      ['id', UUID],
-      ['p', holder],
-      ['u', 'https://mc.test'],
-    ];
-    const att = sign(22251, tags, 90, world);
-    const originFacts = async () => ({
-      owner,
-      platform: { platform: 'minecraft', attested: true },
-    });
-    const fetchSkin = mojang({ url: 'https://textures.minecraft.net/texture/abc' });
-    const attested = links([D, ['link', 'minecraft', UUID, JSON.stringify(att)]]);
-    const deps = (rec: object) => ({
-      query: async (_u: string, f: { kinds: number[] }) => (f.kinds[0] === 30082 ? [rec] : []),
-      fetch: fetchSkin,
-      originFacts,
-      now: 200,
-    });
-    const skin = await skinForHolder(holder, ['ws://relay.test'], deps(attested) as never);
-    expect(skin?.model).toBe('classic');
-    const bare = links([D, ['link', 'minecraft', UUID]]);
-    expect(await skinForHolder(holder, ['ws://relay.test'], deps(bare) as never)).toBeUndefined();
+    expect(await sidecarSkin(SIDE, PID, world({ url: 'https://evil.test/x.png' }))).toBeUndefined();
+    const down = (async () => new Response('', { status: 503 })) as unknown as typeof fetch;
+    expect(await sidecarSkin(SIDE, PID, down)).toBeUndefined();
   });
 });
 

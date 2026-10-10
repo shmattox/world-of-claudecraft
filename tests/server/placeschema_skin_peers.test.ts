@@ -114,6 +114,44 @@ describe('the carried skin, seen by every player (PLACE-412)', () => {
     expect(r.got.get(4)).toEqual([{ t: 'placeschema', kind: 'skins' }]);
   });
 
+  it('PLACE-1049: a slower read for an earlier holder never lands over the newest', async () => {
+    let holder = 'old';
+    const reads = new Map<string, (v: { url: string; model: 'classic' }) => void>();
+    const frames: unknown[] = [];
+    const s: Session = { accountId: 1, characterId: 10, pid: 1, selfHeavyDirty: false, ws: {} };
+    const carry = new PlaceSchemaCarry<Session>(cfg, {
+      sim: {
+        meta: () => ({ inventory: [], placeschemaAccepted: new Set() }),
+        addItemInstance: () => {},
+      },
+      clients: new Map([[1, s]]),
+      send: (_s: Session, f: { kind: string }) => f.kind === 'skin' && frames.push(f),
+      notice: () => {},
+      save: async () => true,
+      store: {
+        claims: async () => new Map(),
+        claim: async () => 'claimed',
+        cancels: async () => [],
+        putCancels: async () => {},
+        dropCancel: async () => {},
+      },
+      skin: (h: string) => new Promise((res) => reads.set(h, res)),
+      fetch: (async () => Response.json({ holder, add: [] })) as unknown as typeof fetch,
+    } as never);
+    await carry.join(s);
+    await flush();
+    holder = 'new'; // relinked before the first read came back
+    await carry.join(s);
+    await flush();
+    reads.get('new')!({ url: 'data:image/png;base64,TkVX', model: 'classic' });
+    await flush();
+    reads.get('old')!({ url: 'data:image/png;base64,T0xE', model: 'classic' });
+    await flush();
+    expect(frames).toEqual([
+      { t: 'placeschema', kind: 'skin', url: 'data:image/png;base64,TkVX', model: 'classic' },
+    ]);
+  });
+
   it("A2: another player's skin never touches the local player's own", () => {
     setCarriedSkin(null);
     expect(applyPlaceSchemaFrame({ kind: 'skin', url: SKIN_A, model: 'slim', pid: 41 })).toBe(
