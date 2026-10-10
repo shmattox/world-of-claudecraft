@@ -719,13 +719,15 @@ export const en = {
     balancePreviewAria:
       'Connected wallet balance preview: {balance}. Link the wallet to verify holder flair.',
     balanceAmount: '{amount} $WOC',
-    bagConnect: 'Link wallet',
-    placeSchemaLink: 'Link PlaceSchema account',
+    // PlaceSchema fork (PLACE-951): the wallet buttons say $WOC, and the one that links for carrying
+    // items between worlds says so, so the two can't be mistaken.
+    bagConnect: 'Link $WOC wallet',
+    placeSchemaLink: 'Link to carry items',
     placeSchemaLinkTitle:
       'Link this account to PlaceSchema so items from other worlds arrive here. Not a Solana wallet.',
-    placeSchemaLinked: 'PlaceSchema: linked',
-    bagLink: 'Verify wallet',
-    bagReconnect: 'Reconnect wallet',
+    placeSchemaLinked: 'Carrying items: linked',
+    bagLink: 'Verify $WOC wallet',
+    bagReconnect: 'Reconnect $WOC wallet',
     connected: 'Connected: {address}',
     connectedWithBalance: 'Connected: {balance} - {address}',
     connectedLinked: 'Verified: {address}',

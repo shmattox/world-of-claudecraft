@@ -107,9 +107,9 @@ describe('the link status frame (PLACE-479)', () => {
     expect(placeSchemaLinked()).toBeNull();
     expect(applyPlaceSchemaFrame({ kind: 'status', linked: false })).toBe('status');
     expect(placeSchemaLinkChipHtml()).toContain('data-ps-link');
-    expect(placeSchemaLinkChipHtml()).toContain('Link PlaceSchema account');
+    expect(placeSchemaLinkChipHtml()).toContain('Link to carry items');
     expect(applyPlaceSchemaFrame({ kind: 'status', linked: true })).toBe('status');
-    expect(placeSchemaLinkChipHtml()).toContain('PlaceSchema: linked');
+    expect(placeSchemaLinkChipHtml()).toContain('Carrying items: linked');
     expect(placeSchemaLinkChipHtml()).not.toContain('data-ps-link');
     setPlaceSchemaLinked(null);
   });
