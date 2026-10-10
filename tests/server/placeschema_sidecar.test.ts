@@ -19,6 +19,7 @@ import {
   savedPlaceschemaAccepted,
 } from '../../src/sim/placeschema_accepted';
 import { PLACESCHEMA_PORTALS, PlaceSchemaPortalGate } from '../../src/sim/placeschema_portal';
+import { grantInventoryInstances } from '../../src/sim/inventory_grant';
 import type { InvSlot } from '../../src/sim/types';
 
 const G1 = 'a'.repeat(64);
@@ -194,9 +195,14 @@ function world() {
         return true;
       },
       entities: { get: () => ({ pos }) },
-      addItemInstance: (itemId: string, instance: never) => {
-        inventory.push({ itemId, count: 1, instance });
-      },
+      // the sim's own grant (stacking, count, crafting mark), so a returning copy lands as it really would
+      addItemInstance: (
+        itemId: string,
+        instance: never,
+        _pid: number,
+        count = 1,
+        opts?: { craftedRecipeId?: string },
+      ) => grantInventoryInstances(inventory, itemId, count, instance, opts?.craftedRecipeId),
     },
     clients,
     send: (_s: Session, f: unknown) => frames.push(f),
@@ -1058,6 +1064,9 @@ describe('PLACE-990: a copy carries its own WoC data and comes home whole', () =
   const enchanted: InvSlot = {
     itemId: 'redbrook_blade',
     count: 1,
+    craftedRecipeId: 'r_example',
+    materialSources: { iron_ore: 2 } as never,
+    materialSeparated: true,
     instance: {
       enchant: 'ench_example',
       rolled: { stats: { str: 2 } },
@@ -1079,6 +1088,9 @@ describe('PLACE-990: a copy carries its own WoC data and comes home whole', () =
       v: 1,
       itemId: 'redbrook_blade',
       count: 1,
+      craftedRecipeId: 'r_example',
+      materialSources: { iron_ore: 2 },
+      materialSeparated: true,
       instance: {
         enchant: 'ench_example',
         rolled: { stats: { str: 2 } },
@@ -1135,6 +1147,9 @@ describe('PLACE-990: a copy carries its own WoC data and comes home whole', () =
       {
         itemId: 'redbrook_blade',
         count: 1,
+        craftedRecipeId: 'r_example',
+        materialSources: { iron_ore: 2 },
+        materialSeparated: true,
         instance: {
           enchant: 'ench_example',
           rolled: { stats: { str: 2 } },

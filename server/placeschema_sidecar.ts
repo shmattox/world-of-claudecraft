@@ -23,7 +23,8 @@ import type { InvSlot, ItemInstancePayload } from '../src/sim/types';
 import { type AcceptedStore, pgAcceptedStore } from './placeschema_accepted_db';
 import { type Skin, skinForHolder } from './placeschema_skin';
 
-/** The carried grant's id rides on the item copy; the copy's `name` is the grant's minted label. */
+/** The carried grant's id rides on the item copy. A foreign copy's `name` is the grant's minted label;
+ *  our own copy coming home keeps the name (and the rest of its instance) it left with (PLACE-990). */
 export const GRANT_KEY = 'psGrant';
 const HEX64 = /^[0-9a-f]{64}$/;
 /** A cancel answer that settles it for good: nothing of this holder's is there to return. */
@@ -43,6 +44,7 @@ const WOC_TYPE = /^(?:weapon|armor|misc)\.woc\.([a-z0-9_]{1,48})$/;
  * content at most 4096 bytes (MAX_GRANT_CONTENT_BYTES). Our own bookkeeping keys never travel.
  */
 export const NATIVE_PREFIX = 'woc.native:';
+// `InvSlot.slot` (the bag cell it sat in) is placement, not the item: a returning copy takes a free cell.
 const NATIVE_CHUNK = 480;
 const NATIVE_MAX = 2800; // leaves the rest of the 4096-byte grant to the template itself
 export interface WocNative {
@@ -409,8 +411,11 @@ export class PlaceSchemaCarry<S extends CarrySession> {
         } else if (own) {
           this.d.sim.addItemInstance(itemId, ownInstance(own, g), s.pid, own.count, {
             craftedRecipeId: own.craftedRecipeId,
-            materialSources: own.materialSources,
           });
+          // the sim keeps material marks only on materials; the copy that left had them, so it gets them back
+          const back = meta.inventory[slotOfGrant(meta.inventory, g)];
+          if (back && own.materialSources) back.materialSources = own.materialSources;
+          if (back && own.materialSeparated) back.materialSeparated = true;
           if (a.equipped) this.hold(meta, itemId, g, s.pid);
           notices.push(`${a.label ?? 'Your item'} is now yours to carry to other worlds.`);
         } else {
