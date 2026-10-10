@@ -4,7 +4,7 @@
 // The armor pieces live inside the project-built modular body
 // (public/models/chars/modular/warrior_modular.glb). That file also holds the body, hair and faces and
 // has no CREDITS.md row, so it is never served whole: this keeps only the `Armor_<kit>_<part>` nodes
-// of one kit's one piece, with the skeleton they are skinned to (KayKit Character Pack Adventures 1.0,
+// of one kit's one piece, with the skeleton they are skinned to (KayKit Character Pack: Adventurers 2.0,
 // CC0 1.0), and writes into public/placeschema/garments/:
 //   <kit>_<piece>.glb        one garment per kit and piece the kit has
 //   provenance.json          each file's source nodes, author, source url and licence
@@ -118,8 +118,10 @@ for (const kit of new Set(Object.values(ARMOR_TYPE_KIT))) {
           .some((x) => x.getName() === n),
       ),
       author: 'Kay Lousberg (KayKit)',
-      source: 'KayKit Character Pack Adventures 1.0',
-      sourceUrl: 'https://github.com/KayKit-Game-Assets/KayKit-Character-Pack-Adventures-1.0',
+      source: 'KayKit Character Pack: Adventurers 2.0',
+      sourceUrl: 'https://kaylousberg.itch.io/kaykit-adventurers',
+      // the kits' source pack (scripts/assets/specs/characters_v2.json); KayKit packs are CC0 (CREDITS.md,
+      // third_party/licenses/kaykit-cc0.txt)
       licence: 'CC0-1.0',
       extractedFrom: 'public/models/chars/modular/warrior_modular.glb (armor nodes only)',
       kitFor: Object.entries(ARMOR_TYPE_KIT)

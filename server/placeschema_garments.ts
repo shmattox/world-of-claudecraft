@@ -1,6 +1,6 @@
 // PLACE-490: which garment GLB a WoC armor item wears in other PlaceSchema worlds.
 //
-// WoC's armor is the KayKit class kits (Kay Lousberg, KayKit Character Pack Adventures 1.0, CC0 1.0;
+// WoC's armor is the KayKit class kits (Kay Lousberg, KayKit Character Pack: Adventurers 2.0, CC0 1.0;
 // CREDITS.md), carved into slots inside the modular body. An armor item has no look of its own here
 // (every character wears its class kit), so its armor type picks the kit: cloth wears the mage kit,
 // leather the ranger's, mail the knight's (approved 2026-10-10). The garments are extracted by

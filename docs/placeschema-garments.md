@@ -4,7 +4,7 @@ A WoC armor item carried to another PlaceSchema world (the Hub, for example) bri
 
 ## Which garment
 
-WoC armor is the KayKit class kits (KayKit Character Pack Adventures 1.0, Kay Lousberg, CC0 1.0). An armor item has no look of its own in WoC, because every character wears its class kit. So the item's armor type picks the kit, and its slot picks the piece (`server/placeschema_garments.ts`):
+WoC armor is the KayKit class kits (KayKit Character Pack: Adventurers 2.0, Kay Lousberg, CC0 1.0, the source of the knight, mage and ranger kits per `scripts/assets/specs/characters_v2.json`). An armor item has no look of its own in WoC, because every character wears its class kit. So the item's armor type picks the kit, and its slot picks the piece (`server/placeschema_garments.ts`):
 
 | Armor type | Kit |
 |---|---|
