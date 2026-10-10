@@ -334,7 +334,8 @@ export class PlaceSchemaCarry<S extends CarrySession> {
       });
       if (!r.ok) throw new Error(`manifest ${r.status}`);
       const owner = ((await r.json()) as { owner?: unknown }).owner;
-      return typeof owner === 'string' && HEX64.test(owner) ? owner : undefined;
+      if (typeof owner !== 'string' || !HEX64.test(owner)) throw new Error('manifest has no owner');
+      return owner;
     })().catch(() => {
       this.owner = undefined;
       return undefined;

@@ -1120,6 +1120,47 @@ describe('PLACE-990: a copy carries its own WoC data and comes home whole', () =
     expect(w.inventory).toEqual([before]);
   });
 
+  it('an enchanted Redbrook Militia Blade we minted comes home with its enchant, rolls, signer and binding', async () => {
+    const w = world();
+    await w.carry.join(w.session());
+    w.escrow.set(G1, {
+      grant: minted(enchanted),
+      label: 'Redbrook Militia Blade',
+      state: 'held',
+      readd: true,
+      ackedSeq: 0,
+    });
+    await w.carry.join(w.session());
+    expect(w.inventory).toEqual([
+      {
+        itemId: 'redbrook_blade',
+        count: 1,
+        instance: {
+          enchant: 'ench_example',
+          rolled: { stats: { str: 2 } },
+          signer: 'Smith',
+          boundTo: 7,
+          [GRANT_KEY]: G1,
+        },
+      },
+    ]);
+  });
+
+  it('the same data under another minter is not trusted: the copy comes from the catalog', async () => {
+    const w = world();
+    await w.carry.join(w.session());
+    const forged = minted(enchanted, 'e'.repeat(64));
+    w.escrow.set(G1, {
+      grant: forged,
+      label: 'Redbrook Militia Blade',
+      state: 'held',
+      readd: true,
+      ackedSeq: 0,
+    });
+    await w.carry.join(w.session());
+    expect(w.inventory[0].instance).toEqual({ [GRANT_KEY]: G1, name: 'Redbrook Militia Blade' });
+  });
+
   it('our minter unknown (manifest down): the native copy waits unclaimed, then comes home whole', async () => {
     const w = world();
     await w.carry.join(w.session());
