@@ -13,6 +13,7 @@ import {
   type LinkFilter,
   manifestFacts,
   type NostrEvent,
+  readCapped,
 } from './placeschema_links';
 
 export interface Skin {
@@ -26,28 +27,6 @@ const TEXTURE_URL = /^https?:\/\/textures\.minecraft\.net\/texture\/[0-9a-f]+$/;
 const MAX_PNG = 64 * 1024;
 const MAX_PROFILE = 64 * 1024;
 const MAX_EVENTS = 16;
-
-/** A response body read up to `max` bytes: undefined (and the stream cancelled) once it passes. */
-export async function readCapped(r: Response, max: number): Promise<Buffer | undefined> {
-  if (Number(r.headers.get('content-length') ?? 0) > max) {
-    await r.body?.cancel().catch(() => undefined);
-    return undefined;
-  }
-  const chunks: Uint8Array[] = [];
-  let n = 0;
-  const reader = r.body?.getReader();
-  if (!reader) return Buffer.alloc(0);
-  for (;;) {
-    const { done, value } = await reader.read();
-    if (done) return Buffer.concat(chunks);
-    n += value.byteLength;
-    if (n > max) {
-      await reader.cancel().catch(() => undefined);
-      return undefined;
-    }
-    chunks.push(value);
-  }
-}
 
 /** One REQ to one relay, collected until EOSE or the timeout. */
 export function queryRelay(

@@ -3,7 +3,7 @@
 // passes those bytes through on its own origin. Off (404) unless the sidecar is configured.
 
 import type { Ctx, RouteDef } from './http/types';
-import { readCapped } from './placeschema_skin';
+import { readCapped } from './placeschema_links';
 
 const NAME = /^ps_[0-9a-f]{32}\.(glb|png|jpg|jpeg|webp|ktx2)$/; // open-place tools/look-plan names
 const MAX_BYTES = 16 * 1024 * 1024;

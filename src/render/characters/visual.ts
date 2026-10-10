@@ -1050,7 +1050,7 @@ export class CharacterVisual {
       s.moving,
       s.casting,
       reducedMotion,
-      this.root.visible && !farMeshShown(this.far, this.farMesh !== null, this.farCompilePending),
+      this.root.visible && !this.farShown(),
     );
     if (this.holdCooldown > 0) this.holdCooldown = Math.max(0, this.holdCooldown - dt);
     // Deferred sheathe swap: lands at the gesture's windup peak (see
@@ -1347,7 +1347,7 @@ export class CharacterVisual {
       // Gated on the far mesh ACTUALLY standing in, like updateWeaponVfx:
       // while the far bake is shown the props are hidden with the rig, so the
       // mixer would write node TRS nothing draws.
-      if (!farMeshShown(this.far, this.farMesh !== null, this.farCompilePending)) {
+      if (!this.farShown()) {
         updateHeldPropIdles(this.model, animationDt);
       }
       this.pendingDt = 0;
@@ -2056,12 +2056,16 @@ export class CharacterVisual {
    *  the LOD edge, the budget retry and the per-frame setFar all land here, so
    *  a far mesh whose materials are still linking never draws early and the
    *  articulated rig never hides without a ready stand-in. */
+  /** Is the baked far mesh the one drawn? PLACE-412: a carried Minecraft skin is worn on the
+   *  articulated rig and the far mesh is WoC's own body, so a skinned player stays articulated at
+   *  every distance, as the local player does; every far-dependent update reads this. */
+  private farShown(): boolean {
+    if (this.root?.userData[MC_SKIN_TAG]) return false;
+    return farMeshShown(this.far, this.farMesh !== null, this.farCompilePending);
+  }
+
   private syncFarVisibility(): void {
-    // PLACE-412: a carried Minecraft skin is worn on the articulated rig, and the baked far mesh is
-    // WoC's own body; a skinned player stays articulated at every distance, as the local player does.
-    const skinned = !!this.root?.userData[MC_SKIN_TAG];
-    const showFar =
-      !skinned && farMeshShown(this.far, this.farMesh !== null, this.farCompilePending);
+    const showFar = this.farShown();
     const showRig = !showFar;
     if (this.modelWrap.visible !== showRig) this.modelWrap.visible = showRig;
     if (this.farMesh && this.farMesh.visible !== showFar) this.farMesh.visible = showFar;
@@ -3170,7 +3174,7 @@ export class CharacterVisual {
     // Skipping on `far` alone would freeze a rig that is still drawing,
     // leaving its motes hanging in the air and its light stuck at whatever
     // the last flicker wrote.
-    if (farMeshShown(this.far, this.farMesh !== null, this.farCompilePending)) return;
+    if (this.farShown()) return;
     this.applyWeaponVfxShed(shed);
     for (const handle of this.weaponVfx) handle.update(dt);
   }

@@ -188,18 +188,45 @@ export function manifestFacts(allowLoopback: boolean, f: typeof fetch = fetch) {
     const ok = loopback
       ? allowLoopback
       : url.protocol === 'https:' && !ipLiteral && url.hostname.includes('.');
+    // ponytail: a public name resolving to a private address is still fetched (fixed path, never
+    // echoed; the sidecar accepts the same: a trusted origin's DNS is its owner's)
     if (!ok) return undefined;
     const r = await f(`${origin}/.well-known/placeschema.json`, {
       redirect: 'manual',
       signal: AbortSignal.timeout(FACTS_TIMEOUT_MS),
     });
     if (!r.ok) return undefined;
-    const text = await r.text();
-    if (text.length > 256 * 1024) return undefined;
-    const m = JSON.parse(text) as { owner?: unknown; platform?: OriginFacts['platform'] };
+    const body = await readCapped(r, 256 * 1024); // never buffered past the cap
+    if (!body) return undefined;
+    const m = JSON.parse(body.toString('utf8')) as {
+      owner?: unknown;
+      platform?: OriginFacts['platform'];
+    };
     return {
       owner: typeof m.owner === 'string' && HEX64.test(m.owner) ? m.owner : undefined,
       platform: m.platform && typeof m.platform === 'object' ? m.platform : undefined,
     };
   };
+}
+
+/** A response body read up to `max` bytes: undefined (and the stream cancelled) once it passes. */
+export async function readCapped(r: Response, max: number): Promise<Buffer | undefined> {
+  if (Number(r.headers.get('content-length') ?? 0) > max) {
+    await r.body?.cancel().catch(() => undefined);
+    return undefined;
+  }
+  const chunks: Uint8Array[] = [];
+  let n = 0;
+  const reader = r.body?.getReader();
+  if (!reader) return Buffer.alloc(0);
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) return Buffer.concat(chunks);
+    n += value.byteLength;
+    if (n > max) {
+      await reader.cancel().catch(() => undefined);
+      return undefined;
+    }
+    chunks.push(value);
+  }
 }
