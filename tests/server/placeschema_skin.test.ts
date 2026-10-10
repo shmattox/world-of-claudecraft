@@ -107,9 +107,9 @@ describe('the link status frame (PLACE-479)', () => {
     expect(placeSchemaLinked()).toBeNull();
     expect(applyPlaceSchemaFrame({ kind: 'status', linked: false })).toBe('status');
     expect(placeSchemaLinkChipHtml()).toContain('data-ps-link');
-    expect(placeSchemaLinkChipHtml()).toContain('Link PlaceSchema account');
+    expect(placeSchemaLinkChipHtml()).toContain('Link to carry items');
     expect(applyPlaceSchemaFrame({ kind: 'status', linked: true })).toBe('status');
-    expect(placeSchemaLinkChipHtml()).toContain('PlaceSchema: linked');
+    expect(placeSchemaLinkChipHtml()).toContain('Carrying items: linked');
     expect(placeSchemaLinkChipHtml()).not.toContain('data-ps-link');
     setPlaceSchemaLinked(null);
   });
@@ -138,5 +138,28 @@ describe('the carried skin, remembered per WoC account for char-select (PLACE-95
       delete (globalThis as { localStorage?: unknown }).localStorage;
       setCarriedSkin(null);
     }
+  });
+});
+
+describe('the ticket frame (PLACE-954)', () => {
+  it('leaves the game for the destination, and refuses a non-http url', () => {
+    const left: string[] = [];
+    const nav = { leave: (u: string) => left.push(u), open: () => undefined };
+    expect(applyPlaceSchemaFrame({ kind: 'ticket', url: 'javascript:alert(1)' }, nav)).toBeNull();
+    expect(
+      applyPlaceSchemaFrame({ kind: 'ticket', url: 'http://hub.test/arrive#ps-ticket=x' }, nav),
+    ).toBe('ticket');
+    expect(left).toEqual(['http://hub.test/arrive#ps-ticket=x']);
+  });
+});
+
+describe('the portal frame (PLACE-954)', () => {
+  it("keeps the destination's picture for the portal, and refuses a non-http url", async () => {
+    const { portalDestinationPicture } = await import('../../src/placeschema_skin_state');
+    expect(applyPlaceSchemaFrame({ kind: 'portal', url: 'javascript:alert(1)' })).toBeNull();
+    expect(applyPlaceSchemaFrame({ kind: 'portal', url: 'https://hub.test/assets/p.jpg' })).toBe(
+      'portal',
+    );
+    expect(portalDestinationPicture()).toBe('https://hub.test/assets/p.jpg');
   });
 });

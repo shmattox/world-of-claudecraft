@@ -1169,10 +1169,12 @@ must be re-derived if either number is ever tuned on its own.
   `src/net/online.ts` applyWire, round-trip pins in
   `tests/snapshots.test.ts`); per-entity keys never join `ALL_DELTA_KEYS` or
   `TERSE_TO_IWORLD` (those pin selfWireJson SELF keys with set equality).
-  The `eqi` identity key stays trimmed to signer/enchant/rolled by allowlist
-  (boundTo and charges deliberately never leave the server); offline worn
-  tooltips project through `wornTooltipInstance`
-  (`src/ui/item_instance_tooltip.ts`) to the same allowlist.
+  The `eqi` identity key stays trimmed by allowlist
+  (`server/equipped_instance_wire.ts`, mirrored by `publicInstanceView`):
+  signer, enchant, rolled, name, perfected, rift, lootQuality and, since
+  PLACE-947, psMesh (a carried copy's own mesh name). boundTo and charges
+  deliberately never leave the server; offline worn tooltips project
+  through `wornTooltipInstance` (`src/ui/item_instance_tooltip.ts`).
 - Professions sim paths emit NO English: deny reasons and celebrations are
   id-carrying SimEvents or stable keys the client localizes (the S3 guard,
   `tests/localization_fixes.test.ts`). Repeat-deny feedback consumers ride

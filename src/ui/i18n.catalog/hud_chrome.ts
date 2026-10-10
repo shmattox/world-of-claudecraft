@@ -1126,8 +1126,10 @@ export const hudChromeStrings = {
     // moment a new player wants to look at the world). It says where they
     // are and who to talk to; the coach card, the golden trail and the
     // floating bubble carry the rest, in place, as they need it.
+    // PlaceSchema fork (PLACE-950): the carry errand is named first, so a newcomer doesn't ring
+    // off the shore before earning the blade that travels.
     islandArrivalNote:
-      'Welcome to the Proving Shore. Warden Tam is waiting just up the strand: go and see him. When you would rather be off, ring the bell beside my pier and it will carry you across to the vale at any time.',
+      'Welcome to the Proving Shore. Before anything else, ask me about A Blade That Travels: Drillmaster Rook gives every recruit a blade you can carry into other worlds. Then Warden Tam is waiting just up the strand. When you would rather be off, ring the bell beside my pier and it will carry you across to the vale at any time.',
     noteClose: 'Understood',
   },
   // New-adventurer tutorial copy for the touch interface. The default tutorial

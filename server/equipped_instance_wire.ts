@@ -19,6 +19,9 @@ export function equippedInstanceWire(e: Pick<Entity, 'equippedInstances'>) {
     if (inst.rolled !== undefined) pub.rolled = inst.rolled;
     if (inst.name !== undefined) pub.name = inst.name;
     if (inst.perfected === true) pub.perfected = inst.perfected;
+    // PLACE-947: the carried mesh name; without it the renderer draws WoC's stand-in
+    if (typeof inst.psMesh === 'string' && /^ps_[0-9a-f]{32}\.glb$/.test(inst.psMesh))
+      pub.psMesh = inst.psMesh;
     if (inst.rift !== undefined) pub.rift = inst.rift;
     // Validated like publicInstanceView, so a malformed descriptor never rides
     // the wire; copied by reference (not cloned) because the projection is
