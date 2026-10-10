@@ -1,5 +1,5 @@
-// The PlaceSchema portal (PLACE-954): the walk-through way out of WoC with whatever you carry, the
-// same nether-style gate the Minecraft plugin builds. Pure data, shared by the renderer (draws it,
+// The PlaceSchema portal (PLACE-954): the walk-through way out of WoC with whatever you carry, drawn
+// in the realm's portal art (PLACE-1026: PlaceSchema's standard ring, or WoC's rift gate). Pure data, shared by the renderer (draws it,
 // render/placeschema_portal.ts) and the server (notices the walk-in from its own positions and
 // carries everything out, server/placeschema_sidecar.ts). Online only: offline there is no sidecar,
 // so nothing is drawn.
@@ -19,11 +19,11 @@ export const PLACESCHEMA_PORTALS: readonly PlaceSchemaPortalSpot[] = [
   { x: 0, z: -20, facing: 0 },
 ];
 
-/** One Minecraft block in yards: the gate is 4x5 of them around a 2x3 opening, so it stands about
- *  2.8 bodies tall, as in Minecraft. */
+/** The gate's unit in yards (once a Minecraft block, when the gate was drawn as one): the walk-in
+ *  is four of them wide, and the drawn portal is sized to that width. */
 export const PLACESCHEMA_PORTAL_BLOCK = 0.9;
-/** The gate: two blocks either side of the centre line (its whole visible width: the frame has no
- *  collider, so stepping through a frame block is stepping through the gate), and this deep. */
+/** The gate: two units either side of the centre line (the drawn portal's whole width; it has no
+ *  collider, so stepping through its rim is stepping through the gate), and this deep. */
 const HALF_WIDTH = 2 * PLACESCHEMA_PORTAL_BLOCK;
 const DEPTH = 0.6;
 

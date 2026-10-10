@@ -14,6 +14,8 @@ import {
   setPlaceSchemaHolder,
   setPlaceSchemaLinked,
   setPlaceSchemaMenuTier,
+  setPlaceSchemaPortalArt,
+  setPortalDestinationName,
   setPortalDestinationPicture,
 } from '../placeschema_skin_state';
 
@@ -28,6 +30,9 @@ export interface PlaceSchemaFrame {
   /** PLACE-1018: the linked holder's key (hex), and the realm's menu tier */
   holder?: unknown;
   menu?: unknown;
+  /** PLACE-1026: the realm's portal art; the portal destination's name */
+  art?: unknown;
+  name?: unknown;
   /** PLACE-412: another player's skin, by entity id */
   pid?: unknown;
 }
@@ -69,6 +74,7 @@ export function applyPlaceSchemaFrame(
   if (msg.kind === 'status') {
     if (typeof msg.linked !== 'boolean') return null;
     if (msg.menu !== undefined) setPlaceSchemaMenuTier(menuTier(msg.menu));
+    if (msg.art !== undefined) setPlaceSchemaPortalArt(msg.art);
     setPlaceSchemaLinked(msg.linked);
     // an unlinked status forgets the holder; a linked one without it (the link button) keeps it
     if (!msg.linked) setPlaceSchemaHolder(null);
@@ -88,14 +94,18 @@ export function applyPlaceSchemaFrame(
     return 'skin';
   }
   const url = typeof msg.url === 'string' && SAFE.test(msg.url) ? msg.url : null;
-  if (!url) return null;
   if (msg.kind === 'portal') {
-    // PLACE-954: the destination's picture for the portal; the server checked it is the
-    // destination's own
-    if (url.length > 2048) return null;
-    setPortalDestinationPicture(url);
+    // PLACE-954: the destination's picture for the portal (the server checked it is the
+    // destination's own); PLACE-1026: its name for the rim. Either may come alone.
+    const name =
+      typeof msg.name === 'string' && msg.name.trim() ? msg.name.trim().slice(0, 32) : null;
+    if (msg.url !== undefined && (!url || url.length > 2048)) return null;
+    if (!url && !name) return null;
+    if (url) setPortalDestinationPicture(url);
+    setPortalDestinationName(name);
     return 'portal';
   }
+  if (!url) return null;
   if (msg.kind === 'ticket') nav.leave(url);
   else if (msg.kind === 'link') nav.open(url);
   else return null;

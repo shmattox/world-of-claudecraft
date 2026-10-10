@@ -185,6 +185,9 @@ const FLOOR_VFX_LAYERED_MODULES: readonly FloorVfxModule[] = [
  * otherwise, so a floor mechanic cannot ship outside the ladder unnoticed.
  */
 const FLOOR_VFX_OUT_OF_SCOPE: readonly string[] = [
+  // PLACE-1026: the PlaceSchema portal's ring stands upright; its halo planes and carved name sit
+  // in fixed orders 1-4 around the band, and its light pool is additive, never a telegraph
+  'src/render/placeschema_portal.ts',
   // pooled ability VFX families that stand up from the ground
   'src/render/ability_vfx/flipbooks.ts',
   'src/render/ability_vfx/overlay_sprites.ts',

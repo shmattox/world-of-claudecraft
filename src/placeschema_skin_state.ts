@@ -57,6 +57,15 @@ export function setPlaceSchemaMenuTier(next: MenuTier): void {
   for (const f of linkListeners) f();
 }
 
+/** PLACE-1026: how this realm draws its PlaceSchema portals, from the server's PLACESCHEMA_PORTAL_ART
+ *  (sent with the status): `default` = PlaceSchema's standard portal, `custom` = the game's own art. */
+export type PortalArt = 'default' | 'custom';
+let portalArt: PortalArt = 'default';
+export const placeSchemaPortalArt = (): PortalArt => portalArt;
+export function setPlaceSchemaPortalArt(raw: unknown): void {
+  portalArt = raw === 'custom' ? 'custom' : 'default';
+}
+
 /** PLACE-1018: the linked holder's key (hex), for the PlaceSchema menu's account line. */
 let holder: string | null = null;
 export const placeSchemaHolder = (): string | null => holder;
@@ -103,6 +112,12 @@ let destination: string | null = null;
 export const portalDestinationPicture = (): string | null => destination;
 export function setPortalDestinationPicture(url: string | null): void {
   destination = url;
+}
+/** PLACE-1026: the destination's name, arced on the portal's rim; null = no name on it. */
+let destinationName: string | null = null;
+export const portalDestinationName = (): string | null => destinationName;
+export function setPortalDestinationName(name: string | null): void {
+  destinationName = name;
 }
 
 export function setCarriedSkin(next: CarriedSkin | null): void {
