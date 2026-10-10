@@ -343,7 +343,8 @@ export const PROVING_SHORE_NPCS: Record<string, NpcDef> = {
     pos: { x: -284, z: -9 },
     facing: Math.PI,
     color: 0x4a6a8a,
-    questIds: ['q_ps_set_sail', 'q_ps_a_blade_that_travels'],
+    // PLACE-950: the carry errand first, so a newcomer sees it before the crossing
+    questIds: ['q_ps_a_blade_that_travels', 'q_ps_set_sail'],
     greeting:
       'Fresh off the crossing, $N? Warden Tam keeps the Gauntlet on the strand just south of my pier: run his lanes first and your legs will thank you. Every keeper on this shore hands you to the next when your work is done, and the card at the top of your screen always knows the way. When the vale calls you back, ring the bell standing beside my pier and the crossing will set you down in Eastbrook town.',
   },

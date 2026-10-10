@@ -23,6 +23,15 @@ import type { Entity } from '../types';
 
 export const FERRY_BELL_OBJECT_ID = 'ps_ferry_bell';
 
+/** PlaceSchema fork (PLACE-950): the off-rail errand that earns the blade a player carries to
+ *  other worlds (content/proving_shore.ts). The shore bell warns once before sailing without it. */
+export const BLADE_ERRAND_ID = 'q_ps_a_blade_that_travels';
+/** A second ring within this many seconds of the warning sails. */
+const ERRAND_WARNING_S = 60;
+const warnedAt = new WeakMap<PlayerMeta, number>();
+export const ERRAND_WARNING =
+  "You haven't earned Rook's blade that travels yet: ask Ferryman Odo for A Blade That Travels. Ring again to sail anyway.";
+
 /** Where the island bell sets a graduate down: the harbor town's dock road,
  *  beside the return bell at (-7.5, -100), facing up the crafts lane toward
  *  the Ravenpost mailbox so the first thing a graduate sees is the town, not
@@ -65,6 +74,17 @@ export function tryRingFerryBell(
     return true;
   }
   if (isOnProvingShore(obj.pos.x, obj.pos.z)) {
+    // PLACE-950: leaving the shore without the carry errand skips it, so the first ring says so
+    // and a second ring sails (the twin bell in town still brings the player back).
+    const warned = warnedAt.get(meta);
+    if (
+      !meta.questsDone.has(BLADE_ERRAND_ID) &&
+      (warned === undefined || ctx.time - warned > ERRAND_WARNING_S)
+    ) {
+      warnedAt.set(meta, ctx.time);
+      ctx.error(p.id, ERRAND_WARNING);
+      return true;
+    }
     displacePlayer(
       ctx,
       p,
