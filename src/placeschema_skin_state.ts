@@ -30,6 +30,14 @@ export function onPlaceSchemaLinkedChange(f: () => void): void {
   linkListeners.add(f);
 }
 
+/** PLACE-954: the destination's own picture (its manifest preview), shown in the portal; null until
+ *  the server sends it, and then the PlaceSchema mark stands in. */
+let destination: string | null = null;
+export const portalDestinationPicture = (): string | null => destination;
+export function setPortalDestinationPicture(url: string | null): void {
+  destination = url;
+}
+
 export function setCarriedSkin(next: CarriedSkin | null): void {
   skin = next;
 }

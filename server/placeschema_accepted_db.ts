@@ -133,7 +133,8 @@ export interface AcceptedStore {
   claims(accountId: number): Promise<Map<string, number>>;
   claim(accountId: number, grantId: string, characterId: number): Promise<ClaimOutcome>;
   cancels(accountId: number): Promise<{ grant: string; attempt: string }[]>;
-  putCancel(accountId: number, grant: string, attempt: string): Promise<void>;
+  /** one statement for every grant of an attempt: all of them are journalled, or none */
+  putCancels(accountId: number, grants: readonly string[], attempt: string): Promise<void>;
   dropCancel(accountId: number, grant: string): Promise<void>;
 }
 
@@ -160,11 +161,12 @@ export function pgAcceptedStore(): AcceptedStore {
           [accountId],
         )
       ).map((r) => ({ grant: r.grant_id, attempt: r.attempt })),
-    putCancel: async (accountId, grant, attempt) => {
+    putCancels: async (accountId, grants, attempt) => {
       await q(
-        `INSERT INTO placeschema_cancels (account_id, grant_id, attempt) VALUES ($1, $2, $3)
+        `INSERT INTO placeschema_cancels (account_id, grant_id, attempt)
+         SELECT $1, g, $3 FROM unnest($2::text[]) AS g
          ON CONFLICT (account_id, grant_id) DO UPDATE SET attempt = excluded.attempt`,
-        [accountId, grant, attempt],
+        [accountId, [...grants], attempt],
       );
     },
     dropCancel: async (accountId, grant) => {
