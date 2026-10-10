@@ -47,4 +47,14 @@ describe('WoC garment looks (PLACE-490)', () => {
       expect(def?.kind).toBe('armor');
     }
   });
+
+  it('garments need no KTX2 transcoder (deployed worlds block it) and keep their skins', () => {
+    for (const file of fs.readdirSync(DIR).filter((f) => f.endsWith('.glb'))) {
+      const glb = fs.readFileSync(path.join(DIR, file));
+      const gltf = JSON.parse(glb.subarray(20, 20 + glb.readUInt32LE(12)).toString('utf8'));
+      expect(gltf.extensionsUsed ?? [], file).not.toContain('KHR_texture_basisu');
+      expect(gltf.skins?.length ?? 0, file).toBeGreaterThan(0);
+      expect(gltf.animations ?? [], file).toEqual([]);
+    }
+  });
 });
