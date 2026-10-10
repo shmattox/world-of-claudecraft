@@ -4,7 +4,7 @@
 import { createHash } from 'node:crypto';
 import { schnorr } from '@noble/curves/secp256k1';
 import { describe, expect, it } from 'vitest';
-import { minecraftUuidOf, mojangSkin, skinForHolder } from '../../server/placeschema_skin';
+import { mojangSkin, skinForHolder } from '../../server/placeschema_skin';
 import { applyPlaceSchemaFrame } from '../../src/net/placeschema_frame';
 import { carriedSkin, setCarriedSkin } from '../../src/placeschema_skin_state';
 
@@ -21,22 +21,14 @@ function links(tags: string[][], created_at = 100, key = sk) {
   return { ...ev, id, sig: Buffer.from(schnorr.sign(id, key)).toString('hex') };
 }
 const D = ['d', 'placeschema.links'];
-
-describe('minecraftUuidOf', () => {
-  it("reads the minecraft link from the holder's newest signed record", () => {
-    const old = links([D, ['link', 'minecraft', '00000000-0000-0000-0000-000000000000']], 50);
-    const now = links([D, ['link', 'woc', '7@woc.test'], ['link', 'minecraft', UUID]]);
-    expect(minecraftUuidOf([old, now], holder)).toBe(UUID);
-  });
-
-  it('ignores a forged signature, another author, and a malformed id', () => {
-    const forged = { ...links([D, ['link', 'minecraft', UUID]]), sig: 'a'.repeat(128) };
-    expect(minecraftUuidOf([forged], holder)).toBeUndefined();
-    const other = links([D, ['link', 'minecraft', UUID]], 100, new Uint8Array(32).fill(9));
-    expect(minecraftUuidOf([other], holder)).toBeUndefined();
-    expect(minecraftUuidOf([links([D, ['link', 'minecraft', 'Notch']])], holder)).toBeUndefined();
-  });
-});
+function sign(kind: number, tags: string[][], created_at: number, key: Uint8Array) {
+  const pubkey = Buffer.from(schnorr.getPublicKey(key)).toString('hex');
+  const ev = { pubkey, created_at, kind, tags, content: '' };
+  const id = createHash('sha256')
+    .update(JSON.stringify([0, ev.pubkey, ev.created_at, ev.kind, ev.tags, ev.content]))
+    .digest('hex');
+  return { ...ev, id, sig: Buffer.from(schnorr.sign(id, key)).toString('hex') };
+}
 
 const PNG = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 1, 2, 3]);
 const mojang = (skin: object | null) =>
@@ -72,13 +64,32 @@ describe('mojangSkin', () => {
     ).toBeUndefined();
   });
 
-  it('skinForHolder: relay record -> uuid -> skin', async () => {
-    const query = async () => [links([D, ['link', 'minecraft', UUID]])];
-    const skin = await skinForHolder(holder, ['ws://relay.test'], {
-      query,
-      fetch: mojang({ url: 'https://textures.minecraft.net/texture/abc' }),
+  it('skinForHolder: an attested link -> uuid -> skin; an unattested one -> nothing (PLACE-412)', async () => {
+    const world = new Uint8Array(32).fill(3);
+    const owner = Buffer.from(schnorr.getPublicKey(world)).toString('hex');
+    const tags = [
+      ['platform', 'minecraft'],
+      ['id', UUID],
+      ['p', holder],
+      ['u', 'https://mc.test'],
+    ];
+    const att = sign(22251, tags, 90, world);
+    const originFacts = async () => ({
+      owner,
+      platform: { platform: 'minecraft', attested: true },
     });
+    const fetchSkin = mojang({ url: 'https://textures.minecraft.net/texture/abc' });
+    const attested = links([D, ['link', 'minecraft', UUID, JSON.stringify(att)]]);
+    const deps = (rec: object) => ({
+      query: async (_u: string, f: { kinds: number[] }) => (f.kinds[0] === 30082 ? [rec] : []),
+      fetch: fetchSkin,
+      originFacts,
+      now: 200,
+    });
+    const skin = await skinForHolder(holder, ['ws://relay.test'], deps(attested) as never);
     expect(skin?.model).toBe('classic');
+    const bare = links([D, ['link', 'minecraft', UUID]]);
+    expect(await skinForHolder(holder, ['ws://relay.test'], deps(bare) as never)).toBeUndefined();
   });
 });
 

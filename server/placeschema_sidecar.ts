@@ -416,7 +416,12 @@ export class PlaceSchemaCarry<S extends CarrySession> {
   private wearSkin(s: S, holder: string): void {
     if (this.skinned.get(s) === holder) return;
     this.skinned.set(s, holder);
-    const look = this.d.skin ?? ((h: string) => skinForHolder(h, this.cfg.relays ?? []));
+    const look =
+      this.d.skin ??
+      ((h: string) =>
+        skinForHolder(h, this.cfg.relays ?? [], {
+          allowLoopback: process.env.PLACESCHEMA_ALLOW_LOOPBACK === '1',
+        }));
     void look(holder)
       .then((skin) => {
         if (!skin || this.d.clients.get(s.pid) !== s) return;

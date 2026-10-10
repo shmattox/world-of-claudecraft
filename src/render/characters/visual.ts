@@ -88,6 +88,7 @@ import { disposeHeldPropIdles, updateHeldPropIdles } from './held_prop_idle';
 import { noteLookAttached } from './look_pieces';
 import type { EmoteClipSpec, VisualDef, WeaponLayoutOverride } from './manifest';
 import { createMetamorphWingPose, metamorphWingPoseInto } from './metamorph_wing_motion_core';
+import { MC_SKIN_TAG } from './minecraft_skin_body';
 import type { ModularAppearance, ModularLook } from './modular';
 import {
   PALADIN_BASTION_SWEEP_CLIP,
@@ -2056,7 +2057,11 @@ export class CharacterVisual {
    *  a far mesh whose materials are still linking never draws early and the
    *  articulated rig never hides without a ready stand-in. */
   private syncFarVisibility(): void {
-    const showFar = farMeshShown(this.far, this.farMesh !== null, this.farCompilePending);
+    // PLACE-412: a carried Minecraft skin is worn on the articulated rig, and the baked far mesh is
+    // WoC's own body; a skinned player stays articulated at every distance, as the local player does.
+    const skinned = !!this.root?.userData[MC_SKIN_TAG];
+    const showFar =
+      !skinned && farMeshShown(this.far, this.farMesh !== null, this.farCompilePending);
     const showRig = !showFar;
     if (this.modelWrap.visible !== showRig) this.modelWrap.visible = showRig;
     if (this.farMesh && this.farMesh.visible !== showFar) this.farMesh.visible = showFar;
