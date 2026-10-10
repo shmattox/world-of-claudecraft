@@ -290,23 +290,17 @@ export class PlaceSchemaCarry<S extends CarrySession> {
         touchPlaceschemaAccepted(meta.placeschemaAccepted);
         const pending = meta.inventory.find((x) => pendingOf(x) === itemId);
         if (pending) {
-          // Our own quest reward, tagged before the mint: that exact copy becomes the signed one.
+          // Our own quest reward, tagged before the mint: that exact copy becomes the signed one, and
+          // the blade earned to carry is held at once (PLACE-955: "Wield it here, or carry it").
           pending.instance = signedInstance(a);
+          this.hold(meta, itemId, g, s.pid);
           notices.push(`${a.label ?? 'Your item'} is now yours to carry to other worlds.`);
         } else {
           const inst = signedInstance(a, itemId === FOREIGN_WEAPON_ID);
           this.d.sim.addItemInstance(itemId, inst, s.pid);
-          // Decision 2 + PLACE-413: a weapon that arrived HELD goes to the main hand when this class
-          // can use it; one carried in a bag, or one this class can't use, stays in the bag (name and
-          // mesh kept). WoC's class rules are untouched.
-          if (
-            a.equipped &&
-            ITEMS[itemId]?.slot === 'mainhand' &&
-            canEquipItem(meta.cls, ITEMS[itemId])
-          ) {
-            const at = slotOfGrant(meta.inventory, g);
-            if (at >= 0) this.d.sim.equipItem?.(itemId, s.pid, 'mainhand', at);
-          }
+          // Decision 2 + PLACE-413: a weapon that arrived HELD goes to the main hand; one carried in
+          // a bag stays in the bag (name and mesh kept).
+          if (a.equipped) this.hold(meta, itemId, g, s.pid);
           notices.push(
             itemId !== FOREIGN_WEAPON_ID && itemId !== FOREIGN_KEEPSAKE_ID
               ? `${a.label ?? 'Your item'} is now yours to carry to other worlds.`
@@ -328,6 +322,20 @@ export class PlaceSchemaCarry<S extends CarrySession> {
       for (const n of notices) this.d.notice(s, n);
       await this.call('/mod/ack', { platformId: platformId(this.cfg, s.accountId), grants: toAck });
     }
+  }
+
+  /** A signed main-hand weapon goes to the main hand when this class can use it; otherwise it stays
+   *  in the bag. WoC's class rules are untouched. */
+  private hold(
+    meta: { cls: string; inventory: InvSlot[] },
+    itemId: string,
+    g: string,
+    pid: number,
+  ): void {
+    if (ITEMS[itemId]?.slot !== 'mainhand' || !canEquipItem(meta.cls as never, ITEMS[itemId]))
+      return;
+    const at = slotOfGrant(meta.inventory, g);
+    if (at >= 0) this.d.sim.equipItem?.(itemId, pid, 'mainhand', at);
   }
 
   /** Record who holds the account, and tell the client when that changes (PLACE-479: the bag's

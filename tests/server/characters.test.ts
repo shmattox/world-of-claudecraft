@@ -412,6 +412,7 @@ describe('character list handlers', () => {
           playtimeSeconds: 120,
           skinCatalog: 'mech',
           mainhandItemId: 'worn_sword',
+          mainhandMesh: null,
           offhandItemId: 'eastbrook_buckler',
           weaponSkinId: 'ice_fang_sword',
           appearance: null,
@@ -436,6 +437,7 @@ describe('character list handlers', () => {
           playtimeSeconds: 0, // null -> 0
           skinCatalog: 'class',
           mainhandItemId: null,
+          mainhandMesh: null,
           offhandItemId: null,
           weaponSkinId: null,
           appearance: null,
