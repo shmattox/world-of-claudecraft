@@ -14,6 +14,16 @@ let skin: CarriedSkin | null = null;
 
 export const carriedSkin = (): CarriedSkin | null => skin;
 
+/** PLACE-412: other players' carried skins, by entity id (the server sends them with a pid). Never
+ *  remembered: the world sends them again. ponytail: oldest-out at 64 players; a map per realm if needed. */
+const peers = new Map<number, CarriedSkin>();
+export const carriedSkinFor = (pid: number): CarriedSkin | null => peers.get(pid) ?? null;
+export function setPeerSkin(pid: number, next: CarriedSkin): void {
+  peers.delete(pid);
+  peers.set(pid, next);
+  if (peers.size > 64) peers.delete(peers.keys().next().value as number);
+}
+
 /** PLACE-479: is this account linked to PlaceSchema? null until the sidecar has answered (no
  *  sidecar, offline: the bag shows no link button at all). */
 let linked: boolean | null = null;

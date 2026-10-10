@@ -8,6 +8,7 @@
 
 import {
   setCarriedSkin,
+  setPeerSkin,
   setPlaceSchemaLinked,
   setPortalDestinationPicture,
 } from '../placeschema_skin_state';
@@ -20,6 +21,8 @@ export interface PlaceSchemaFrame {
   url?: unknown;
   model?: unknown;
   linked?: unknown;
+  /** PLACE-412: another player's skin, by entity id */
+  pid?: unknown;
 }
 
 export interface Nav {
@@ -50,6 +53,7 @@ const browserNav: Nav = {
 export function applyPlaceSchemaFrame(
   msg: PlaceSchemaFrame,
   nav: Nav = browserNav,
+  ownPid?: number,
 ): 'ticket' | 'link' | 'skin' | 'status' | 'portal' | null {
   if (msg.kind === 'status') {
     if (typeof msg.linked !== 'boolean') return null;
@@ -58,7 +62,13 @@ export function applyPlaceSchemaFrame(
   }
   if (msg.kind === 'skin') {
     if (typeof msg.url !== 'string' || msg.url.length > 200_000 || !SKIN.test(msg.url)) return null;
-    setCarriedSkin({ url: msg.url, model: msg.model === 'slim' ? 'slim' : 'classic' });
+    const worn = {
+      url: msg.url,
+      model: msg.model === 'slim' ? ('slim' as const) : ('classic' as const),
+    };
+    // PLACE-412: another player's skin goes to them; no pid (or our own) is ours, as before
+    if (Number.isSafeInteger(msg.pid) && msg.pid !== ownPid) setPeerSkin(msg.pid as number, worn);
+    else setCarriedSkin(worn);
     return 'skin';
   }
   const url = typeof msg.url === 'string' && SAFE.test(msg.url) ? msg.url : null;

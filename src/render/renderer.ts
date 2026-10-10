@@ -10378,8 +10378,8 @@ export class Renderer {
           e.offhandItemId,
           e.weaponSkinId,
         );
-        wearCarriedSkin(v.visual.root, v.visual.height); // PLACE-410: the arriving Minecraft skin
       }
+      wearCarriedSkin(v.visual.root, v.visual.height, e.id, this.sim.player.id); // PLACE-410/412
       if (iceBlockActivated) this.activeVisual(v)?.playEmote('wave', 1);
 
       // live skin swap: appearance changed (in-game changer or a multiplayer peer).

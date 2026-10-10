@@ -13,7 +13,7 @@
 // not drawn; add them if a skin reads wrong in the walk.
 
 import * as THREE from 'three';
-import { carriedSkin } from '../../placeschema_skin_state';
+import { carriedSkin, carriedSkinFor } from '../../placeschema_skin_state';
 
 type Limb = {
   bone: string;
@@ -355,27 +355,41 @@ export function wearMinecraftSkin(
 }
 
 const textures = new Map<string, THREE.Texture>();
+/** PLACE-412: every player in view may wear a skin, so textures are kept per URL, oldest-out. */
+export const SKIN_TEXTURE_CAP = 16;
 
-/** One nearest-filtered texture per skin URL. */
+/** One nearest-filtered texture per skin URL (the most recent SKIN_TEXTURE_CAP stay live). */
 export function skinTexture(url: string): THREE.Texture {
   let t = textures.get(url);
-  if (!t) {
+  if (t) {
+    textures.delete(url); // most recently used goes last
+  } else {
     t = new THREE.TextureLoader().load(url);
     t.magFilter = THREE.NearestFilter;
     t.minFilter = THREE.NearestFilter;
     t.generateMipmaps = false;
     t.colorSpace = THREE.SRGBColorSpace;
-    for (const old of textures.values()) old.dispose();
-    textures.clear(); // ponytail: one skin per client (the local player's own)
-    textures.set(url, t);
+    // ponytail: an evicted texture still on a rig re-uploads on its next use (three re-creates it)
+    if (textures.size >= SKIN_TEXTURE_CAP) {
+      const [oldest, old] = textures.entries().next().value as [string, THREE.Texture];
+      textures.delete(oldest);
+      old.dispose();
+    }
   }
+  textures.set(url, t);
   return t;
 }
 
 /** Per frame, for the local player's visual: wear the carried skin if one arrived (once per rig and
  *  skin; a rebuilt rig gets it again) and keep the rig's own body hidden under it; take it off again when the skin goes. */
-export function wearCarriedSkin(root: THREE.Object3D, height: number): void {
-  const skin = carriedSkin();
+export function wearCarriedSkin(
+  root: THREE.Object3D,
+  height: number,
+  pid?: number,
+  selfPid?: number,
+): void {
+  // PLACE-412: another player wears the skin the server sent for them; no pid (or ours) = our own
+  const skin = pid === undefined || pid === selfPid ? carriedSkin() : carriedSkinFor(pid);
   if (!skin) {
     if (root.userData[MC_SKIN_TAG]) removeMinecraftSkin(root);
     return;
