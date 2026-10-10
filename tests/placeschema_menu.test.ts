@@ -8,6 +8,7 @@ import { applyPlaceSchemaFrame } from '../src/net/placeschema_frame';
 import {
   avatarChoice,
   menuTier,
+  placeSchemaPortalArt,
   restoreCarriedSkin,
   setAvatarChoice,
   setCarriedSkin,
@@ -78,6 +79,11 @@ describe('the PlaceSchema menu (PLACE-1018)', () => {
     );
     applyPlaceSchemaFrame({ kind: 'status', linked: true, menu: 'full' });
     expect(shown('.ps-menu-button')).toBe(true);
+    // PLACE-1026: the portal art rides the same status; anything but custom is default
+    applyPlaceSchemaFrame({ kind: 'status', linked: true, art: 'custom' });
+    expect(placeSchemaPortalArt()).toBe('custom');
+    applyPlaceSchemaFrame({ kind: 'status', linked: true, art: 'x' });
+    expect(placeSchemaPortalArt()).toBe('default');
     expect([menuTier(undefined), menuTier('partial'), menuTier('off'), menuTier('x')]).toEqual([
       'full',
       'partial',

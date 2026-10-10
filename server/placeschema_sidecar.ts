@@ -145,6 +145,15 @@ export interface SidecarConfig {
   relays?: string[];
   /** PLACE-1018: how much PlaceSchema menu the client shows (PLACESCHEMA_MENU); full when absent */
   menu?: MenuTier;
+  /** PLACE-1026: how the realm draws its PlaceSchema portals (PLACESCHEMA_PORTAL_ART) */
+  portalArt?: PortalArt;
+}
+
+/** PLACESCHEMA_PORTAL_ART: `default` (PlaceSchema's standard portal, the Hub's) or `custom` (the
+ *  game's own art). Unset or unknown is default: the portal still stands, in PlaceSchema's look. */
+export type PortalArt = 'default' | 'custom';
+export function portalArtOf(raw: string | undefined): PortalArt {
+  return raw === 'custom' ? 'custom' : 'default';
 }
 
 export type MenuTier = 'full' | 'partial' | 'off';
@@ -168,6 +177,7 @@ export function sidecarConfig(env: NodeJS.ProcessEnv): SidecarConfig | null {
     home: env.PLACESCHEMA_HOME ?? '',
     relays: (env.PLACESCHEMA_RELAYS ?? '').split(',').filter((r) => /^wss?:\/\//.test(r)),
     menu: menuTierOf(env.PLACESCHEMA_MENU),
+    portalArt: portalArtOf(env.PLACESCHEMA_PORTAL_ART),
   };
 }
 
@@ -239,13 +249,22 @@ export interface CarryDeps<S extends CarrySession> {
     frame:
       | {
           t: 'placeschema';
-          kind: 'ticket' | 'link' | 'skin' | 'portal';
+          kind: 'ticket' | 'link' | 'skin';
           url: string;
           model?: string;
           /** PLACE-412: whose skin (another player's); absent = this player's own */
           pid?: number;
         }
-      | { t: 'placeschema'; kind: 'status'; linked: boolean; holder?: string; menu?: MenuTier }
+      /** PLACE-954: the destination's own picture; PLACE-1026: its name, arced on the portal's rim */
+      | { t: 'placeschema'; kind: 'portal'; url?: string; name?: string }
+      | {
+          t: 'placeschema';
+          kind: 'status';
+          linked: boolean;
+          holder?: string;
+          menu?: MenuTier;
+          art?: PortalArt;
+        }
       /** PLACE-412: forget other players' skins; the ones still here follow */
       | { t: 'placeschema'; kind: 'skins' },
   ): void;
@@ -497,6 +516,7 @@ export class PlaceSchemaCarry<S extends CarrySession> {
         linked: !!holder,
         ...(holder ? { holder } : {}),
         menu: this.cfg.menu ?? 'full',
+        art: this.cfg.portalArt ?? 'default',
       });
     }
     if (holder) this.wearSkin(s, holder);
@@ -506,7 +526,7 @@ export class PlaceSchemaCarry<S extends CarrySession> {
   /** The destination's own picture, from its manifest's `preview` (PLACE-183), for the portal to show
    *  (PLACE-954). Only a picture on the destination's own origin, over http(s), as hubs accept it
    *  (open-place protocol isSafeDeclaredUrl). Fetched once; a failed fetch is tried again later. */
-  private preview: Promise<string | undefined> | undefined;
+  private preview: Promise<{ url?: string; name?: string } | undefined> | undefined;
   private showDestination(s: S): void {
     const home = this.cfg.home;
     if (!home) return;
@@ -518,19 +538,21 @@ export class PlaceSchemaCarry<S extends CarrySession> {
         },
       );
       if (!r.ok) throw new Error(`manifest ${r.status}`); // retried on a later session
-      const value = ((await r.json()) as { preview?: unknown }).preview;
-      if (typeof value !== 'string') return undefined;
-      const url = new URL(value, home);
-      return /^https?:$/.test(url.protocol) && url.origin === new URL(home).origin
-        ? url.href
-        : undefined;
+      const manifest = (await r.json()) as { preview?: unknown; name?: unknown };
+      const value = manifest.preview;
+      const url = typeof value === 'string' ? new URL(value, home) : undefined;
+      const own = url && /^https?:$/.test(url.protocol) && url.origin === new URL(home).origin;
+      // PLACE-1026: its name too, for the rim (one line, short enough to arc over the gate)
+      const name = typeof manifest.name === 'string' ? manifest.name.trim().slice(0, 32) : '';
+      if (!own && !name) return undefined;
+      return { ...(own ? { url: url.href } : {}), ...(name ? { name } : {}) };
     })().catch(() => {
       this.preview = undefined;
       return undefined;
     });
-    void this.preview.then((url) => {
-      if (url && this.d.clients.get(s.pid) === s)
-        this.d.send(s, { t: 'placeschema', kind: 'portal', url });
+    void this.preview.then((dest) => {
+      if (dest && this.d.clients.get(s.pid) === s)
+        this.d.send(s, { t: 'placeschema', kind: 'portal', ...dest });
     });
   }
 
@@ -548,6 +570,7 @@ export class PlaceSchemaCarry<S extends CarrySession> {
           kind: 'status',
           linked: true,
           menu: this.cfg.menu ?? 'full',
+          art: this.cfg.portalArt ?? 'default',
         });
       await this.openLink(s);
     }).finally(() => this.linking.delete(s.accountId));

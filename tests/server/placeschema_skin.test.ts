@@ -173,4 +173,12 @@ describe('the portal frame (PLACE-954)', () => {
     );
     expect(portalDestinationPicture()).toBe('https://hub.test/assets/p.jpg');
   });
+
+  it('PLACE-1026: keeps the destination name for the rim, alone or with the picture', async () => {
+    const { portalDestinationName } = await import('../../src/placeschema_skin_state');
+    expect(applyPlaceSchemaFrame({ kind: 'portal', name: '  The Forge ' })).toBe('portal');
+    expect(portalDestinationName()).toBe('The Forge');
+    expect(applyPlaceSchemaFrame({ kind: 'portal' })).toBeNull();
+    expect(applyPlaceSchemaFrame({ kind: 'portal', url: 'javascript:x', name: 'Hub' })).toBeNull();
+  });
 });

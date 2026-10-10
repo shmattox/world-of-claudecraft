@@ -14,12 +14,12 @@ import {
   templateFor,
 } from '../../server/placeschema_sidecar';
 import { ITEMS } from '../../src/sim/data';
+import { grantInventoryInstances } from '../../src/sim/inventory_grant';
 import {
   loadPlaceschemaAccepted,
   savedPlaceschemaAccepted,
 } from '../../src/sim/placeschema_accepted';
 import { PLACESCHEMA_PORTALS, PlaceSchemaPortalGate } from '../../src/sim/placeschema_portal';
-import { grantInventoryInstances } from '../../src/sim/inventory_grant';
 import type { InvSlot } from '../../src/sim/types';
 
 const G1 = 'a'.repeat(64);
@@ -377,6 +377,23 @@ async function holding() {
 }
 
 describe('placeschema sidecar game side (PLACE-276)', () => {
+  it('PLACE-1026: PLACESCHEMA_PORTAL_ART picks the portal art; unset or unknown is default', () => {
+    const artOf = (v?: string) =>
+      sidecarConfig({
+        PLACESCHEMA_SIDECAR_URL: 'http://s',
+        PLACESCHEMA_MOD_TOKEN: 'x',
+        PLACESCHEMA_REALM_HOST: 'woc.test',
+        ...(v === undefined ? {} : { PLACESCHEMA_PORTAL_ART: v }),
+      } as never)?.portalArt;
+    expect([artOf(), artOf('default'), artOf('custom'), artOf(''), artOf('CUSTOM')]).toEqual([
+      'default',
+      'default',
+      'custom',
+      'default',
+      'default',
+    ]);
+  });
+
   it('PLACE-1018: PLACESCHEMA_MENU picks the menu tier; unset is full, empty or unknown refuses', () => {
     const tierOf = (v?: string) =>
       sidecarConfig({
@@ -571,6 +588,7 @@ describe('placeschema sidecar game side (PLACE-276)', () => {
       linked: true,
       holder: 'h',
       menu: 'full',
+      art: 'default',
     }); // PLACE-1018: the holder too
     expect(slotOfGrant(w.inventory, G1)).toBe(0); // the arrival is delivered
     await w.carry.join(w.session());
@@ -579,7 +597,9 @@ describe('placeschema sidecar game side (PLACE-276)', () => {
     w.frames.length = 0;
     await w.carry.link(w.session()); // linked: no new link page, just the status
     expect(w.calls).toEqual([]);
-    expect(w.frames).toEqual([{ t: 'placeschema', kind: 'status', linked: true, menu: 'full' }]);
+    expect(w.frames).toEqual([
+      { t: 'placeschema', kind: 'status', linked: true, menu: 'full', art: 'default' },
+    ]);
   });
 
   it('PLACE-479: a spammed link button makes exactly one /mod/link call', async () => {
@@ -879,6 +899,20 @@ describe('PLACE-954: carrying out is a walk through the portal', () => {
     await down.carry.join(down.session());
     await flush();
     expect(down.frames.filter((f) => (f as { kind?: string }).kind === 'portal')).toHaveLength(1);
+    const named = world(); // PLACE-1026: its name rides along, for the rim
+    named.destinationDeclares({ preview: '/assets/p.jpg', name: '  The Hub  ' } as never);
+    await named.carry.join(named.session());
+    await flush();
+    expect(named.frames.filter((f) => (f as { kind?: string }).kind === 'portal')).toEqual([
+      { t: 'placeschema', kind: 'portal', url: 'http://hub.test/assets/p.jpg', name: 'The Hub' },
+    ]);
+    const nameOnly = world(); // a name and no picture still names the rim
+    nameOnly.destinationDeclares({ name: 'The Forge' });
+    await nameOnly.carry.join(nameOnly.session());
+    await flush();
+    expect(nameOnly.frames.filter((f) => (f as { kind?: string }).kind === 'portal')).toEqual([
+      { t: 'placeschema', kind: 'portal', name: 'The Forge' },
+    ]);
     const other = world();
     other.destinationDeclares({ preview: 'https://evil.test/beacon.jpg' });
     await other.carry.join(other.session());
