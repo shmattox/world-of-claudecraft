@@ -540,12 +540,20 @@ export class PlaceSchemaCarry<S extends CarrySession> {
       if (!r.ok) throw new Error(`manifest ${r.status}`); // retried on a later session
       const manifest = (await r.json()) as { preview?: unknown; name?: unknown };
       const value = manifest.preview;
-      const url = typeof value === 'string' ? new URL(value, home) : undefined;
-      const own = url && /^https?:$/.test(url.protocol) && url.origin === new URL(home).origin;
+      let url: URL | undefined;
+      try {
+        url = typeof value === 'string' ? new URL(value, home) : undefined;
+      } catch {
+        url = undefined; // a malformed picture never costs the destination its name
+      }
+      const own =
+        url && /^https?:$/.test(url.protocol) && url.origin === new URL(home).origin
+          ? url.href
+          : undefined;
       // PLACE-1026: its name too, for the rim (one line, short enough to arc over the gate)
       const name = typeof manifest.name === 'string' ? manifest.name.trim().slice(0, 32) : '';
       if (!own && !name) return undefined;
-      return { ...(own ? { url: url.href } : {}), ...(name ? { name } : {}) };
+      return { ...(own ? { url: own } : {}), ...(name ? { name } : {}) };
     })().catch(() => {
       this.preview = undefined;
       return undefined;

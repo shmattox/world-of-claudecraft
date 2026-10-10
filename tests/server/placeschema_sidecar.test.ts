@@ -907,7 +907,7 @@ describe('PLACE-954: carrying out is a walk through the portal', () => {
       { t: 'placeschema', kind: 'portal', url: 'http://hub.test/assets/p.jpg', name: 'The Hub' },
     ]);
     const nameOnly = world(); // a name and no picture still names the rim
-    nameOnly.destinationDeclares({ name: 'The Forge' });
+    nameOnly.destinationDeclares({ name: 'The Forge', preview: 'http://[' }); // a broken picture
     await nameOnly.carry.join(nameOnly.session());
     await flush();
     expect(nameOnly.frames.filter((f) => (f as { kind?: string }).kind === 'portal')).toEqual([
