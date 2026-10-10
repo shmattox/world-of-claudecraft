@@ -19,6 +19,8 @@
 
 import { describe, expect, it } from 'vitest';
 import { isOnProvingShore } from '../src/sim/content/proving_shore';
+import { BLADE_ERRAND_ID, ERRAND_WARNING } from '../src/sim/interactions/ferry_bell';
+import { NPCS } from '../src/sim/data';
 import { Sim } from '../src/sim/sim';
 import type { Entity } from '../src/sim/types';
 
@@ -65,6 +67,8 @@ describe('the ferry bells are an ungated two-way crossing', () => {
     expect(meta.questLog.size).toBe(0);
     const { island, town } = bells(sim);
     const p = standAt(sim, island);
+    sim.pickUpObject(island.id); // PLACE-950: the first ring warns about the carry errand
+    expect(isOnProvingShore(p.pos.x, p.pos.z), 'warned, still on the island').toBe(true);
     sim.pickUpObject(island.id);
     expect(isOnProvingShore(p.pos.x, p.pos.z), 'island bell lands in town').toBe(false);
     standAt(sim, town);
@@ -81,6 +85,7 @@ describe('the ferry bells are an ungated two-way crossing', () => {
     const sim = makeSim();
     const { island } = bells(sim);
     const p = standAt(sim, island);
+    sim.players.get(sim.playerId)?.questsDone.add(BLADE_ERRAND_ID); // no errand warning here
     p.inCombat = true;
     const before = { ...p.pos };
     sim.events = [];
@@ -99,5 +104,34 @@ describe('the ferry bells are an ungated two-way crossing', () => {
     p.inCombat = false;
     sim.pickUpObject(island.id);
     expect(isOnProvingShore(p.pos.x, p.pos.z), 'the same click sails once combat ends').toBe(false);
+  });
+});
+
+describe('PLACE-950: the shore bell warns before skipping the carry errand', () => {
+  it('without A Blade That Travels the first ring warns and stays; a second ring sails', () => {
+    const sim = makeSim();
+    const { island } = bells(sim);
+    const p = standAt(sim, island);
+    sim.events = [];
+    sim.pickUpObject(island.id);
+    expect(isOnProvingShore(p.pos.x, p.pos.z)).toBe(true);
+    expect(sim.events).toContainEqual(
+      expect.objectContaining({ type: 'error', pid: sim.playerId, text: ERRAND_WARNING }),
+    );
+    sim.pickUpObject(island.id);
+    expect(isOnProvingShore(p.pos.x, p.pos.z)).toBe(false);
+  });
+
+  it('with the errand done the bell sails at once', () => {
+    const sim = makeSim();
+    const { island } = bells(sim);
+    const p = standAt(sim, island);
+    sim.players.get(sim.playerId)?.questsDone.add(BLADE_ERRAND_ID);
+    sim.pickUpObject(island.id);
+    expect(isOnProvingShore(p.pos.x, p.pos.z)).toBe(false);
+  });
+
+  it('Ferryman Odo offers the carry errand before the crossing', () => {
+    expect(NPCS.ferryman_odo.questIds[0]).toBe(BLADE_ERRAND_ID);
   });
 });

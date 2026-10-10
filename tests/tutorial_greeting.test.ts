@@ -4,7 +4,7 @@
 import { describe, expect, it } from 'vitest';
 import { PROVING_SHORE_ARRIVAL } from '../src/sim/content/proving_shore';
 import { DUNGEON_X_THRESHOLD, NPCS } from '../src/sim/data';
-import { FERRY_BELL_TOWN_LANDING } from '../src/sim/interactions/ferry_bell';
+import { FERRY_BELL_TOWN_LANDING, BLADE_ERRAND_ID } from '../src/sim/interactions/ferry_bell';
 import { type PlayerMeta, Sim } from '../src/sim/sim';
 import type { SimContext } from '../src/sim/sim_context';
 import { maybeEmitTutorialGreeting, updateTutorialGreeting } from '../src/sim/tutorial/greeting';
@@ -294,6 +294,8 @@ describe('the ferry bells (the clicked crossing)', () => {
     const p = requireEntity(sim);
     p.pos.x = island.pos.x + 1;
     p.pos.z = island.pos.z;
+    // the carry errand done, so the bell does not first warn about it (PLACE-950, tests/ferry_bell)
+    sim.players.get(sim.playerId)?.questsDone.add(BLADE_ERRAND_ID);
     sim.events = [];
     sim.pickUpObject(island.id);
     expect(
