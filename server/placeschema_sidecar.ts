@@ -357,7 +357,8 @@ export class PlaceSchemaCarry<S extends CarrySession> {
           signal: AbortSignal.timeout(10_000),
         },
       );
-      const value = r.ok ? ((await r.json()) as { preview?: unknown }).preview : undefined;
+      if (!r.ok) throw new Error(`manifest ${r.status}`); // retried on a later session
+      const value = ((await r.json()) as { preview?: unknown }).preview;
       if (typeof value !== 'string') return undefined;
       const url = new URL(value, home);
       return /^https?:$/.test(url.protocol) && url.origin === new URL(home).origin

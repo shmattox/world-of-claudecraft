@@ -830,6 +830,17 @@ describe('PLACE-954: carrying out is a walk through the portal', () => {
     expect(shown).toEqual([
       { t: 'placeschema', kind: 'portal', url: 'http://hub.test/assets/preview-1.jpg' },
     ]);
+    const down = world(); // the destination is briefly down: a later session tries again
+    down.faults['/.well-known/placeschema.json'] = 'down';
+    await down.carry.join(down.session());
+    await flush();
+    delete down.faults['/.well-known/placeschema.json'];
+    down.destinationDeclares({ preview: '/assets/preview-2.jpg' });
+    down.relogin();
+    (down.carry as unknown as { told: WeakMap<object, unknown> }).told = new WeakMap(); // a new session
+    await down.carry.join(down.session());
+    await flush();
+    expect(down.frames.filter((f) => (f as { kind?: string }).kind === 'portal')).toHaveLength(1);
     const other = world();
     other.destinationDeclares({ preview: 'https://evil.test/beacon.jpg' });
     await other.carry.join(other.session());
