@@ -106,6 +106,7 @@ describe('publicInstanceView: the display trim', () => {
       'lootQuality',
       'name',
       'perfected',
+      'psMesh',
       'rift',
       'rolled',
       'signer',
@@ -120,6 +121,7 @@ describe('publicInstanceView: the display trim', () => {
       'lootQuality',
       'name',
       'perfected',
+      'psMesh',
       'rift',
       'rolled',
       'signer',
@@ -409,5 +411,20 @@ describe('sanitizeEscrowSlot', () => {
     const clean = sanitizeEscrowSlot(raw, 20, dropped);
     expect(clean).toEqual(raw);
     expect(dropped).toEqual([]);
+  });
+});
+
+describe('PLACE-947: a carried copy keeps its own mesh on the wire', () => {
+  it('projects a well-formed psMesh to every viewer and drops a malformed one', async () => {
+    const { equippedInstanceWire } = await import('../server/equipped_instance_wire');
+    const mesh = `ps_${'a'.repeat(32)}.glb`;
+    expect(equippedInstanceWire({ equippedInstances: { mainhand: { psMesh: mesh } } })).toEqual({
+      mainhand: { psMesh: mesh },
+    });
+    expect(publicInstanceView({ psMesh: mesh })).toEqual({ psMesh: mesh });
+    expect(
+      equippedInstanceWire({ equippedInstances: { mainhand: { psMesh: '../x.glb' } } }),
+    ).toBeUndefined();
+    expect(publicInstanceView({ psMesh: '../x.glb' })).toEqual({});
   });
 });
