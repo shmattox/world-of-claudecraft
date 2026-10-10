@@ -736,7 +736,7 @@ describe('PLACE-954: carrying out is a walk through the portal', () => {
   const G2 = 'b'.repeat(64);
   const G3 = 'c'.repeat(64);
   const shore = PLACESCHEMA_PORTALS[0];
-  // the shore gate faces -z: walking north (+z) goes through it
+  // a step south of the shore gate, then into its opening (either side goes through)
   const before = { x: shore.x, z: shore.z - 3 };
   const walkThrough = (w: ReturnType<typeof world>) => {
     w.standAt(before.x, before.z);

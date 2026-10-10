@@ -11,9 +11,11 @@ export interface PlaceSchemaPortalSpot {
   facing: number;
 }
 
-/** One on the Proving Shore beside the arrival and Odo's pier, one in Eastbrook by the square. */
+/** One on the Proving Shore on the beach just south of the arrival, facing it (off the shore's routes:
+ *  at (-292, -6) it stood on the path from Odo's pier to the practice yard, and players doing the
+ *  errand walked through it), one in Eastbrook by the square. */
 export const PLACESCHEMA_PORTALS: readonly PlaceSchemaPortalSpot[] = [
-  { x: -292, z: -6, facing: Math.PI },
+  { x: -284, z: -28, facing: 0 },
   { x: 0, z: -20, facing: 0 },
 ];
 

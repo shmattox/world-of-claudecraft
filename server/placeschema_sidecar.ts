@@ -627,7 +627,7 @@ export class PlaceSchemaCarry<S extends CarrySession> {
     const name = (inst as { name?: unknown } | undefined)?.name;
     this.d.notice(
       s,
-      `${typeof name === 'string' ? name : 'Your item'} is ready to carry: walk through the PlaceSchema portal, by the pier on the Proving Shore or south of the Eastbrook square.`,
+      `${typeof name === 'string' ? name : 'Your item'} is ready to carry: walk through the PlaceSchema portal, on the beach just south of where you land on the Proving Shore, or south of the Eastbrook square.`,
     );
   }
 
