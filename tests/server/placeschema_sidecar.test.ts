@@ -1119,4 +1119,22 @@ describe('PLACE-990: a copy carries its own WoC data and comes home whole', () =
     await w.carry.join(w.session());
     expect(w.inventory).toEqual([before]);
   });
+
+  it('our minter unknown (manifest down): the native copy waits unclaimed, then comes home whole', async () => {
+    const w = world();
+    await w.carry.join(w.session());
+    w.inventory.push({ itemId: 'greyjaw_pelt_cloak', count: 1 });
+    await w.carry.questDone(w.session(), 'q_greyjaw');
+    const before = clone(w.inventory[0]);
+    await w.carry.carry(w.session());
+    w.timeout();
+    const fresh = w.crash(); // a new process: the minter is not known yet
+    w.faults['/.well-known/placeschema.json'] = 'down';
+    await fresh.join(w.session());
+    expect(slotOfGrant(w.inventory, G1)).toBe(-1); // not added, not acked, not claimed
+    expect(w.claims.has(G1)).toBe(false);
+    delete w.faults['/.well-known/placeschema.json'];
+    await fresh.join(w.session());
+    expect(w.inventory).toEqual([before]);
+  });
 });

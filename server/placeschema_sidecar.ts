@@ -370,14 +370,21 @@ export class PlaceSchemaCarry<S extends CarrySession> {
       });
       if (!r.ok) return;
       this.setLinked(s, r.body.holder ?? null);
+      const offered = (r.body.add ?? []) as Added[];
+      // PLACE-990: our own minter, known BEFORE anything is claimed (no await between a claim and its
+      // item). Unknown (the manifest fetch failed): a grant carrying native data waits for a later join,
+      // unclaimed and unacked, rather than coming home rebuilt from the catalog.
+      const hasNative = (a: Added) => !!a?.grant?.content?.includes(NATIVE_PREFIX);
+      const minter = offered.some(hasNative) ? await this.minter() : undefined;
       const meta = this.d.sim.meta(s.pid);
       if (!meta || this.d.clients.get(s.pid) !== s) return;
       // Exactly once PER ACCOUNT, claim first: each offered grant is claimed for the account in its own
       // committed statement BEFORE its item is added (placeschema_accepted_db.ts has the crash cases).
       const toAck: string[] = [];
       const notices: string[] = [];
-      for (const a of (r.body.add ?? []) as Added[]) {
+      for (const a of offered) {
         if (!a?.grant || !HEX64.test(a.grant.id)) continue;
+        if (hasNative(a) && !minter) continue;
         const itemId = itemIdForGrant(a.grant);
         const g = a.grant.id;
         const outcome = await this.d.store.claim(s.accountId, g, s.characterId);
@@ -389,9 +396,7 @@ export class PlaceSchemaCarry<S extends CarrySession> {
         meta.placeschemaAccepted.add(g); // the save confirms (un-pends) the claim in its transaction
         touchPlaceschemaAccepted(meta.placeschemaAccepted);
         // PLACE-990: our own copy coming home is rebuilt from the data it left with, not the catalog
-        const native = a.grant.content.includes(NATIVE_PREFIX)
-          ? nativeOf(a.grant, await this.minter())
-          : undefined;
+        const native = hasNative(a) ? nativeOf(a.grant, minter) : undefined;
         const own = native?.itemId === itemId ? native : undefined;
         const pending = meta.inventory.find((x) => pendingOf(x) === itemId);
         if (pending) {
