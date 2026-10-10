@@ -143,6 +143,18 @@ export interface SidecarConfig {
   home: string;
   /** relays holding the holders' linked accounts (kind 30082), for the arriving skin */
   relays?: string[];
+  /** PLACE-1018: how much PlaceSchema menu the client shows (PLACESCHEMA_MENU); full when absent */
+  menu?: MenuTier;
+}
+
+export type MenuTier = 'full' | 'partial' | 'off';
+
+/** PLACESCHEMA_MENU: unset = full; set, it must name a tier (an empty or unknown value refuses to
+ *  start, so a typo never silently ships the full menu). */
+export function menuTierOf(raw: string | undefined): MenuTier {
+  if (raw === undefined) return 'full';
+  if (raw === 'full' || raw === 'partial' || raw === 'off') return raw;
+  throw new Error(`placeschema: PLACESCHEMA_MENU must be full, partial or off (got "${raw}")`);
 }
 
 export function sidecarConfig(env: NodeJS.ProcessEnv): SidecarConfig | null {
@@ -155,6 +167,7 @@ export function sidecarConfig(env: NodeJS.ProcessEnv): SidecarConfig | null {
     realmHost: realmHostOf(env),
     home: env.PLACESCHEMA_HOME ?? '',
     relays: (env.PLACESCHEMA_RELAYS ?? '').split(',').filter((r) => /^wss?:\/\//.test(r)),
+    menu: menuTierOf(env.PLACESCHEMA_MENU),
   };
 }
 
@@ -232,7 +245,7 @@ export interface CarryDeps<S extends CarrySession> {
           /** PLACE-412: whose skin (another player's); absent = this player's own */
           pid?: number;
         }
-      | { t: 'placeschema'; kind: 'status'; linked: boolean }
+      | { t: 'placeschema'; kind: 'status'; linked: boolean; holder?: string; menu?: MenuTier }
       /** PLACE-412: forget other players' skins; the ones still here follow */
       | { t: 'placeschema'; kind: 'skins' },
   ): void;
@@ -477,7 +490,14 @@ export class PlaceSchemaCarry<S extends CarrySession> {
       // the first status of a session also shows the portal what lies beyond it (PLACE-954)
       if (!this.told.has(s)) this.showDestination(s);
       this.told.set(s, holder);
-      this.d.send(s, { t: 'placeschema', kind: 'status', linked: !!holder });
+      // PLACE-1018: the holder too, for the in-game PlaceSchema menu's account line
+      this.d.send(s, {
+        t: 'placeschema',
+        kind: 'status',
+        linked: !!holder,
+        ...(holder ? { holder } : {}),
+        menu: this.cfg.menu ?? 'full',
+      });
     }
     if (holder) this.wearSkin(s, holder);
     this.showSkins(s);
@@ -522,7 +542,13 @@ export class PlaceSchemaCarry<S extends CarrySession> {
     this.linking.add(s.accountId);
     return this.locked(s.accountId, async () => {
       const holder = this.linked.get(s.accountId);
-      if (holder) return this.d.send(s, { t: 'placeschema', kind: 'status', linked: true });
+      if (holder)
+        return this.d.send(s, {
+          t: 'placeschema',
+          kind: 'status',
+          linked: true,
+          menu: this.cfg.menu ?? 'full',
+        });
       await this.openLink(s);
     }).finally(() => this.linking.delete(s.accountId));
   }

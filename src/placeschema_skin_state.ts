@@ -43,6 +43,60 @@ export function onPlaceSchemaLinkedChange(f: () => void): void {
   linkListeners.add(f);
 }
 
+/** PLACE-1018: how much PlaceSchema menu this realm shows, from the server's PLACESCHEMA_MENU (sent
+ *  with the status): full = mark + menu button + Esc row, partial = Esc row only, off = nothing. */
+export type MenuTier = 'full' | 'partial' | 'off';
+export function menuTier(raw: unknown): MenuTier {
+  return raw === 'partial' || raw === 'off' ? raw : 'full';
+}
+let tier: MenuTier = 'full';
+export const placeSchemaMenuTier = (): MenuTier => tier;
+export function setPlaceSchemaMenuTier(next: MenuTier): void {
+  if (tier === next) return;
+  tier = next;
+  for (const f of linkListeners) f();
+}
+
+/** PLACE-1018: the linked holder's key (hex), for the PlaceSchema menu's account line. */
+let holder: string | null = null;
+export const placeSchemaHolder = (): string | null => holder;
+export function setPlaceSchemaHolder(next: string | null): void {
+  holder = next;
+}
+
+/** PLACE-1018: which body the local player wears: WoC's own (`native`), the carried Minecraft skin,
+ *  or PlaceSchema's generic black-and-white body. Kept per WoC account in this browser. */
+export type AvatarChoice = 'native' | 'minecraft' | 'generic';
+const CHOICES: readonly AvatarChoice[] = ['native', 'minecraft', 'generic'];
+let choice: AvatarChoice | null = null; // read once, then cached (wearCarriedSkin asks every frame)
+const choiceListeners = new Set<() => void>();
+export function avatarChoice(): AvatarChoice {
+  if (choice) return choice;
+  let saved: unknown = null;
+  try {
+    const key = rememberedKey();
+    saved = key && localStorage.getItem(`${key.replace('.skin.', '.avatar.')}`);
+  } catch {
+    /* storage blocked: the default */
+  }
+  choice = CHOICES.includes(saved as AvatarChoice) ? (saved as AvatarChoice) : 'minecraft';
+  return choice;
+}
+export function setAvatarChoice(next: AvatarChoice): void {
+  choice = next;
+  try {
+    const key = rememberedKey();
+    if (key) localStorage.setItem(key.replace('.skin.', '.avatar.'), next);
+  } catch {
+    /* storage blocked: kept for this page only */
+  }
+  for (const f of choiceListeners) f();
+}
+export function onAvatarChoiceChange(f: () => void): () => void {
+  choiceListeners.add(f);
+  return () => choiceListeners.delete(f);
+}
+
 /** PLACE-954: the destination's own picture (its manifest preview), shown in the portal; null until
  *  the server sends it, and then the PlaceSchema mark stands in. */
 let destination: string | null = null;
@@ -65,6 +119,7 @@ export function setCarriedSkin(next: CarriedSkin | null): void {
  *  account's skin never shows on another's characters). The world sends the live one again. */
 export function restoreCarriedSkin(): void {
   skin = null;
+  choice = null; // PLACE-1018: this account's own avatar choice
   const key = rememberedKey();
   try {
     const saved = JSON.parse(
@@ -81,7 +136,9 @@ export function restoreCarriedSkin(): void {
 function rememberedKey(): string | null {
   try {
     const user = (
-      JSON.parse(localStorage.getItem('woc_session') ?? 'null') as { username?: unknown }
+      JSON.parse(localStorage.getItem('woc_session') ?? 'null') as {
+        username?: unknown;
+      }
     )?.username;
     return typeof user === 'string' && user ? `placeschema.skin.v1.${user}` : null;
   } catch {

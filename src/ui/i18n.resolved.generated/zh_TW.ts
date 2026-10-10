@@ -622,6 +622,19 @@ export const zh_TW: EnTranslations = {
       "confirmOpen": "開啟維基",
       "confirmCancel": "取消"
     },
+    "placeschemaMenu": {
+      "menuButton": "PlaceSchema",
+      "title": "PlaceSchema",
+      "open": "開啟 PlaceSchema 選單",
+      "account": "已連結的金鑰",
+      "carried": "攜帶的物品",
+      "carriedNone": "還沒有從其他世界攜帶的物品。",
+      "avatar": "你在這裡的外形",
+      "native": "World of ClaudeCraft",
+      "minecraft": "Minecraft 外觀",
+      "generic": "PlaceSchema",
+      "close": "關閉"
+    },
     "unstuck": {
       "menuButton": "脫困",
       "help": "脫困：/unstuck 會啟動原地倒數，之後將你移動到附近可到達的安全位置。",

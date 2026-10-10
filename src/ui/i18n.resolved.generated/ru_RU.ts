@@ -622,6 +622,19 @@ export const ru_RU: EnTranslations = {
       "confirmOpen": "Открыть вики",
       "confirmCancel": "Отмена"
     },
+    "placeschemaMenu": {
+      "menuButton": "PlaceSchema",
+      "title": "PlaceSchema",
+      "open": "Открыть меню PlaceSchema",
+      "account": "Привязанный ключ",
+      "carried": "Перенесённые предметы",
+      "carriedNone": "Пока ничего не перенесено из других миров.",
+      "avatar": "Ваш облик здесь",
+      "native": "World of ClaudeCraft",
+      "minecraft": "Скин Minecraft",
+      "generic": "PlaceSchema",
+      "close": "Закрыть"
+    },
     "unstuck": {
       "menuButton": "Выбраться",
       "help": "Спасение: /unstuck запускает неподвижный отсчёт, после которого вы окажетесь в ближайшем доступном безопасном месте.",

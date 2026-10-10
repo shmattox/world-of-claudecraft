@@ -622,6 +622,19 @@ export const it_IT: EnTranslations = {
       "confirmOpen": "Apri la Wiki",
       "confirmCancel": "Annulla"
     },
+    "placeschemaMenu": {
+      "menuButton": "PlaceSchema",
+      "title": "PlaceSchema",
+      "open": "Open the PlaceSchema menu",
+      "account": "Linked key",
+      "carried": "Carried items",
+      "carriedNone": "Nothing carried from other worlds yet.",
+      "avatar": "Your body here",
+      "native": "World of ClaudeCraft",
+      "minecraft": "Minecraft skin",
+      "generic": "PlaceSchema",
+      "close": "Close"
+    },
     "unstuck": {
       "menuButton": "Sblocco",
       "help": "Recupero: /unstuck avvia un conto alla rovescia da fermo per spostarti in un punto sicuro raggiungibile nelle vicinanze.",

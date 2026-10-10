@@ -2653,6 +2653,8 @@ const UI_PAINTER_HELPERS = [
 // contributors do not edit those files.
 const UI_DOM_MODULES = [
   'src/ui/error_toast_controller.ts',
+  // PLACE-1018: the PlaceSchema mark, menu button and panel it mounts on the body.
+  'src/ui/placeschema_menu.ts',
   'src/ui/frame_presets_live.ts',
   'src/ui/frame_editor_deps.ts',
   'src/ui/frame_presets_controls.ts',

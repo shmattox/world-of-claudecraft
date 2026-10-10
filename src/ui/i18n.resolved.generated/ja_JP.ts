@@ -622,6 +622,19 @@ export const ja_JP: EnTranslations = {
       "confirmOpen": "Wikiを開く",
       "confirmCancel": "キャンセル"
     },
+    "placeschemaMenu": {
+      "menuButton": "PlaceSchema",
+      "title": "PlaceSchema",
+      "open": "PlaceSchema メニューを開く",
+      "account": "リンク済みのキー",
+      "carried": "持ち込んだアイテム",
+      "carriedNone": "他のワールドから持ち込んだものはまだありません。",
+      "avatar": "ここでのあなたの姿",
+      "native": "World of ClaudeCraft",
+      "minecraft": "Minecraft スキン",
+      "generic": "PlaceSchema",
+      "close": "閉じる"
+    },
     "unstuck": {
       "menuButton": "スタック解除",
       "help": "復帰：/unstuck はその場でカウントダウンを開始し、近くの到達可能な安全地点へ移動します。",

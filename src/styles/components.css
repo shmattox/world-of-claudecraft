@@ -26514,3 +26514,127 @@
     min-height: 40px;
   }
 }
+
+/* PLACE-1018: the PlaceSchema menu a linked account gets in game (src/ui/placeschema_menu.ts).
+   Colors are the --ps-* tokens in tokens.css. */
+.ps-menu-mark {
+  position: fixed;
+  top: 8px;
+  left: 8px;
+  height: 26px;
+  width: auto;
+  z-index: 60;
+  opacity: 0.9;
+  pointer-events: none;
+}
+.ps-menu-button {
+  position: fixed;
+  top: 8px;
+  right: 8px;
+  z-index: 60;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  padding: 0 7px;
+  background: var(--ps-bg);
+  border: 1px solid var(--ps-hairline);
+  border-radius: 0;
+  cursor: pointer;
+}
+.ps-menu-button span {
+  display: block;
+  height: 1px;
+  background: var(--ps-fg-strong);
+}
+.ps-menu-button:hover {
+  background: var(--ps-bg-raised);
+}
+.ps-menu-panel {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 61;
+  width: 340px;
+  max-width: calc(100vw - 32px);
+  max-height: calc(100vh - 32px);
+  overflow: auto;
+  background: var(--ps-bg);
+  color: var(--ps-fg);
+  border: 1px solid var(--ps-hairline);
+  font: 13px/1.5 var(--ps-font-sans);
+}
+.ps-menu-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--ps-hairline);
+  font-weight: 700;
+  color: var(--ps-fg-strong);
+}
+.ps-menu-head img {
+  height: 18px;
+}
+.ps-menu-head span {
+  flex: 1;
+}
+.ps-menu-close {
+  background: none;
+  border: 0;
+  color: var(--ps-fg-55);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+}
+.ps-menu-row {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--ps-hairline);
+}
+.ps-menu-row:last-child {
+  border-bottom: 0;
+}
+.ps-menu-label {
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--ps-fg-55);
+  margin-bottom: 6px;
+}
+.ps-menu-mono {
+  font-family: var(--ps-font-mono);
+  font-size: 12px;
+}
+.ps-menu-dim {
+  color: var(--ps-fg-55);
+}
+.ps-menu-choices {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.ps-menu-choice {
+  font: 500 12px var(--ps-font-sans);
+  padding: 8px 12px;
+  text-align: left;
+  background: transparent;
+  color: var(--ps-fg-strong);
+  border: 1px solid var(--ps-hairline);
+  border-radius: 0;
+  cursor: pointer;
+}
+.ps-menu-choice:hover {
+  background: var(--ps-hover);
+}
+.ps-menu-choice.is-on {
+  background: var(--ps-fg-strong);
+  color: var(--ps-bg);
+  border-color: var(--ps-fg-strong);
+}
+.ps-menu-list {
+  margin: 0;
+  padding-left: 16px;
+}

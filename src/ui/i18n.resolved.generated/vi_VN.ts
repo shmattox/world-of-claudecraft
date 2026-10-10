@@ -622,6 +622,19 @@ export const vi_VN: EnTranslations = {
       "confirmOpen": "Mở Wiki",
       "confirmCancel": "Hủy"
     },
+    "placeschemaMenu": {
+      "menuButton": "PlaceSchema",
+      "title": "PlaceSchema",
+      "open": "Open the PlaceSchema menu",
+      "account": "Linked key",
+      "carried": "Carried items",
+      "carriedNone": "Nothing carried from other worlds yet.",
+      "avatar": "Your body here",
+      "native": "World of ClaudeCraft",
+      "minecraft": "Minecraft skin",
+      "generic": "PlaceSchema",
+      "close": "Close"
+    },
     "unstuck": {
       "menuButton": "Thoát Kẹt",
       "help": "Cứu hộ: /unstuck bắt đầu đếm ngược khi đứng yên để đưa bạn đến một vị trí an toàn gần đó có thể tiếp cận được.",

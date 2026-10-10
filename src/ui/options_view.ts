@@ -507,6 +507,8 @@ export type OptionsMenuAction =
   | { kind: 'interfaceUnlock'; unlocked: boolean }
   | { kind: 'wiki' }
   | { kind: 'unstuck' }
+  /** PLACE-1018: open the PlaceSchema menu (linked accounts only) */
+  | { kind: 'placeschema' }
   | { kind: 'logout' }
   | { kind: 'close' };
 
@@ -527,6 +529,8 @@ export interface OptionsMenuOpts {
   /** Whether the frames are loose right now. The row labels itself "Lock
    *  interface" while they are, exactly as the Frames tab's row does. */
   interfaceUnlocked: boolean;
+  /** PLACE-1018: a linked account gets a PlaceSchema row (every menu tier keeps it). */
+  placeSchemaAvailable?: boolean;
 }
 
 /** The main Esc-menu button list. Unlock Interface leads (owner request: the
@@ -539,6 +543,11 @@ export function buildOptionsMenu(opts: OptionsMenuOpts): OptionsMenuEntry[] {
     entries.push({
       labelKey: interfaceUnlockLabelKey(opts.interfaceUnlocked),
       action: { kind: 'interfaceUnlock', unlocked: opts.interfaceUnlocked },
+    });
+  if (opts.placeSchemaAvailable)
+    entries.push({
+      labelKey: 'hudChrome.placeschemaMenu.menuButton',
+      action: { kind: 'placeschema' },
     });
   entries.push(
     { labelKey: 'hud.options.keyBindings', action: { kind: 'goto', view: 'keybinds' } },

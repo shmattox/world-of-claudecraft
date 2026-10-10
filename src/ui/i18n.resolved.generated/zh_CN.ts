@@ -622,6 +622,19 @@ export const zh_CN: EnTranslations = {
       "confirmOpen": "打开维基",
       "confirmCancel": "取消"
     },
+    "placeschemaMenu": {
+      "menuButton": "PlaceSchema",
+      "title": "PlaceSchema",
+      "open": "打开 PlaceSchema 菜单",
+      "account": "已关联的密钥",
+      "carried": "携带的物品",
+      "carriedNone": "还没有从其他世界携带的物品。",
+      "avatar": "你在这里的外形",
+      "native": "World of ClaudeCraft",
+      "minecraft": "Minecraft 皮肤",
+      "generic": "PlaceSchema",
+      "close": "关闭"
+    },
     "unstuck": {
       "menuButton": "脱困",
       "help": "脱困：/unstuck 会启动原地倒计时，随后将你移动到附近可到达的安全位置。",
