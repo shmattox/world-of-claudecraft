@@ -114,14 +114,28 @@ export function nativeOf(grant: Grant, minter: string | undefined): WocNative | 
   }
 }
 
+/** PLACE-490: where a WoC armor slot is worn, as the protocol's armor anchors
+ *  (protocol/src/vocabulary.ts). Neck, rings and trinkets have no armor anchor: they stay unworn. */
+const ARMOR_ANCHOR: Partial<Record<string, string>> = {
+  helmet: 'head',
+  chest: 'torso',
+  legs: 'legs',
+  gloves: 'hands',
+  feet: 'feet',
+  shoulder: 'shoulder',
+  waist: 'waist',
+  back: 'back',
+};
+
 /** A WoC item as a template (protocol/src/vocabulary.ts categories: weapon, armor, misc). */
 export function templateFor(itemId: string, slot: InvSlot = { itemId, count: 1 }) {
   const def = ITEMS[itemId];
+  const worn = def.slot ? ARMOR_ANCHOR[def.slot] : undefined;
   const shape =
     def.kind === 'weapon'
       ? { category: 'weapon', anchors: ['grip'], affordances: ['hold', 'display'] }
       : def.kind === 'armor'
-        ? { category: 'armor', anchors: [] as string[], affordances: ['wear', 'display'] }
+        ? { category: 'armor', anchors: worn ? [worn] : [], affordances: ['wear', 'display'] }
         : { category: 'misc', anchors: [] as string[], affordances: ['display'] };
   return {
     type: `${shape.category}.woc.${itemId}`,
