@@ -622,6 +622,19 @@ export const sv_SE: EnTranslations = {
       "confirmOpen": "Öppna wiki",
       "confirmCancel": "Avbryt"
     },
+    "placeschemaMenu": {
+      "menuButton": "PlaceSchema",
+      "title": "PlaceSchema",
+      "open": "Open the PlaceSchema menu",
+      "account": "Linked key",
+      "carried": "Carried items",
+      "carriedNone": "Nothing carried from other worlds yet.",
+      "avatar": "Your body here",
+      "native": "World of ClaudeCraft",
+      "minecraft": "Minecraft skin",
+      "generic": "PlaceSchema",
+      "close": "Close"
+    },
     "unstuck": {
       "menuButton": "Fastna-hjälp",
       "help": "Räddning: /unstuck startar en stillastående nedräkning som flyttar dig till en närliggande nåbar säker plats.",

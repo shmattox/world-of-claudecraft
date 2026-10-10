@@ -181,6 +181,10 @@ describe('i18n whole-catalog completeness', () => {
       'guide.glossary.claudiumTerm', // "Claudium" - the same currency brand as hudChrome.claudium.*
       'desktop.crash.title', // "World of ClaudeCraft" - brand (desktop crash dialog title)
       'auth.emailPlaceholder', // "you@example.com" - RFC 2606 example address, kept verbatim
+      'hudChrome.placeschemaMenu.menuButton', // "PlaceSchema" - brand (PLACE-1018 Esc row)
+      'hudChrome.placeschemaMenu.title', // "PlaceSchema" - brand (menu title)
+      'hudChrome.placeschemaMenu.generic', // "PlaceSchema" - brand (the generic body choice)
+      'hudChrome.placeschemaMenu.native', // "World of ClaudeCraft" - brand (the native body choice)
       // The 16 abilityUi.cast.rift_* entries that sat here were a DEAD exemption:
       // every one carries a real fill in all five non-Latin locales, so the guard
       // never exercised them, and while they stayed a future fill regressing one

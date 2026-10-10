@@ -326,6 +326,7 @@ import { openStripeCheckout } from './net/stripe_checkout';
 import type { WalletOption, WalletPickerMode, WalletPickerResult } from './net/wallet';
 import { resolveWalletCapability } from './net/wallet_capability';
 import { installWalletResumeHandlers } from './net/wallet_resume';
+import { restoreCarriedSkin } from './placeschema_skin_state';
 import { setArrivalEstablishingShot } from './render/arrival_cover';
 import {
   prepareGraphicsProfileAssets,
@@ -356,7 +357,6 @@ import {
   startStreamedCharacterPreloads,
 } from './render/characters/assets';
 import { skinCount, weaponSkinModelUrl } from './render/characters/manifest';
-import { restoreCarriedSkin } from './placeschema_skin_state';
 import {
   ARMOR_SETS,
   type ArmorLoadout,
@@ -495,7 +495,7 @@ import {
 } from './ui/discord_status';
 import { renderDiscordWidget } from './ui/discord_widget';
 import { finderLootItemIds } from './ui/dungeon_finder_view';
-import { classDisplayName, tEntity } from './ui/entity_i18n';
+import { classDisplayName, itemDisplayName, tEntity } from './ui/entity_i18n';
 import { showEntryGuardBanner } from './ui/entry_guard_banner';
 import { refreshEpicLinkStatus, wireEpicLink } from './ui/epic_link';
 import { esc } from './ui/esc';
@@ -556,6 +556,7 @@ import { applyPerfOrnamentVars, applyWindowOrnamentVars } from './ui/perf_orname
 import { PerfOverlay } from './ui/perf_overlay';
 import { type PerfOverlayConfig, PerfOverlayConfigStore } from './ui/perf_overlay_config';
 import { buildPerfOverlayView, FrameMeter } from './ui/perf_overlay_model';
+import { mountPlaceSchemaMenu } from './ui/placeschema_menu';
 import { hydratePortraits, portraitChipHtml } from './ui/portrait_chip';
 import { hideReconnectOverlay, showReconnectOverlay } from './ui/reconnect_overlay';
 import { createSpectateBadge } from './ui/spectate_badge';
@@ -1554,6 +1555,11 @@ async function startGame(
       dailyRewardsEnabled: NATIVE_APP ? await walletCapabilityReady : true,
       devCommandsEnabled: import.meta.env.DEV,
       constrainedMemory: GFX.constrainedMemory,
+    });
+    // PLACE-1018: the PlaceSchema menu for a linked account (its tier: the server's PLACESCHEMA_MENU)
+    mountPlaceSchemaMenu({
+      world: () => world,
+      itemName: (id) => (ITEMS[id] ? itemDisplayName(ITEMS[id]) : id),
     });
     setThornhollowPrewarmHooks({
       startPreview: () => battlegroundAssetPrewarm.startPreview(),

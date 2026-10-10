@@ -362,6 +362,23 @@ async function holding() {
 }
 
 describe('placeschema sidecar game side (PLACE-276)', () => {
+  it('PLACE-1018: PLACESCHEMA_MENU picks the menu tier; unset is full, empty or unknown refuses', () => {
+    const tierOf = (v?: string) =>
+      sidecarConfig({
+        PLACESCHEMA_SIDECAR_URL: 'http://s',
+        PLACESCHEMA_MOD_TOKEN: 'x',
+        PLACESCHEMA_REALM_HOST: 'woc.test',
+        ...(v === undefined ? {} : { PLACESCHEMA_MENU: v }),
+      } as never)?.menu;
+    expect([tierOf(), tierOf('full'), tierOf('partial'), tierOf('off')]).toEqual([
+      'full',
+      'full',
+      'partial',
+      'off',
+    ]);
+    for (const bad of ['', 'FULL', 'none']) expect(() => tierOf(bad)).toThrow(/PLACESCHEMA_MENU/);
+  });
+
   it('names the player by account id at the realm host, never the username', () => {
     expect(platformId(cfg, 7)).toBe('7@woc.test');
   });
@@ -533,7 +550,13 @@ describe('placeschema sidecar game side (PLACE-276)', () => {
     w.frames.length = 0;
     w.arrive(); // a Hub item waiting for the link
     await w.carry.join(w.session()); // the 5 s poll, after the player linked
-    expect(w.frames[0]).toEqual({ t: 'placeschema', kind: 'status', linked: true });
+    expect(w.frames[0]).toEqual({
+      t: 'placeschema',
+      kind: 'status',
+      linked: true,
+      holder: 'h',
+      menu: 'full',
+    }); // PLACE-1018: the holder too
     expect(slotOfGrant(w.inventory, G1)).toBe(0); // the arrival is delivered
     await w.carry.join(w.session());
     expect(w.frames.filter((f: any) => f?.kind === 'status')).toHaveLength(1); // told once
@@ -541,7 +564,7 @@ describe('placeschema sidecar game side (PLACE-276)', () => {
     w.frames.length = 0;
     await w.carry.link(w.session()); // linked: no new link page, just the status
     expect(w.calls).toEqual([]);
-    expect(w.frames).toEqual([{ t: 'placeschema', kind: 'status', linked: true }]);
+    expect(w.frames).toEqual([{ t: 'placeschema', kind: 'status', linked: true, menu: 'full' }]);
   });
 
   it('PLACE-479: a spammed link button makes exactly one /mod/link call', async () => {

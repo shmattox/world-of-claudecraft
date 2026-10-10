@@ -1,3 +1,4 @@
+import { placeSchemaLinked, placeSchemaMenuTier } from '../placeschema_skin_state';
 import { frameSettingRelated } from './frame_menu_core';
 import type { FramePresetControlsDeps } from './frame_presets_controls';
 import { interfaceResetKeys } from './interface_reset_keys';
@@ -698,6 +699,7 @@ export class OptionsWindow {
       // setActive), which is what Hud.toggleInterfaceUnlock refuses on.
       interfaceUnlockAvailable: !(useTouchInterface() || isNativeAppShell()),
       interfaceUnlocked: this.deps.isInterfaceUnlocked(),
+      placeSchemaAvailable: placeSchemaLinked() === true && placeSchemaMenuTier() !== 'off', // PLACE-1018
     });
     const list = buildOptionsMenuList(entries, {
       toggleInterfaceUnlock: () => this.deps.toggleInterfaceUnlock(),
@@ -725,6 +727,9 @@ export class OptionsWindow {
       this.deps.openWiki();
     } else if (a.kind === 'logout') {
       this.deps.options()?.logout();
+    } else if (a.kind === 'placeschema') {
+      this.close();
+      document.dispatchEvent(new Event('placeschema:open-menu')); // PLACE-1018: placeschema_menu.ts
     } else if (a.kind === 'unstuck') {
       this.deps.world().unstuck();
       this.close();

@@ -223,6 +223,20 @@ export const hudChromeStrings = {
     confirmOpen: 'Open Wiki',
     confirmCancel: 'Cancel',
   },
+  // PLACE-1018: the PlaceSchema menu a linked account gets in game (mark, menu button, Esc row).
+  placeschemaMenu: {
+    menuButton: 'PlaceSchema',
+    title: 'PlaceSchema',
+    open: 'Open the PlaceSchema menu',
+    account: 'Linked key',
+    carried: 'Carried items',
+    carriedNone: 'Nothing carried from other worlds yet.',
+    avatar: 'Your body here',
+    native: 'World of ClaudeCraft',
+    minecraft: 'Minecraft skin',
+    generic: 'PlaceSchema',
+    close: 'Close',
+  },
   // Countdown-to-graveyard recovery. Stable event phases/reasons come from the
   // authoritative sim; new semantics use new keys so stale safe-spot translations
   // cannot be shown while locale fills catch up.

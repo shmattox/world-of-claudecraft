@@ -8,9 +8,12 @@
 
 import {
   clearPeerSkins,
+  menuTier,
   setCarriedSkin,
   setPeerSkin,
+  setPlaceSchemaHolder,
   setPlaceSchemaLinked,
+  setPlaceSchemaMenuTier,
   setPortalDestinationPicture,
 } from '../placeschema_skin_state';
 
@@ -22,6 +25,9 @@ export interface PlaceSchemaFrame {
   url?: unknown;
   model?: unknown;
   linked?: unknown;
+  /** PLACE-1018: the linked holder's key (hex), and the realm's menu tier */
+  holder?: unknown;
+  menu?: unknown;
   /** PLACE-412: another player's skin, by entity id */
   pid?: unknown;
 }
@@ -62,7 +68,12 @@ export function applyPlaceSchemaFrame(
   }
   if (msg.kind === 'status') {
     if (typeof msg.linked !== 'boolean') return null;
+    if (msg.menu !== undefined) setPlaceSchemaMenuTier(menuTier(msg.menu));
     setPlaceSchemaLinked(msg.linked);
+    // an unlinked status forgets the holder; a linked one without it (the link button) keeps it
+    if (!msg.linked) setPlaceSchemaHolder(null);
+    else if (typeof msg.holder === 'string' && /^[0-9a-f]{64}$/.test(msg.holder))
+      setPlaceSchemaHolder(msg.holder);
     return 'status';
   }
   if (msg.kind === 'skin') {

@@ -622,6 +622,19 @@ export const ko_KR: EnTranslations = {
       "confirmOpen": "위키 열기",
       "confirmCancel": "취소"
     },
+    "placeschemaMenu": {
+      "menuButton": "PlaceSchema",
+      "title": "PlaceSchema",
+      "open": "PlaceSchema 메뉴 열기",
+      "account": "연결된 키",
+      "carried": "가져온 아이템",
+      "carriedNone": "아직 다른 세계에서 가져온 것이 없습니다.",
+      "avatar": "여기서의 모습",
+      "native": "World of ClaudeCraft",
+      "minecraft": "Minecraft 스킨",
+      "generic": "PlaceSchema",
+      "close": "닫기"
+    },
     "unstuck": {
       "menuButton": "갇힘 탈출",
       "help": "탈출: /unstuck은 제자리에서 카운트다운을 시작한 뒤 주변의 도달 가능한 안전한 위치로 이동합니다.",
