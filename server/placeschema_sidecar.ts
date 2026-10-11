@@ -155,22 +155,21 @@ export function typeFor(def: (typeof ITEMS)[string]): string {
   return `misc.${d.kind}`;
 }
 
-/** PLACE-983 (item standard rule 4): an item's own open model, by hash. The files are served from
- *  this realm's `public/` at PUBLIC_ORIGIN; each is hashed once, from the server's working directory
- *  (the game root, as it runs). Unreadable or no origin: no look. */
+/** PLACE-983 (item standard rule 4): an item's own open model, by hash, at PUBLIC_ORIGIN. Each is
+ *  hashed once from the server's working directory (the game root): `public/` in a checkout, else
+ *  `dist/` (the production image ships the built client, which holds `public/` as is, and no
+ *  `public/`). Unreadable or no origin: no look. */
 const OPEN_LOOKS: Record<string, string> = { redbrook_blade: 'models/weapons/sword_d.glb' };
 const hashes = new Map<string, string | null>();
 function fileSha256(rel: string): string | undefined {
   if (!hashes.has(rel)) {
-    try {
-      hashes.set(
-        rel,
-        createHash('sha256')
-          .update(readFileSync(path.join(process.cwd(), 'public', rel)))
-          .digest('hex'),
-      );
-    } catch {
-      hashes.set(rel, null);
+    hashes.set(rel, null);
+    for (const dir of ['public', 'dist']) {
+      try {
+        const bytes = readFileSync(path.join(process.cwd(), dir, rel));
+        hashes.set(rel, createHash('sha256').update(bytes).digest('hex'));
+        break;
+      } catch {}
     }
   }
   return hashes.get(rel) ?? undefined;
@@ -367,15 +366,28 @@ export const platformId = (cfg: SidecarConfig, accountId: number) =>
 export function itemIdForGrant(grant: Grant): string {
   let type: unknown;
   let nativeId: unknown;
+  let features: unknown;
   try {
-    const t = JSON.parse(grant.content) as { type?: unknown; native?: { id?: unknown } };
+    const t = JSON.parse(grant.content) as {
+      type?: unknown;
+      native?: { id?: unknown };
+      features?: unknown;
+    };
     type = t.type;
     nativeId = t.native?.id;
+    features = t.features;
   } catch {
     type = undefined;
   }
-  // PLACE-983: an item names itself in `native.id`; grants minted before that, in `type`
-  const own = typeof nativeId === 'string' ? /^woc:([a-z0-9_]{1,48})$/.exec(nativeId) : null;
+  // PLACE-983: an item names itself in `native.id`; an id-only remint (its data too big), in its
+  // `woc:<id>` feature; a grant minted before PLACE-983, in `type`
+  const named =
+    typeof nativeId === 'string'
+      ? nativeId
+      : Array.isArray(features)
+        ? features.find((f): f is string => typeof f === 'string' && f.startsWith('woc:'))
+        : undefined;
+  const own = named ? /^woc:([a-z0-9_]{1,48})$/.exec(named) : null;
   if (own) return ITEMS[own[1]] ? own[1] : FOREIGN_KEEPSAKE_ID;
   if (typeof type !== 'string') return FOREIGN_KEEPSAKE_ID;
   const m = WOC_TYPE.exec(type);

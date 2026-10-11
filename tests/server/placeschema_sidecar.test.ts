@@ -1215,7 +1215,10 @@ describe('PLACE-990: a copy carries its own WoC data and comes home whole', () =
     await w.carry.questDone(w.session(), 'q_greyjaw');
     expect(w.calls.filter((c) => c === '/mod/mint')).toHaveLength(2); // refused (413), then by id
     expect(JSON.parse(w.escrow.get(G1)!.grant.content).native).toBeUndefined();
-    expect(slotOfGrant(w.inventory, G1)).toBeGreaterThanOrEqual(0); // it still minted
+    // it still minted, by id, and that grant converts the tagged quest copy: the same item, once
+    expect(w.inventory).toHaveLength(1);
+    expect(w.inventory[0].itemId).toBe('greyjaw_pelt_cloak');
+    expect(slotOfGrant(w.inventory, G1)).toBe(0);
   });
 
   it('PLACE-983: the type says what the item is, native.id which one', () => {
