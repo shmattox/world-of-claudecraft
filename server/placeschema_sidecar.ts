@@ -21,6 +21,7 @@ import { PlaceSchemaPortalGate } from '../src/sim/placeschema_portal';
 import type { Sim } from '../src/sim/sim';
 import type { InvSlot, ItemInstancePayload } from '../src/sim/types';
 import { type AcceptedStore, pgAcceptedStore } from './placeschema_accepted_db';
+import { garmentFits } from './placeschema_garments';
 import { type Skin, sidecarSkin } from './placeschema_skin';
 
 /** The carried grant's id rides on the item copy. A foreign copy's `name` is the grant's minted label;
@@ -140,7 +141,7 @@ export function templateFor(itemId: string, slot: InvSlot = { itemId, count: 1 }
   return {
     type: `${shape.category}.woc.${itemId}`,
     label: def.name,
-    features: [`woc:${itemId}`, ...nativeFeatures(slot)],
+    features: [`woc:${itemId}`, ...nativeFeatures(slot), ...garmentFits(def)],
     palette: ['#8a6d3b'],
     style_hint: 'woc',
     dimensions: { l: 0.9, w: 0.2, h: 0.1 },

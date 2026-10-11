@@ -1175,6 +1175,13 @@ describe('PLACE-990: a copy carries its own WoC data and comes home whole', () =
     expect(templateFor('redbrook_blade').anchors).toEqual(['grip']);
   });
 
+  it('PLACE-1091: armor with a garment says it fits the knight; armor without one says nothing', () => {
+    expect(templateFor('cryptbone_greaves').features).toContain('fits:knight'); // mail legs: knight_legs.glb
+    expect(templateFor('mistveil_cord').features.some((f) => f.startsWith('fits:'))).toBe(false); // waist
+    expect(templateFor('wayfarers_hood').features.some((f) => f.startsWith('fits:'))).toBe(false); // no ranger helmet
+    expect(templateFor('redbrook_blade').features.some((f) => f.startsWith('fits:'))).toBe(false);
+  });
+
   it('fits the template limits: every feature at most 525 chars, the content under 4096 bytes', () => {
     const t = templateFor('redbrook_blade', enchanted);
     expect(t.features.every((f) => f.length <= 525)).toBe(true);
