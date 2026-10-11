@@ -29,6 +29,7 @@ import sharp from 'sharp';
 import {
   ARMOR_TYPE_KIT,
   GARMENT_DIR,
+  GARMENT_FILES,
   garmentFile,
   ITEM_SLOT_PIECE,
   KNIGHT_BODY_HASH,
@@ -150,6 +151,10 @@ for (const kit of new Set(Object.values(ARMOR_TYPE_KIT))) {
 }
 
 const written = new Set(Object.keys(provenance));
+if ([...written].sort().join() !== [...GARMENT_FILES].sort().join())
+  throw new Error(
+    `update GARMENT_FILES in server/placeschema_garments.ts to: ${[...written].sort()}`,
+  );
 const looks: Record<string, string> = {};
 for (const [id, def] of Object.entries(ITEMS)) {
   const file = garmentFile(def as never, (f) => written.has(f));

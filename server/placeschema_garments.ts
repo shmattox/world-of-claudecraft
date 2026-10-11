@@ -92,6 +92,36 @@ export const RIG_MEDIUM_BONES: Record<string, string> = {
  *  cannot run the KTX2 transcoder). */
 export const GARMENT_DIR = 'placeschema/garments';
 
+/** The garments the extraction writes (scripts/assets/placeschema_garments.ts checks it wrote exactly
+ *  these), for the server, which does not read the folder. */
+export const GARMENT_FILES: ReadonlySet<string> = new Set([
+  'knight_arms.glb',
+  'knight_back.glb',
+  'knight_chest.glb',
+  'knight_feet.glb',
+  'knight_hands.glb',
+  'knight_head.glb',
+  'knight_legs.glb',
+  'mage_arms.glb',
+  'mage_back.glb',
+  'mage_chest.glb',
+  'mage_feet.glb',
+  'mage_head.glb',
+  'mage_legs.glb',
+  'ranger_arms.glb',
+  'ranger_back.glb',
+  'ranger_chest.glb',
+  'ranger_feet.glb',
+  'ranger_hands.glb',
+  'ranger_legs.glb',
+]);
+
+/** PLACE-1091: an item's garment binds only to the knight body, so a carried item that has one says
+ *  so (`fits:knight`); another body hides it with a reason instead of dropping it silently. */
+export function garmentFits(def: { kind: string; slot?: string; armorType?: string }): string[] {
+  return garmentFile(def, (f) => GARMENT_FILES.has(f)) ? ['fits:knight'] : [];
+}
+
 /** The garment file for an armor item (e.g. `knight_legs.glb`), or undefined when it has none. Whether
  *  that kit has the piece is decided by the files the extraction wrote (`exists`). */
 export function garmentFile(
