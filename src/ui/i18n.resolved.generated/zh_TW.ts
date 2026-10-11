@@ -634,6 +634,7 @@ export const zh_TW: EnTranslations = {
       "minecraft": "Minecraft 外觀",
       "minecraftNone": "No Minecraft skin carried on this account",
       "generic": "PlaceSchema",
+      "genericNone": "PlaceSchema's body couldn't be loaded here",
       "close": "關閉"
     },
     "unstuck": {

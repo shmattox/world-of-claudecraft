@@ -634,6 +634,7 @@ export const ru_RU: EnTranslations = {
       "minecraft": "Скин Minecraft",
       "minecraftNone": "No Minecraft skin carried on this account",
       "generic": "PlaceSchema",
+      "genericNone": "PlaceSchema's body couldn't be loaded here",
       "close": "Закрыть"
     },
     "unstuck": {

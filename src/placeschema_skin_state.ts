@@ -95,7 +95,15 @@ export function avatarChoice(): AvatarChoice {
  *  account; without one it is WoC's own body, and the menu shows that choice (never a silent swap). */
 export function effectiveAvatarChoice(): AvatarChoice {
   const c = avatarChoice();
-  return c === 'minecraft' && !skin ? 'native' : c;
+  if (c === 'minecraft' && !skin) return 'native';
+  return c === 'generic' && avatarUnavailable ? 'native' : c;
+}
+/** PLACE-1129: PlaceSchema's Avatar body could not be loaded here, so that choice is unavailable. */
+let avatarUnavailable = false;
+export const placeSchemaAvatarUnavailable = (): boolean => avatarUnavailable;
+export function setPlaceSchemaAvatarUnavailable(next: boolean): void {
+  avatarUnavailable = next;
+  for (const f of choiceListeners) f();
 }
 export function setAvatarChoice(next: AvatarChoice): void {
   choice = next;

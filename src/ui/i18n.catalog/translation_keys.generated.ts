@@ -12651,6 +12651,7 @@ export type TranslationKeyFlat =
   | 'hudChrome.placeschemaMenu.carriedNone'
   | 'hudChrome.placeschemaMenu.close'
   | 'hudChrome.placeschemaMenu.generic'
+  | 'hudChrome.placeschemaMenu.genericNone'
   | 'hudChrome.placeschemaMenu.menuButton'
   | 'hudChrome.placeschemaMenu.minecraft'
   | 'hudChrome.placeschemaMenu.minecraftNone'

@@ -12,6 +12,7 @@
 import * as THREE from 'three';
 import { type GLTF, GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { clone as cloneSkinned } from 'three/examples/jsm/utils/SkeletonUtils.js';
+import { setPlaceSchemaAvatarUnavailable } from '../../placeschema_skin_state';
 
 export const AVATAR_URL = '/placeschema/bodies/avatar.glb';
 export const AVATAR_TAG = 'placeschemaAvatarBody';
@@ -61,7 +62,10 @@ function avatar(): GLTF | null {
       },
       undefined,
       () => {
-        source = null; // ponytail: no retry; the rig's own body stays
+        // ponytail: no retry. The choice says so (the menu disables it with its reason) and the rig's
+        // own body is what shows, which the menu then highlights.
+        source = null;
+        setPlaceSchemaAvatarUnavailable(true);
       },
     );
   }
@@ -216,6 +220,10 @@ export function removePlaceSchemaAvatar(root: THREE.Object3D): void {
     local.decompose(slot.position, slot.quaternion, slot.scale);
   }
   worn.body.removeFromParent();
+  // the clone shares the loaded geometry and materials; its skeletons (and their bone textures) are its own
+  worn.body.traverse((o) => {
+    if ((o as THREE.SkinnedMesh).isSkinnedMesh) (o as THREE.SkinnedMesh).skeleton.dispose();
+  });
   for (const o of (root.userData[HIDDEN] as Set<THREE.Object3D> | undefined) ?? [])
     o.visible = true;
   delete root.userData[HIDDEN];

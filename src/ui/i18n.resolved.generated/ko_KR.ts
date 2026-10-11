@@ -634,6 +634,7 @@ export const ko_KR: EnTranslations = {
       "minecraft": "Minecraft 스킨",
       "minecraftNone": "No Minecraft skin carried on this account",
       "generic": "PlaceSchema",
+      "genericNone": "PlaceSchema's body couldn't be loaded here",
       "close": "닫기"
     },
     "unstuck": {

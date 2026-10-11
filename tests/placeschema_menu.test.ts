@@ -13,6 +13,7 @@ import {
   restoreCarriedSkin,
   setAvatarChoice,
   setCarriedSkin,
+  setPlaceSchemaAvatarUnavailable,
   setPlaceSchemaHolder,
   setPlaceSchemaLinked,
   setPlaceSchemaMenuTier,
@@ -145,6 +146,22 @@ describe('the PlaceSchema menu (PLACE-1018)', () => {
     expect(effectiveAvatarChoice()).toBe('minecraft');
     expect(ownSkin()).toEqual(SKIN);
     setCarriedSkin(null);
+  });
+
+  it('PLACE-1129: an Avatar that cannot load disables PlaceSchema with a reason; WoC shows', () => {
+    setAvatarChoice('generic');
+    setPlaceSchemaAvatarUnavailable(true);
+    mount('full');
+    setPlaceSchemaLinked(true);
+    document.dispatchEvent(new Event('placeschema:open-menu'));
+    const ps = document.querySelector<HTMLButtonElement>('[data-ps-avatar="generic"]')!;
+    expect(ps.disabled).toBe(true);
+    expect(ps.title).toMatch(/couldn't be loaded/);
+    expect(effectiveAvatarChoice()).toBe('native');
+    expect(document.querySelector('[data-ps-avatar="native"]')!.getAttribute('aria-pressed')).toBe(
+      'true',
+    );
+    setPlaceSchemaAvatarUnavailable(false);
   });
 
   it('PLACE-1129: PlaceSchema wears no Minecraft skin (it is the Avatar body, not a skin)', () => {
