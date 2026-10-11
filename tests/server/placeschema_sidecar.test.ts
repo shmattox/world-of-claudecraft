@@ -16,6 +16,7 @@ import {
   slotOfGrant,
   templateFor,
 } from '../../server/placeschema_sidecar';
+import { weaponTypeForItem } from '../../src/sim/content/weapon_skin_rules';
 import { ITEMS } from '../../src/sim/data';
 import { grantInventoryInstances } from '../../src/sim/inventory_grant';
 import {
@@ -1223,7 +1224,9 @@ describe('PLACE-990: a copy carries its own WoC data and comes home whole', () =
 
   it('PLACE-983: the type says what the item is, native.id which one', () => {
     const typeOf = (id: string) => templateFor(id).type;
-    expect(typeOf('redbrook_blade')).toBe('weapon.melee');
+    expect(typeOf('redbrook_blade')).toBe('blade.sword');
+    const mace = Object.keys(ITEMS).find((k) => weaponTypeForItem(k) === 'mace');
+    if (mace) expect(typeOf(mace)).toBe('weapon.melee');
     const dagger = Object.keys(ITEMS).find(
       (k) => (ITEMS[k] as { weapon?: { dagger?: boolean } }).weapon?.dagger,
     );
