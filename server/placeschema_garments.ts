@@ -37,6 +37,56 @@ export const PIECE_PARTS: Record<string, string[]> = {
   back: ['Back', 'Back1'],
 };
 
+/** PLACE-1071: the body the garments bind to in PlaceSchema worlds, the KayKit knight (Adventurers 1.0,
+ *  CC0) its roster serves, named by the SHA-256 of that file (open-place assets/shared/models/knight.glb,
+ *  checked by its scripts/assets/kaykit-body-check.mjs). Same Rig_Medium skeleton, so no fitting. */
+export const KNIGHT_BODY_HASH = 'ce0d0a5ec1d67594629ecac20a7576fde22a44456e7628e8eb100891bc6dda97';
+
+/** Each piece's PlaceSchema wardrobe slot (world-kit WARDROBE_REGIONS) and the humanoid bones it covers. */
+export const PIECE_SLOT: Record<string, { slot: string; covers: string[] }> = {
+  head: { slot: 'head', covers: ['head'] },
+  chest: { slot: 'torso', covers: ['spine', 'chest', 'upperChest'] },
+  arms: {
+    slot: 'shoulder',
+    covers: ['leftShoulder', 'rightShoulder', 'leftUpperArm', 'rightUpperArm'],
+  },
+  hands: { slot: 'hands', covers: ['leftHand', 'rightHand'] },
+  legs: {
+    slot: 'legs',
+    covers: ['hips', 'leftUpperLeg', 'rightUpperLeg', 'leftLowerLeg', 'rightLowerLeg'],
+  },
+  feet: { slot: 'feet', covers: ['leftFoot', 'rightFoot', 'leftToes', 'rightToes'] },
+  back: { slot: 'back', covers: ['spine', 'chest', 'upperChest'] },
+};
+
+/** Rig_Medium joints, keyed as three loads them (punctuation stripped), to the knight body's humanoid
+ *  names (open-place world-kit RIG_HUMANOIDS.knight). A key with its `.` left in refuses the garment. */
+export const RIG_MEDIUM_BONES: Record<string, string> = {
+  root: 'root',
+  hips: 'hips',
+  spine: 'spine',
+  chest: 'chest',
+  head: 'head',
+  upperarml: 'leftUpperArm',
+  lowerarml: 'leftLowerArm',
+  wristl: 'wrist.l',
+  handl: 'leftHand',
+  handslotl: 'handslot.l',
+  upperarmr: 'rightUpperArm',
+  lowerarmr: 'rightLowerArm',
+  wristr: 'wrist.r',
+  handr: 'rightHand',
+  handslotr: 'handslot.r',
+  upperlegl: 'leftUpperLeg',
+  lowerlegl: 'leftLowerLeg',
+  footl: 'leftFoot',
+  toesl: 'leftToes',
+  upperlegr: 'rightUpperLeg',
+  lowerlegr: 'rightLowerLeg',
+  footr: 'rightFoot',
+  toesr: 'rightToes',
+};
+
 /** Outside public/models on purpose: these are for other worlds, so WoC's own model gates (KTX2-only
  *  textures, the generated media manifest) do not apply, and they ship PNG (deployed PlaceSchema worlds
  *  cannot run the KTX2 transcoder). */

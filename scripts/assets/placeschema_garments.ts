@@ -10,6 +10,8 @@
 //   provenance.json          each file's source nodes, author, source url and licence
 //   sidecar-looks.json       SIDECAR_LOOKS: {"armor.woc.<id>": "<origin>/models/.../<file>"}
 //   sidecar-open-looks.txt   SIDECAR_OPEN_LOOKS: every garment url (CC0, open to every world)
+// Each garment's scene carries `placeschema_garment` extras binding it to the KayKit knight body that
+// PlaceSchema worlds give WoC arrivals (PLACE-1071).
 // Textures are written as PNG: the source's KTX2 needs a transcoder that deployed PlaceSchema worlds'
 // CSP blocks (world-kit enables it in dev only), so a KTX2 garment would show its stand-in there.
 // The mapping (armor type -> kit, slot -> piece) is server/placeschema_garments.ts.
@@ -29,7 +31,10 @@ import {
   GARMENT_DIR,
   garmentFile,
   ITEM_SLOT_PIECE,
+  KNIGHT_BODY_HASH,
   PIECE_PARTS,
+  PIECE_SLOT,
+  RIG_MEDIUM_BONES,
 } from '../../server/placeschema_garments';
 import { ITEMS } from '../../src/sim/data';
 
@@ -104,6 +109,19 @@ for (const kit of new Set(Object.values(ARMOR_TYPE_KIT))) {
       tex.setImage(await ktx2ToPng(tex.getImage()!)).setMimeType('image/png');
       tex.setURI(tex.getURI().replace(/\.ktx2$/, '.png'));
     }
+    // PLACE-1071: bind to the knight body in PlaceSchema worlds (world-kit wardrobe-rig.ts reads it)
+    again
+      .getRoot()
+      .listScenes()[0]
+      .setExtras({
+        placeschema_garment: {
+          version: 1,
+          targetBodyHash: KNIGHT_BODY_HASH,
+          slot: PIECE_SLOT[piece].slot,
+          bones: RIG_MEDIUM_BONES,
+          coverageBones: PIECE_SLOT[piece].covers,
+        },
+      });
     for (const e of again.getRoot().listExtensionsUsed())
       if (e.extensionName === 'KHR_texture_basisu') e.dispose();
     const file = `${kit}_${piece}.glb`;
