@@ -632,6 +632,7 @@ export const ko_KR: EnTranslations = {
       "avatar": "여기서의 모습",
       "native": "World of ClaudeCraft",
       "minecraft": "Minecraft 스킨",
+      "minecraftNone": "No Minecraft skin carried on this account",
       "generic": "PlaceSchema",
       "close": "닫기"
     },

@@ -13,7 +13,8 @@
 
 import {
   type AvatarChoice,
-  avatarChoice,
+  carriedSkin,
+  effectiveAvatarChoice,
   onAvatarChoiceChange,
   onPlaceSchemaLinkedChange,
   placeSchemaHolder,
@@ -132,10 +133,11 @@ export function mountPlaceSchemaMenu(deps: {
     const holder = placeSchemaHolder();
     const world = deps.world();
     const carried = world ? carriedNames(world, deps.itemName) : [];
-    const current = avatarChoice();
+    const current = effectiveAvatarChoice();
+    const noSkin = !carriedSkin();
     panel.innerHTML = `<div class="ps-menu-head"><img src="${MARK}" alt=""><span>${esc(t('hudChrome.placeschemaMenu.title'))}</span><button type="button" class="ps-menu-close" data-ps-close aria-label="${esc(t('hudChrome.placeschemaMenu.close'))}">×</button></div>
 <div class="ps-menu-row"><div class="ps-menu-label">${esc(t('hudChrome.placeschemaMenu.account'))}</div><div class="ps-menu-mono">${holder ? esc(shortNpub(holder)) : '—'}</div></div>
-<div class="ps-menu-row"><div class="ps-menu-label">${esc(t('hudChrome.placeschemaMenu.avatar'))}</div><div class="ps-menu-choices">${CHOICES.map((c) => `<button type="button" class="ps-menu-choice${c === current ? ' is-on' : ''}" data-ps-avatar="${c}" aria-pressed="${c === current}">${esc(t(`hudChrome.placeschemaMenu.${c}` as const))}</button>`).join('')}</div></div>
+<div class="ps-menu-row"><div class="ps-menu-label">${esc(t('hudChrome.placeschemaMenu.avatar'))}</div><div class="ps-menu-choices">${CHOICES.map((c) => `<button type="button" class="ps-menu-choice${c === current ? ' is-on' : ''}" data-ps-avatar="${c}" aria-pressed="${c === current}"${c === 'minecraft' && noSkin ? ` disabled title="${esc(t('hudChrome.placeschemaMenu.minecraftNone'))}"` : ''}>${esc(t(`hudChrome.placeschemaMenu.${c}` as const))}</button>`).join('')}</div></div>
 <div class="ps-menu-row"><div class="ps-menu-label">${esc(t('hudChrome.placeschemaMenu.carried'))}</div>${carried.length ? `<ul class="ps-menu-list">${carried.map((n) => `<li>${esc(n)}</li>`).join('')}</ul>` : `<div class="ps-menu-dim">${esc(t('hudChrome.placeschemaMenu.carriedNone'))}</div>`}</div>`;
   };
   const open = (): void => {

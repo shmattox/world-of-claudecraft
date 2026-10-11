@@ -14,12 +14,18 @@
 
 import * as THREE from 'three';
 import {
-  avatarChoice,
   type CarriedSkin,
   carriedSkin,
   carriedSkinFor,
+  effectiveAvatarChoice,
   placeSchemaLinked,
 } from '../../placeschema_skin_state';
+import {
+  AVATAR_TAG,
+  followRig,
+  removePlaceSchemaAvatar,
+  wearPlaceSchemaAvatar,
+} from './placeschema_avatar_body';
 
 type Limb = {
   bone: string;
@@ -386,6 +392,12 @@ export function skinTexture(url: string): THREE.Texture {
   return t;
 }
 
+/** Take off whatever carried body `root` wears (a Minecraft skin or PlaceSchema's Avatar). */
+export function removeCarriedBody(root: THREE.Object3D): void {
+  if (root.userData[MC_SKIN_TAG]) removeMinecraftSkin(root);
+  removePlaceSchemaAvatar(root);
+}
+
 /** Per frame, for the local player's visual: wear the carried skin if one arrived (once per rig and
  *  skin; a rebuilt rig gets it again) and keep the rig's own body hidden under it; take it off again when the skin goes. */
 export function wearCarriedSkin(
@@ -394,8 +406,16 @@ export function wearCarriedSkin(
   pid?: number,
   selfPid?: number,
 ): void {
+  const own = pid === undefined || pid === selfPid;
+  // PLACE-1129: "PlaceSchema" is PlaceSchema's own Avatar (linked accounts; the choice is local)
+  if (own && effectiveAvatarChoice() === 'generic' && placeSchemaLinked() !== false) {
+    if (root.userData[MC_SKIN_TAG]) removeMinecraftSkin(root);
+    if (wearPlaceSchemaAvatar(root, height)) followRig(root);
+    return;
+  }
+  if (root.userData[AVATAR_TAG]) removePlaceSchemaAvatar(root);
   // PLACE-412: another player wears the skin the server sent for them; no pid (or ours) = our own
-  const skin = pid === undefined || pid === selfPid ? ownSkin() : carriedSkinFor(pid);
+  const skin = own ? ownSkin() : carriedSkinFor(pid);
   if (!skin) {
     if (root.userData[MC_SKIN_TAG]) removeMinecraftSkin(root);
     return;
@@ -415,53 +435,10 @@ export function wearCarriedSkin(
   if (import.meta.env.DEV) (globalThis as { __mcSkinRoot?: unknown }).__mcSkinRoot = root; // probes
 }
 
-/** PLACE-1018: the local player's body by their avatar choice: WoC's own (no skin), the carried
- *  Minecraft skin, or the generic black-and-white body (linked accounts only). */
+/** PLACE-1018: the Minecraft skin the local player wears: the carried one when they chose it, else
+ *  none (WoC's own body, or PlaceSchema's Avatar: wearPlaceSchemaAvatar). */
 export function ownSkin(): CarriedSkin | null {
-  const choice = avatarChoice();
-  if (choice === 'native') return null;
-  if (choice === 'generic' && placeSchemaLinked() !== false) return genericSkin();
-  return carriedSkin();
-}
-
-let generic: CarriedSkin | null | undefined;
-/** PlaceSchema's generic body as a 64x64 Minecraft skin: a pale figure with a dark hairline on
- *  every face (the Forge mannequin's black-and-white look). Base layer only; the overlay stays
- *  transparent. Drawn once; null without a DOM (tests). */
-export function genericSkin(): CarriedSkin | null {
-  if (generic !== undefined) return generic;
-  generic = null;
-  if (typeof document === 'undefined') return generic;
-  const c = document.createElement('canvas');
-  c.width = 64;
-  c.height = 64;
-  const g = c.getContext('2d');
-  if (!g) return generic;
-  // [x, y, w, h] of each base-layer face (classic layout): head, body, arms, legs
-  const faces: [number, number, number, number][] = [];
-  const box = (u: number, v: number, w: number, h: number, d: number) =>
-    faces.push(
-      [u + d, v, w, d],
-      [u + d + w, v, w, d], // top, bottom
-      [u, v + d, d, h],
-      [u + d, v + d, w, h],
-      [u + d + w, v + d, d, h],
-      [u + 2 * d + w, v + d, w, h],
-    );
-  box(0, 0, 8, 8, 8); // head
-  box(16, 16, 8, 12, 4); // body
-  box(40, 16, 4, 12, 4); // right arm
-  box(32, 48, 4, 12, 4); // left arm
-  box(0, 16, 4, 12, 4); // right leg
-  box(16, 48, 4, 12, 4); // left leg
-  for (const [x, y, w, h] of faces) {
-    g.fillStyle = '#1a1a1a';
-    g.fillRect(x, y, w, h);
-    g.fillStyle = '#ececec';
-    g.fillRect(x + 1, y + 1, Math.max(0, w - 2), Math.max(0, h - 2));
-  }
-  generic = { url: c.toDataURL('image/png'), model: 'classic' };
-  return generic;
+  return effectiveAvatarChoice() === 'minecraft' ? carriedSkin() : null;
 }
 
 /** A PNG data URL's pixel height, read from its IHDR (64, or 32 for a legacy skin). */

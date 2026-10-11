@@ -12653,6 +12653,7 @@ export type TranslationKeyFlat =
   | 'hudChrome.placeschemaMenu.generic'
   | 'hudChrome.placeschemaMenu.menuButton'
   | 'hudChrome.placeschemaMenu.minecraft'
+  | 'hudChrome.placeschemaMenu.minecraftNone'
   | 'hudChrome.placeschemaMenu.native'
   | 'hudChrome.placeschemaMenu.open'
   | 'hudChrome.placeschemaMenu.title'

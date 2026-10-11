@@ -234,6 +234,7 @@ export const hudChromeStrings = {
     avatar: 'Your body here',
     native: 'World of ClaudeCraft',
     minecraft: 'Minecraft skin',
+    minecraftNone: 'No Minecraft skin carried on this account',
     generic: 'PlaceSchema',
     close: 'Close',
   },

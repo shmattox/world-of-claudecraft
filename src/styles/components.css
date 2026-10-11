@@ -26634,6 +26634,11 @@
   color: var(--ps-bg);
   border-color: var(--ps-fg-strong);
 }
+.ps-menu-choice:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  background: transparent;
+}
 .ps-menu-list {
   margin: 0;
   padding-left: 16px;

@@ -632,6 +632,7 @@ export const zh_CN: EnTranslations = {
       "avatar": "你在这里的外形",
       "native": "World of ClaudeCraft",
       "minecraft": "Minecraft 皮肤",
+      "minecraftNone": "No Minecraft skin carried on this account",
       "generic": "PlaceSchema",
       "close": "关闭"
     },
