@@ -21,7 +21,7 @@ import { PlaceSchemaPortalGate } from '../src/sim/placeschema_portal';
 import type { Sim } from '../src/sim/sim';
 import type { InvSlot, ItemInstancePayload } from '../src/sim/types';
 import { type AcceptedStore, pgAcceptedStore } from './placeschema_accepted_db';
-import { type Skin, skinForHolder } from './placeschema_skin';
+import { type Skin, sidecarSkin } from './placeschema_skin';
 
 /** The carried grant's id rides on the item copy. A foreign copy's `name` is the grant's minted label;
  *  our own copy coming home keeps the name (and the rest of its instance) it left with (PLACE-990). */
@@ -155,8 +155,6 @@ export interface SidecarConfig {
   realmHost: string;
   /** where Carry sends the player (a canonical origin): their home world */
   home: string;
-  /** relays holding the holders' linked accounts (kind 30082), for the arriving skin */
-  relays?: string[];
   /** PLACE-1018: how much PlaceSchema menu the client shows (PLACESCHEMA_MENU); full when absent */
   menu?: MenuTier;
   /** PLACE-1026: how the realm draws its PlaceSchema portals (PLACESCHEMA_PORTAL_ART) */
@@ -189,7 +187,6 @@ export function sidecarConfig(env: NodeJS.ProcessEnv): SidecarConfig | null {
     token,
     realmHost: realmHostOf(env),
     home: env.PLACESCHEMA_HOME ?? '',
-    relays: (env.PLACESCHEMA_RELAYS ?? '').split(',').filter((r) => /^wss?:\/\//.test(r)),
     menu: menuTierOf(env.PLACESCHEMA_MENU),
     portalArt: portalArtOf(env.PLACESCHEMA_PORTAL_ART),
   };
@@ -293,7 +290,7 @@ export interface CarryDeps<S extends CarrySession> {
   store: AcceptedStore;
   fetch?: typeof fetch;
   /** holder -> Minecraft skin (placeschema_skin.ts); injectable for tests */
-  skin?: (holder: string) => Promise<Skin | undefined>;
+  skin?: (holder: string, platformId: string) => Promise<Skin | undefined>;
 }
 
 export const platformId = (cfg: SidecarConfig, accountId: number) =>
@@ -605,20 +602,19 @@ export class PlaceSchemaCarry<S extends CarrySession> {
     else this.refused(s, r.body?.error ?? 'link-failed');
   }
 
-  /** The holder's Minecraft skin to this player's client, once per session; looked up live, never
-   *  stored. No skin (no relay, no link, default skin, lookup failed): WoC's own body stays. */
+  /** The holder's carried skin to this player's client, once per session; read live from the sidecar
+   *  (PLACE-1085), never stored. No skin (no attested link, default skin, lookup failed): WoC's own body
+   *  stays. */
   private wearSkin(s: S, holder: string): void {
     if (this.skinned.get(s) === holder) return;
     this.skinned.set(s, holder);
+    const pid = platformId(this.cfg, s.accountId);
     const look =
-      this.d.skin ??
-      ((h: string) =>
-        skinForHolder(h, this.cfg.relays ?? [], {
-          allowLoopback: process.env.PLACESCHEMA_ALLOW_LOOPBACK === '1',
-        }));
-    void look(holder)
+      this.d.skin ?? ((_h: string, id: string) => sidecarSkin(this.cfg, id, this.d.fetch));
+    void look(holder, pid)
       .then((skin) => {
-        if (!skin || this.d.clients.get(s.pid) !== s) return;
+        // only the newest read counts: a slower read for a holder this session has since left is dropped
+        if (!skin || this.skinned.get(s) !== holder || this.d.clients.get(s.pid) !== s) return;
         this.d.send(s, { t: 'placeschema', kind: 'skin', url: skin.url, model: skin.model });
         // PLACE-412: everyone else wears it on this player too (cosmetic: the woc-leg spec §2)
         this.skins.set(s.pid, { s, url: skin.url, model: skin.model });
