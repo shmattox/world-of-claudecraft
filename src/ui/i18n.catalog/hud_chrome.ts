@@ -234,7 +234,9 @@ export const hudChromeStrings = {
     avatar: 'Your body here',
     native: 'World of ClaudeCraft',
     minecraft: 'Minecraft skin',
+    minecraftNone: 'No Minecraft skin carried on this account',
     generic: 'PlaceSchema',
+    genericNone: "PlaceSchema's body couldn't be loaded here",
     close: 'Close',
   },
   // Countdown-to-graveyard recovery. Stable event phases/reasons come from the

@@ -632,7 +632,9 @@ export const zh_TW: EnTranslations = {
       "avatar": "你在這裡的外形",
       "native": "World of ClaudeCraft",
       "minecraft": "Minecraft 外觀",
+      "minecraftNone": "No Minecraft skin carried on this account",
       "generic": "PlaceSchema",
+      "genericNone": "PlaceSchema's body couldn't be loaded here",
       "close": "關閉"
     },
     "unstuck": {

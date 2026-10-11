@@ -17,7 +17,7 @@ import {
 } from '../texture_prewarm';
 import { mechAssetsReady, preloadMechAssets } from './assets';
 import { modularVisualKey, VISUALS, type WeaponLayoutOverride } from './manifest';
-import { MC_SKIN_TAG, removeMinecraftSkin, wearCarriedSkin } from './minecraft_skin_body';
+import { removeCarriedBody, wearCarriedSkin } from './minecraft_skin_body';
 import {
   type ArmorLoadout,
   type ModularAppearance,
@@ -305,8 +305,7 @@ export class CharacterPreview {
       // release those resources.
       this.characterGroup.remove(this.currentVisual.root);
       // the carried skin's boxes are this preview's own, not the visual's: release them too
-      if (this.currentVisual.root?.userData?.[MC_SKIN_TAG])
-        removeMinecraftSkin(this.currentVisual.root);
+      if (this.currentVisual.root) removeCarriedBody(this.currentVisual.root);
       this.currentVisual.dispose();
       this.currentVisual = null;
       // three releases a program with the last material holding it, so a
@@ -767,8 +766,7 @@ export class CharacterPreview {
       this.currentVisual.update(dt, PREVIEW_ANIM_STATE, true);
       // PLACE-955: the local player's carried Minecraft skin, as the world draws it
       if (this.carried) wearCarriedSkin(this.currentVisual.root, this.currentVisual.height);
-      else if (this.currentVisual.root?.userData?.[MC_SKIN_TAG])
-        removeMinecraftSkin(this.currentVisual.root);
+      else if (this.currentVisual.root) removeCarriedBody(this.currentVisual.root);
     }
 
     this.renderer.render(this.scene, this.camera);
@@ -930,8 +928,7 @@ export class CharacterPreview {
     if (this.currentVisual) {
       this.characterGroup.remove(this.currentVisual.root);
       // the carried skin's boxes are this preview's own, not the visual's: release them too
-      if (this.currentVisual.root?.userData?.[MC_SKIN_TAG])
-        removeMinecraftSkin(this.currentVisual.root);
+      if (this.currentVisual.root) removeCarriedBody(this.currentVisual.root);
       this.currentVisual.dispose();
       this.currentVisual = null;
       // three releases a program with the last material holding it, so a

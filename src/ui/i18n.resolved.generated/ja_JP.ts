@@ -632,7 +632,9 @@ export const ja_JP: EnTranslations = {
       "avatar": "ここでのあなたの姿",
       "native": "World of ClaudeCraft",
       "minecraft": "Minecraft スキン",
+      "minecraftNone": "No Minecraft skin carried on this account",
       "generic": "PlaceSchema",
+      "genericNone": "PlaceSchema's body couldn't be loaded here",
       "close": "閉じる"
     },
     "unstuck": {

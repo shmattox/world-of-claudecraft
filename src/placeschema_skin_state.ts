@@ -91,6 +91,20 @@ export function avatarChoice(): AvatarChoice {
   choice = CHOICES.includes(saved as AvatarChoice) ? (saved as AvatarChoice) : 'minecraft';
   return choice;
 }
+/** PLACE-1129: what the local player actually wears. "Minecraft skin" needs a carried skin on this
+ *  account; without one it is WoC's own body, and the menu shows that choice (never a silent swap). */
+export function effectiveAvatarChoice(): AvatarChoice {
+  const c = avatarChoice();
+  if (c === 'minecraft' && !skin) return 'native';
+  return c === 'generic' && avatarUnavailable ? 'native' : c;
+}
+/** PLACE-1129: PlaceSchema's Avatar body could not be loaded here, so that choice is unavailable. */
+let avatarUnavailable = false;
+export const placeSchemaAvatarUnavailable = (): boolean => avatarUnavailable;
+export function setPlaceSchemaAvatarUnavailable(next: boolean): void {
+  avatarUnavailable = next;
+  for (const f of choiceListeners) f();
+}
 export function setAvatarChoice(next: AvatarChoice): void {
   choice = next;
   try {
@@ -128,6 +142,7 @@ export function setCarriedSkin(next: CarriedSkin | null): void {
   } catch {
     /* storage full or blocked: char-select just shows WoC's own body */
   }
+  for (const f of choiceListeners) f(); // PLACE-1129: a skin arriving can change what "Minecraft skin" means
 }
 
 /** Char-select: the skin this browser last saw for the signed-in WoC account, or none (so one

@@ -632,7 +632,9 @@ export const en_XA: EnTranslations = {
       "avatar": "[Ýóúŕ ƀóðý ĥéŕé]",
       "native": "[Ŵóŕļð óƒ ÇļáúðéÇŕáƒţ]",
       "minecraft": "[Ɱíñéçŕáƒţ šķíñ]",
+      "minecraftNone": "[Ñó Ɱíñéçŕáƒţ šķíñ çáŕŕíéð óñ ţĥíš áççóúñţ]",
       "generic": "[ÞļáçéŠçĥéɱá]",
+      "genericNone": "[ÞļáçéŠçĥéɱá'š ƀóðý çóúļðñ'ţ ƀé ļóáðéð ĥéŕé]",
       "close": "[Çļóšé]"
     },
     "unstuck": {
