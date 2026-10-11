@@ -3,7 +3,6 @@
 // passes those bytes through on its own origin. Off (404) unless the sidecar is configured.
 
 import type { Ctx, RouteDef } from './http/types';
-import { readCapped } from './placeschema_links';
 
 const NAME = /^ps_[0-9a-f]{32}\.(glb|png|jpg|jpeg|webp|ktx2)$/; // open-place tools/look-plan names
 const MAX_BYTES = 16 * 1024 * 1024;
@@ -47,3 +46,25 @@ async function mediaHandler(ctx: Ctx): Promise<void> {
 export const routes: readonly RouteDef[] = [
   { method: 'GET', path: '/api/placeschema/media/:name', surface: 'api', handler: mediaHandler },
 ];
+
+/** A response body read up to `max` bytes: undefined (and the stream cancelled) once it passes. */
+export async function readCapped(r: Response, max: number): Promise<Buffer | undefined> {
+  if (Number(r.headers.get('content-length') ?? 0) > max) {
+    await r.body?.cancel().catch(() => undefined);
+    return undefined;
+  }
+  const chunks: Uint8Array[] = [];
+  let n = 0;
+  const reader = r.body?.getReader();
+  if (!reader) return Buffer.alloc(0);
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) return Buffer.concat(chunks);
+    n += value.byteLength;
+    if (n > max) {
+      await reader.cancel().catch(() => undefined);
+      return undefined;
+    }
+    chunks.push(value);
+  }
+}
