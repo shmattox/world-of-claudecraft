@@ -136,7 +136,10 @@ function carryWorld(cls: PlayerClass, opts: { look?: unknown; bag?: boolean } = 
     if (path === '/mod/mint') {
       // PLACE-386: every mint is distinct (the sidecar stamps a serial), so every mint is a new id
       // signed as the sidecar's own minter, the `owner` its manifest names (PLACE-990)
-      const content = JSON.stringify({ ...body.template, minter: OWNER });
+      const template = body.native_bytes
+        ? { ...body.template, native: { ...body.template.native, data: body.native_bytes } }
+        : body.template;
+      const content = JSON.stringify({ ...template, minter: OWNER });
       const grant = { id: G(++n), tags: [], content };
       queue.push({ grant, label: body.template.label });
       return { grant };
@@ -240,7 +243,9 @@ describe('earning: a quest turn-in mints through /mod/mint', () => {
     expect(mints).toHaveLength(2);
     for (const m of mints) {
       expect(m.body.distinct).toBeUndefined(); // the default: distinct (PLACE-386)
-      expect(m.body.template.type).toBe(`weapon.woc.${itemId}`);
+      expect(m.body.template.type).toMatch(/^(weapon|blade)\./); // PLACE-983: a category
+      expect(m.body.template.native).toEqual({ id: `woc:${itemId}`, v: 1 });
+      expect(typeof m.body.native_bytes).toBe('string');
       // render-asset is the sidecar's to stamp from SIDECAR_LOOKS, never the game's (Decision 3)
       expect(m.body.template.features.some((f: string) => f.startsWith('render-asset:'))).toBe(
         false,

@@ -8,7 +8,7 @@
 // CC0 1.0), and writes into public/placeschema/garments/:
 //   <kit>_<piece>.glb        one garment per kit and piece the kit has
 //   provenance.json          each file's source nodes, author, source url and licence
-//   sidecar-looks.json       SIDECAR_LOOKS: {"armor.woc.<id>": "<origin>/models/.../<file>"}
+//   sidecar-looks.json       SIDECAR_LOOKS: {"woc:<id>": "<origin>/placeschema/garments/<file>"} (the native id)
 //   sidecar-open-looks.txt   SIDECAR_OPEN_LOOKS: every garment url (CC0, open to every world)
 // Each garment's scene carries `placeschema_garment` extras binding it to the KayKit knight body that
 // PlaceSchema worlds give WoC arrivals (PLACE-1071).
@@ -158,7 +158,7 @@ if ([...written].sort().join() !== [...GARMENT_FILES].sort().join())
 const looks: Record<string, string> = {};
 for (const [id, def] of Object.entries(ITEMS)) {
   const file = garmentFile(def as never, (f) => written.has(f));
-  if (file) looks[`armor.woc.${id}`] = `${ORIGIN}/${GARMENT_DIR}/${file}`;
+  if (file) looks[`woc:${id}`] = `${ORIGIN}/${GARMENT_DIR}/${file}`;
 }
 const json = (v: unknown) => `${JSON.stringify(v, null, 2)}\n`;
 fs.writeFileSync(path.join(OUT, 'provenance.json'), json(provenance));

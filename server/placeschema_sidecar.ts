@@ -8,7 +8,9 @@
 // Off unless PLACESCHEMA_SIDECAR_URL and PLACESCHEMA_MOD_TOKEN are set. A player's platform id is
 // `<account id>@<realm host>` (spec/nostr.md section 11, platform `woc`), never the username.
 
-import { randomBytes } from 'node:crypto';
+import { createHash, randomBytes } from 'node:crypto';
+import { readFileSync } from 'node:fs';
+import path from 'node:path';
 import { ITEMS, QUESTS, questRewardItemId } from '../src/sim/data';
 import { canEquipItem } from '../src/sim/equipment_rules';
 import {
@@ -21,7 +23,7 @@ import { PlaceSchemaPortalGate } from '../src/sim/placeschema_portal';
 import type { Sim } from '../src/sim/sim';
 import type { InvSlot, ItemInstancePayload } from '../src/sim/types';
 import { type AcceptedStore, pgAcceptedStore } from './placeschema_accepted_db';
-import { garmentFits } from './placeschema_garments';
+import { GARMENT_DIR, GARMENT_FILES, garmentFile, garmentFits } from './placeschema_garments';
 import { type Skin, sidecarSkin } from './placeschema_skin';
 
 /** The carried grant's id rides on the item copy. A foreign copy's `name` is the grant's minted label;
@@ -40,14 +42,13 @@ const WOC_TYPE = /^(?:weapon|armor|misc)\.woc\.([a-z0-9_]{1,48})$/;
 /**
  * PLACE-990: the copy's own WoC data rides in its grant, untouched, in this game's namespace: the
  * bag slot (count, instance, crafting marks) and the item's catalog def, so the Hub holds the whole
- * item and a return rebuilds this exact copy. Base64url JSON split over `woc.native:<i>:` features,
- * because a feature is at most 525 chars (open-place protocol MAX_FEATURE_LEN) and the whole grant
- * content at most 4096 bytes (MAX_GRANT_CONTENT_BYTES). Our own bookkeeping keys never travel.
+ * item and a return rebuilds this exact copy. PLACE-983: it goes to the sidecar as `native_bytes`
+ * (base64url JSON) beside `template.native` {id, v}, and comes back as `template.native.data`.
+ * Grants minted before that carry it split over `woc.native:<i>:` features, still read on return.
+ * Our own bookkeeping keys never travel.
  */
 export const NATIVE_PREFIX = 'woc.native:';
 // `InvSlot.slot` (the bag cell it sat in) is placement, not the item: a returning copy takes a free cell.
-const NATIVE_CHUNK = 480;
-const NATIVE_MAX = 2800; // leaves the rest of the 4096-byte grant to the template itself
 export interface WocNative {
   v: 1;
   itemId: string;
@@ -59,7 +60,7 @@ export interface WocNative {
   def?: unknown;
 }
 
-export function nativeFeatures(slot: InvSlot): string[] {
+export function nativeBytes(slot: InvSlot): string {
   const instance = Object.fromEntries(
     Object.entries(slot.instance ?? {}).filter(
       ([k]) => k !== GRANT_KEY && k !== PENDING_KEY && k !== MESH_KEY,
@@ -75,34 +76,31 @@ export function nativeFeatures(slot: InvSlot): string[] {
     ...(slot.materialSeparated ? { materialSeparated: true as const } : {}),
     def: ITEMS[slot.itemId],
   };
-  const b = Buffer.from(JSON.stringify(native)).toString('base64url');
-  if (b.length > NATIVE_MAX) {
-    // The finding PLACE-993 needs: what today's template cannot hold. The item still mints, by id.
-    console.warn(
-      `placeschema: ${slot.itemId} native data is ${b.length} chars, over ${NATIVE_MAX}; minted by id only`,
-    );
-    return [];
-  }
-  const out: string[] = [];
-  for (let i = 0; i * NATIVE_CHUNK < b.length; i++)
-    out.push(`${NATIVE_PREFIX}${i}:${b.slice(i * NATIVE_CHUNK, (i + 1) * NATIVE_CHUNK)}`);
-  return out;
+  return Buffer.from(JSON.stringify(native)).toString('base64url');
 }
 
 /** The copy's own data from a grant `minter` signed, or undefined (none, malformed, or someone else's). */
 export function nativeOf(grant: Grant, minter: string | undefined): WocNative | undefined {
   try {
-    const t = JSON.parse(grant.content) as { minter?: unknown; features?: unknown };
-    if (!minter || t.minter !== minter || !Array.isArray(t.features)) return undefined;
-    const parts = t.features
-      .filter((f): f is string => typeof f === 'string' && f.startsWith(NATIVE_PREFIX))
-      .map((f) => /^(\d+):(.*)$/.exec(f.slice(NATIVE_PREFIX.length)))
-      .filter((m): m is RegExpExecArray => !!m)
-      .sort((a, b) => Number(a[1]) - Number(b[1]));
-    if (!parts.length || parts.some((m, i) => Number(m[1]) !== i)) return undefined;
-    const n = JSON.parse(
-      Buffer.from(parts.map((m) => m[2]).join(''), 'base64url').toString('utf8'),
-    ) as WocNative;
+    const t = JSON.parse(grant.content) as {
+      minter?: unknown;
+      features?: unknown;
+      native?: { data?: unknown };
+    };
+    if (!minter || t.minter !== minter) return undefined;
+    let data = typeof t.native?.data === 'string' ? t.native.data : undefined; // a `ref`: id only
+    if (!data && Array.isArray(t.features)) {
+      // a grant minted before PLACE-983
+      const parts = t.features
+        .filter((f): f is string => typeof f === 'string' && f.startsWith(NATIVE_PREFIX))
+        .map((f) => /^(\d+):(.*)$/.exec(f.slice(NATIVE_PREFIX.length)))
+        .filter((m): m is RegExpExecArray => !!m)
+        .sort((a, b) => Number(a[1]) - Number(b[1]));
+      if (parts.length && parts.every((m, i) => Number(m[1]) === i))
+        data = parts.map((m) => m[2]).join('');
+    }
+    if (!data) return undefined;
+    const n = JSON.parse(Buffer.from(data, 'base64url').toString('utf8')) as WocNative;
     return n?.v === 1 &&
       typeof n.itemId === 'string' &&
       ITEMS[n.itemId] &&
@@ -128,8 +126,70 @@ const ARMOR_ANCHOR: Partial<Record<string, string>> = {
   back: 'back',
 };
 
-/** A WoC item as a template (protocol/src/vocabulary.ts categories: weapon, armor, misc). */
-export function templateFor(itemId: string, slot: InvSlot = { itemId, count: 1 }) {
+/** PLACE-983: what an item is, never which one (that is `native.id`). The same rule as open-place
+ *  tools/adapter/src/woc.ts typeFor. */
+const BODY_SLOTS = new Set([
+  'helmet',
+  'chest',
+  'shoulder',
+  'waist',
+  'legs',
+  'gloves',
+  'feet',
+  'back',
+]);
+export function typeFor(def: (typeof ITEMS)[string]): string {
+  const d = def as {
+    kind: string;
+    slot?: string;
+    armorType?: string;
+    weapon?: { dagger?: boolean };
+  };
+  if (d.kind === 'weapon') return d.weapon?.dagger ? 'blade.dagger' : 'weapon.melee';
+  if (d.kind === 'armor') {
+    if (d.armorType) return `armor.${d.armorType}.${d.slot ?? 'misc'}`;
+    if (!d.slot || BODY_SLOTS.has(d.slot)) return `armor.${d.slot ?? 'misc'}`;
+    return `jewelry.${d.slot}`;
+  }
+  if (d.kind === 'held_offhand') return 'offhand.held';
+  return `misc.${d.kind}`;
+}
+
+/** PLACE-983 (item standard rule 4): an item's own open model, by hash, at PUBLIC_ORIGIN. Each is
+ *  hashed once from the server's working directory (the game root): `public/` in a checkout, else
+ *  `dist/` (the production image ships the built client, which holds `public/` as is, and no
+ *  `public/`). Unreadable or no origin: no look. */
+const OPEN_LOOKS: Record<string, string> = { redbrook_blade: 'models/weapons/sword_d.glb' };
+const hashes = new Map<string, string | null>();
+function fileSha256(rel: string): string | undefined {
+  if (!hashes.has(rel)) {
+    hashes.set(rel, null);
+    for (const dir of ['public', 'dist']) {
+      try {
+        const bytes = readFileSync(path.join(process.cwd(), dir, rel));
+        hashes.set(rel, createHash('sha256').update(bytes).digest('hex'));
+        break;
+      } catch {}
+    }
+  }
+  return hashes.get(rel) ?? undefined;
+}
+function lookFor(itemId: string, origin: string | undefined) {
+  const garment = garmentFile(ITEMS[itemId] as never, (f) => GARMENT_FILES.has(f));
+  const rel = garment ? `${GARMENT_DIR}/${garment}` : OPEN_LOOKS[itemId];
+  const sha256 = rel && origin ? fileSha256(rel) : undefined;
+  if (!rel || !origin || !sha256) return undefined;
+  const url = `${origin.replace(/\/$/, '')}/${rel}`;
+  return { model: { url, sha256 }, by: 'minter' as const, license: 'CC0-1.0' };
+}
+
+/** A WoC item as a template: a category `type`, the item itself in `native` (PLACE-983). */
+export function templateFor(
+  itemId: string,
+  slot: InvSlot = { itemId, count: 1 },
+  origin = process.env.PUBLIC_ORIGIN,
+) {
+  void slot; // the copy's own data goes as `native_bytes` (nativeBytes), beside this template
   const def = ITEMS[itemId];
   const worn = def.slot ? ARMOR_ANCHOR[def.slot] : undefined;
   const shape =
@@ -138,10 +198,13 @@ export function templateFor(itemId: string, slot: InvSlot = { itemId, count: 1 }
       : def.kind === 'armor'
         ? { category: 'armor', anchors: worn ? [worn] : [], affordances: ['wear', 'display'] }
         : { category: 'misc', anchors: [] as string[], affordances: ['display'] };
+  const look = lookFor(itemId, origin);
   return {
-    type: `${shape.category}.woc.${itemId}`,
+    type: typeFor(def),
     label: def.name,
-    features: [`woc:${itemId}`, ...nativeFeatures(slot), ...garmentFits(def)],
+    native: { id: `woc:${itemId}`, v: 1 },
+    ...(look ? { look } : {}),
+    features: [`woc:${itemId}`, ...garmentFits(def)],
     palette: ['#8a6d3b'],
     style_hint: 'woc',
     dimensions: { l: 0.9, w: 0.2, h: 0.1 },
@@ -302,11 +365,30 @@ export const platformId = (cfg: SidecarConfig, accountId: number) =>
  *  gets a body and its ack and none strands in escrow (PLACE-293). */
 export function itemIdForGrant(grant: Grant): string {
   let type: unknown;
+  let nativeId: unknown;
+  let features: unknown;
   try {
-    type = (JSON.parse(grant.content) as { type?: unknown }).type;
+    const t = JSON.parse(grant.content) as {
+      type?: unknown;
+      native?: { id?: unknown };
+      features?: unknown;
+    };
+    type = t.type;
+    nativeId = t.native?.id;
+    features = t.features;
   } catch {
     type = undefined;
   }
+  // PLACE-983: an item names itself in `native.id`; an id-only remint (its data too big), in its
+  // `woc:<id>` feature; a grant minted before PLACE-983, in `type`
+  const named =
+    typeof nativeId === 'string'
+      ? nativeId
+      : Array.isArray(features)
+        ? features.find((f): f is string => typeof f === 'string' && f.startsWith('woc:'))
+        : undefined;
+  const own = named ? /^woc:([a-z0-9_]{1,48})$/.exec(named) : null;
+  if (own) return ITEMS[own[1]] ? own[1] : FOREIGN_KEEPSAKE_ID;
   if (typeof type !== 'string') return FOREIGN_KEEPSAKE_ID;
   const m = WOC_TYPE.exec(type);
   if (m) return ITEMS[m[1]] ? m[1] : FOREIGN_KEEPSAKE_ID;
@@ -429,7 +511,9 @@ export class PlaceSchemaCarry<S extends CarrySession> {
       // PLACE-990: our own minter, known BEFORE anything is claimed (no await between a claim and its
       // item). Unknown (the manifest fetch failed): a grant carrying native data waits for a later join,
       // unclaimed and unacked, rather than coming home rebuilt from the catalog.
-      const hasNative = (a: Added) => !!a?.grant?.content?.includes(NATIVE_PREFIX);
+      const hasNative = (a: Added) =>
+        !!a?.grant?.content &&
+        (a.grant.content.includes('"native"') || a.grant.content.includes(NATIVE_PREFIX));
       const minter = offered.some(hasNative) ? await this.minter() : undefined;
       const meta = this.d.sim.meta(s.pid);
       if (!meta || this.d.clients.get(s.pid) !== s) return;
@@ -674,10 +758,19 @@ export class PlaceSchemaCarry<S extends CarrySession> {
     if (!(await this.d.save(s))) return this.untag(s, itemId);
     let r: { ok: boolean; status: number; body: any } | undefined;
     try {
+      const pid = platformId(this.cfg, s.accountId);
+      const template = templateFor(itemId, slot);
       r = await this.call('/mod/mint', {
-        platformId: platformId(this.cfg, s.accountId),
-        template: templateFor(itemId, slot),
+        platformId: pid,
+        template,
+        native_bytes: nativeBytes(slot),
       });
+      if (r.status === 413 && r.body?.error === 'native-too-large') {
+        // Too big to ride inline, and this sidecar has no Blossom: mint by id only (PLACE-993 finding)
+        console.warn(`placeschema: ${itemId} native data too large; minted by id only`);
+        const { native: _n, ...byId } = template;
+        r = await this.call('/mod/mint', { platformId: pid, template: byId });
+      }
     } catch {
       r = undefined;
     }

@@ -1,10 +1,13 @@
+import { createHash } from 'node:crypto';
+import { readFileSync } from 'node:fs';
+import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import {
   FOREIGN_KEEPSAKE_ID,
   FOREIGN_WEAPON_ID,
   GRANT_KEY,
   itemIdForGrant,
-  nativeFeatures,
+  nativeBytes,
   nativeOf,
   PENDING_KEY,
   PlaceSchemaCarry,
@@ -133,8 +136,15 @@ function world() {
       return { status: 200, body: { ok: true } };
     }
     if (path === '/mod/mint') {
-      // the sidecar signs the template it was given, as its own minter (PLACE-990 reads it back)
-      const g = { id: G1, tags: [], content: JSON.stringify({ ...b.template, minter: OWNER }) };
+      // the sidecar signs the template it was given, as its own minter (PLACE-990 reads it back); like
+      // the real one (open-place PLACE-985) it folds `native_bytes` in as `native.data`, up to 2048 chars
+      // and with no Blossom configured refuses anything bigger
+      if (b.native_bytes?.length > 2048)
+        return { status: 413, body: { error: 'native-too-large' } };
+      const template = b.native_bytes
+        ? { ...b.template, native: { ...b.template.native, data: b.native_bytes } }
+        : b.template;
+      const g = { id: G1, tags: [], content: JSON.stringify({ ...template, minter: OWNER }) };
       escrow.set(G1, {
         grant: g,
         label: b.template.label,
@@ -1133,11 +1143,12 @@ describe('PLACE-990: a copy carries its own WoC data and comes home whole', () =
       [PENDING_KEY]: 'redbrook_blade',
     } as never,
   };
-  const minted = (slot: InvSlot, minter = OWNER) => ({
-    id: G1,
-    tags: [],
-    content: JSON.stringify({ ...templateFor(slot.itemId, slot), minter }),
-  });
+  // as the sidecar signs it: the template, with the copy's own bytes folded in as native.data
+  const minted = (slot: InvSlot, minter = OWNER) => {
+    const t = templateFor(slot.itemId, slot);
+    const native = { ...t.native, data: nativeBytes(slot) };
+    return { id: G1, tags: [], content: JSON.stringify({ ...t, native, minter }) };
+  };
 
   it('round-trips the slot and the catalog def through the grant, never our own bookkeeping', () => {
     const n = nativeOf(minted(enchanted), OWNER);
@@ -1193,9 +1204,61 @@ describe('PLACE-990: a copy carries its own WoC data and comes home whole', () =
     expect(nativeOf(minted(enchanted), undefined)).toBeUndefined();
   });
 
-  it('too big to fit: mints by id only, with no partial native data', () => {
-    const huge = { ...enchanted, instance: { signer: 'x'.repeat(4000) } as never };
-    expect(nativeFeatures(huge)).toEqual([]);
+  it('PLACE-983: too big to ride inline and no Blossom: mints again by id only, no partial data', async () => {
+    const w = world();
+    await w.carry.join(w.session());
+    w.inventory.push({
+      itemId: 'greyjaw_pelt_cloak',
+      count: 1,
+      craftedRecipeId: 'x'.repeat(3000),
+    });
+    await w.carry.questDone(w.session(), 'q_greyjaw');
+    expect(w.calls.filter((c) => c === '/mod/mint')).toHaveLength(2); // refused (413), then by id
+    expect(JSON.parse(w.escrow.get(G1)!.grant.content).native).toBeUndefined();
+    // it still minted, by id, and that grant converts the tagged quest copy: the same item, once
+    expect(w.inventory).toHaveLength(1);
+    expect(w.inventory[0].itemId).toBe('greyjaw_pelt_cloak');
+    expect(slotOfGrant(w.inventory, G1)).toBe(0);
+  });
+
+  it('PLACE-983: the type says what the item is, native.id which one', () => {
+    const typeOf = (id: string) => templateFor(id).type;
+    expect(typeOf('redbrook_blade')).toBe('weapon.melee');
+    const dagger = Object.keys(ITEMS).find(
+      (k) => (ITEMS[k] as { weapon?: { dagger?: boolean } }).weapon?.dagger,
+    );
+    if (dagger) expect(typeOf(dagger)).toBe('blade.dagger');
+    expect(typeOf('cryptbone_greaves')).toBe('armor.mail.legs');
+    const ring = Object.keys(ITEMS).find(
+      (k) => ITEMS[k].kind === 'armor' && ITEMS[k].slot === 'ring',
+    );
+    if (ring) expect(typeOf(ring)).toBe('jewelry.ring');
+    const potion = Object.keys(ITEMS).find((k) => ITEMS[k].kind === 'potion');
+    if (potion) expect(typeOf(potion)).toBe('misc.potion');
+    for (const id of Object.keys(ITEMS)) expect(templateFor(id).type).not.toContain('woc');
+    expect(templateFor('redbrook_blade').native).toEqual({ id: 'woc:redbrook_blade', v: 1 });
+    expect(itemIdForGrant(minted({ itemId: 'redbrook_blade', count: 1 }))).toBe('redbrook_blade');
+  });
+
+  it('PLACE-983: an item with an open file declares it as its own look, by hash', () => {
+    const origin = 'https://woc.test';
+    const sha = (rel: string) =>
+      createHash('sha256')
+        .update(readFileSync(path.join('public', rel)))
+        .digest('hex');
+    expect(templateFor('cryptbone_greaves', undefined, origin).look).toEqual({
+      model: {
+        url: `${origin}/placeschema/garments/knight_legs.glb`,
+        sha256: sha('placeschema/garments/knight_legs.glb'),
+      },
+      by: 'minter',
+      license: 'CC0-1.0',
+    });
+    expect(templateFor('redbrook_blade', undefined, origin).look?.model.sha256).toBe(
+      sha('models/weapons/sword_d.glb'),
+    );
+    expect(templateFor('mistveil_cord', undefined, origin).look).toBeUndefined(); // no open file
+    expect(templateFor('cryptbone_greaves', undefined, '').look).toBeUndefined(); // no origin
   });
 
   it('WoC -> away -> WoC: the copy that left is the copy that comes back, field for field', async () => {

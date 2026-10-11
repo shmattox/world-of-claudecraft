@@ -60,8 +60,8 @@ describe('A Blade That Travels', () => {
       expect(got).toHaveLength(1);
       expect(ITEMS[got[0]].kind).toBe('weapon');
       expect(canEquipItem(cls, ITEMS[got[0]])).toBe(true); // the class can wield it here too
-      // the demo carry policy lists weapon.woc.* (open-place e2e/woc-loop.walk.ts)
-      expect(templateFor(got[0]).type).toMatch(/^weapon\.woc\./);
+      // the demo carry policy lists weapon.* and blade.* (open-place deploy/demo-games, PLACE-983)
+      expect(templateFor(got[0]).type).toMatch(/^(weapon|blade)\./);
     });
   }
 });

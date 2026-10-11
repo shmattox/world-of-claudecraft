@@ -43,7 +43,7 @@ describe('WoC garment looks (PLACE-490)', () => {
       expect(provenance[file]?.licence).toBe('CC0-1.0');
       expect(open).toContain(url);
       expect(url).not.toMatch(/warrior_modular/);
-      const def = ITEMS[type.replace('armor.woc.', '')];
+      const def = ITEMS[type.replace('woc:', '')];
       expect(def?.kind).toBe('armor');
     }
   });
