@@ -109,6 +109,15 @@ function rotationIn(o: THREE.Object3D, root: THREE.Object3D, out: THREE.Quaterni
   return o.getWorldQuaternion(out).premultiply(_r);
 }
 
+/** The visual's model (CharacterVisual.model: the child of its 'character_model_wrap' that holds the
+ *  rig), or `root` when the visual is built some other way. */
+function modelOf(root: THREE.Object3D, rig: THREE.Object3D): THREE.Object3D {
+  const wrap = root.getObjectByName('character_model_wrap');
+  if (!wrap) return root;
+  for (let o: THREE.Object3D | null = rig; o; o = o.parent) if (o.parent === wrap) return o;
+  return root;
+}
+
 /** Put the Avatar on `root` (a WoC character visual), scaled to `height`. False until it has loaded. */
 export function wearPlaceSchemaAvatar(root: THREE.Object3D, height: number): boolean {
   if (root.userData[AVATAR_TAG]) return true;
@@ -121,10 +130,16 @@ export function wearPlaceSchemaAvatar(root: THREE.Object3D, height: number): boo
     o.userData[AVATAR_TAG] = true;
     o.frustumCulled = false;
   });
+  // sized in world space (the visual's height times its entity scale), then moved INTO the visual's
+  // model keeping that world transform: the model is what equipment changes search for hand slots and
+  // what CharacterVisual.dispose frees skeletons under
   root.add(body);
   root.updateMatrixWorld(true);
+  const want = height * root.getWorldScale(_s).y;
   const own = new THREE.Box3().setFromObject(body).getSize(_s).y;
-  body.scale.setScalar(own > 0 ? height / (own / body.scale.y) : 1);
+  if (own > 0) body.scale.multiplyScalar(want / own);
+  root.updateMatrixWorld(true);
+  modelOf(root, rig).attach(body);
   root.updateMatrixWorld(true);
   let mesh: THREE.SkinnedMesh | undefined;
   body.traverse((o) => {
