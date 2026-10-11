@@ -11,6 +11,7 @@
 import { createHash, randomBytes } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
+import { weaponTypeForItem } from '../src/sim/content/weapon_skin_rules';
 import { ITEMS, QUESTS, questRewardItemId } from '../src/sim/data';
 import { canEquipItem } from '../src/sim/equipment_rules';
 import {
@@ -127,7 +128,8 @@ const ARMOR_ANCHOR: Partial<Record<string, string>> = {
 };
 
 /** PLACE-983: what an item is, never which one (that is `native.id`). The same rule as open-place
- *  tools/adapter/src/woc.ts typeFor. */
+ *  tools/adapter/src/woc.ts typeFor. A sword is `blade.sword` and a dagger `blade.dagger`, the keys
+ *  other games use too (WoC's own WEAPON_TYPE_BY_ITEM); `weapon.melee` is any other weapon. */
 const BODY_SLOTS = new Set([
   'helmet',
   'chest',
@@ -140,12 +142,16 @@ const BODY_SLOTS = new Set([
 ]);
 export function typeFor(def: (typeof ITEMS)[string]): string {
   const d = def as {
+    id: string;
     kind: string;
     slot?: string;
     armorType?: string;
     weapon?: { dagger?: boolean };
   };
-  if (d.kind === 'weapon') return d.weapon?.dagger ? 'blade.dagger' : 'weapon.melee';
+  if (d.kind === 'weapon') {
+    if (d.weapon?.dagger) return 'blade.dagger';
+    return weaponTypeForItem(d.id) === 'sword' ? 'blade.sword' : 'weapon.melee';
+  }
   if (d.kind === 'armor') {
     if (d.armorType) return `armor.${d.armorType}.${d.slot ?? 'misc'}`;
     if (!d.slot || BODY_SLOTS.has(d.slot)) return `armor.${d.slot ?? 'misc'}`;
