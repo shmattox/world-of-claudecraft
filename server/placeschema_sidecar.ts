@@ -347,7 +347,9 @@ export interface CarryDeps<S extends CarrySession> {
           art?: PortalArt;
         }
       /** PLACE-412: forget other players' skins; the ones still here follow */
-      | { t: 'placeschema'; kind: 'skins' },
+      | { t: 'placeschema'; kind: 'skins' }
+      /** PLACE-1157: the avatar chosen where the player left from, with its landing id */
+      | { t: 'placeschema'; kind: 'avatar'; choice: string; landing: string },
   ): void;
   notice(session: S, text: string): void;
   /** persist this live session's character now; false if the save was refused */
@@ -432,6 +434,8 @@ export class PlaceSchemaCarry<S extends CarrySession> {
   private readonly carrying = new Set<number>();
   /** the grants each session's bag marked to carry through the portal (PLACE-954) */
   private readonly marks = new WeakMap<S, Set<string>>();
+  /** PLACE-1157: the body each player shows now (from the client), and the last landing whose choice was sent */
+  private readonly avatars = new WeakMap<S, string>();
   /** each session's walk-in gate for the portals (PLACE-954) */
   private readonly gates = new WeakMap<S, PlaceSchemaPortalGate>();
   /** the link status last sent to each session */
@@ -513,6 +517,15 @@ export class PlaceSchemaCarry<S extends CarrySession> {
       });
       if (!r.ok) return;
       this.setLinked(s, r.body.holder ?? null);
+      // PLACE-1157: the choice made where this player left from, every join; the client wears each landing once
+      const av = r.body.avatar;
+      if (av && typeof av.choice === 'string' && typeof av.landing === 'string')
+        this.d.send(s, {
+          t: 'placeschema',
+          kind: 'avatar',
+          choice: av.choice,
+          landing: av.landing,
+        });
       const offered = (r.body.add ?? []) as Added[];
       // PLACE-990: our own minter, known BEFORE anything is claimed (no await between a claim and its
       // item). Unknown (the manifest fetch failed): a grant carrying native data waits for a later join,
@@ -891,6 +904,7 @@ export class PlaceSchemaCarry<S extends CarrySession> {
         destination: this.cfg.home,
         attempt,
         ...(Object.keys(equipped).length ? { equipped } : {}),
+        ...(this.avatars.has(s) ? { avatar: this.avatars.get(s) } : {}), // PLACE-1157
       });
     } catch {
       r = undefined;
@@ -952,6 +966,12 @@ export class PlaceSchemaCarry<S extends CarrySession> {
   /** The `ps_carry` command (the bag's "Carry to another world"): the named bag slot's (or worn
    *  slot's) signed copy is marked to carry, and the player is pointed to the portal, which carries
    *  the marked items (PLACE-954), or all of them when none is marked. */
+  /** PLACE-1157: the `ps_avatar` command: the client's current choice, one of the three words. */
+  onAvatarCommand(s: S, choice: unknown): void {
+    if (choice === 'native' || choice === 'carried' || choice === 'generic')
+      this.avatars.set(s, choice);
+  }
+
   onCarryCommand(s: S, slot: unknown): void {
     const meta = this.d.sim.meta(s.pid);
     const inst =

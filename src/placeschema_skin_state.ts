@@ -73,12 +73,14 @@ export function setPlaceSchemaHolder(next: string | null): void {
   holder = next;
 }
 
-/** PLACE-1018: which body the local player wears: WoC's own (`native`), the carried Minecraft skin,
- *  or PlaceSchema's generic black-and-white body. Kept per WoC account in this browser. */
-export type AvatarChoice = 'native' | 'minecraft' | 'generic';
-const CHOICES: readonly AvatarChoice[] = ['native', 'minecraft', 'generic'];
+/** PLACE-1018: which body the local player wears: WoC's own (`native`), the carried game skin (`carried`),
+ *  or PlaceSchema's generic black-and-white body. Kept per WoC account in this browser, and carried across
+ *  portal hops in PlaceSchema's one vocabulary (PLACE-1157). */
+export type AvatarChoice = 'native' | 'carried' | 'generic';
+export const AVATAR_CHOICES: readonly AvatarChoice[] = ['native', 'carried', 'generic'];
 let choice: AvatarChoice | null = null; // read once, then cached (wearCarriedSkin asks every frame)
 const choiceListeners = new Set<() => void>();
+const wornLandings = new Set<string>(); // PLACE-1157
 export function avatarChoice(): AvatarChoice {
   if (choice) return choice;
   let saved: unknown = null;
@@ -88,14 +90,15 @@ export function avatarChoice(): AvatarChoice {
   } catch {
     /* storage blocked: the default */
   }
-  choice = CHOICES.includes(saved as AvatarChoice) ? (saved as AvatarChoice) : 'minecraft';
+  if (saved === 'minecraft') saved = 'carried'; // PLACE-1157: the choice's old name, read as the new one
+  choice = AVATAR_CHOICES.includes(saved as AvatarChoice) ? (saved as AvatarChoice) : 'carried';
   return choice;
 }
 /** PLACE-1129: what the local player actually wears. "Minecraft skin" needs a carried skin on this
  *  account; without one it is WoC's own body, and the menu shows that choice (never a silent swap). */
 export function effectiveAvatarChoice(): AvatarChoice {
   const c = avatarChoice();
-  if (c === 'minecraft' && !skin) return 'native';
+  if (c === 'carried' && !skin) return 'native';
   return c === 'generic' && avatarUnavailable ? 'native' : c;
 }
 /** PLACE-1129: PlaceSchema's Avatar body could not be loaded here, so that choice is unavailable. */
@@ -115,9 +118,47 @@ export function setAvatarChoice(next: AvatarChoice): void {
   }
   for (const f of choiceListeners) f();
 }
+/** PLACE-1157: wear the choice made where the player left from, once per landing (the landing's id), and keep it
+ *  as this account's own; a choice made here afterwards stands on the next join. */
+export function wearArrivedAvatar(next: unknown, landing: unknown): boolean {
+  if (
+    !AVATAR_CHOICES.includes(next as AvatarChoice) ||
+    typeof landing !== 'string' ||
+    !/^[0-9a-f]{32}$/.test(landing)
+  )
+    return false;
+  // A landing id is a random nonce, so one list serves every account (the holder is known late on a reload).
+  // ponytail: the last 32 landings; an older one replayed after 32 newer arrivals on this browser would wear again
+  const key = 'placeschema.avatar-landings.v1';
+  if (wornLandings.has(landing)) return false;
+  wornLandings.add(landing); // kept for this page too: storage may be blocked or full
+  try {
+    const seen: unknown = JSON.parse(localStorage.getItem(key) ?? '[]');
+    const list = Array.isArray(seen) ? seen : [];
+    if (list.includes(landing)) return false;
+    localStorage.setItem(key, JSON.stringify([...list, landing].slice(-32)));
+  } catch {
+    /* storage blocked: this page's set remembers it */
+  }
+  setAvatarChoice(next as AvatarChoice);
+  return true;
+}
 export function onAvatarChoiceChange(f: () => void): () => void {
   choiceListeners.add(f);
   return () => choiceListeners.delete(f);
+}
+/** PLACE-1157: send the server the choice shown now when it changes; `sync(true)` resends it (a realm status).
+ *  `send` answers whether it went out. `stop()` when the connection closes. */
+export function avatarChoiceSender(send: (choice: AvatarChoice) => boolean): {
+  sync(force?: boolean): void;
+  stop(): void;
+} {
+  let sent: AvatarChoice | null = null;
+  const sync = (force = false) => {
+    const c = effectiveAvatarChoice();
+    if ((force || c !== sent) && send(c)) sent = c; // unsent (socket down): tried again on the next change or status
+  };
+  return { sync, stop: onAvatarChoiceChange(() => sync()) };
 }
 
 /** PLACE-954: the destination's own picture (its manifest preview), shown in the portal; null until

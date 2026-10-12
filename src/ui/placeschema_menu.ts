@@ -91,7 +91,9 @@ export const shortNpub = (hex: string): string => {
   return `${n.slice(0, 12)}…${n.slice(-6)}`;
 };
 
-const CHOICES: readonly AvatarChoice[] = ['native', 'minecraft', 'generic'];
+const CHOICES: readonly AvatarChoice[] = ['native', 'carried', 'generic'];
+// the carried skin keeps its existing label key (`minecraft`)
+const labelKey = (c: AvatarChoice) => (c === 'carried' ? 'minecraft' : c);
 const MARK = '/placeschema/logo-white.png';
 
 /** Mount the mark, the menu button and the panel. Returns an unmount (tests). */
@@ -139,7 +141,7 @@ export function mountPlaceSchemaMenu(deps: {
     const noAvatar = placeSchemaAvatarUnavailable();
     panel.innerHTML = `<div class="ps-menu-head"><img src="${MARK}" alt=""><span>${esc(t('hudChrome.placeschemaMenu.title'))}</span><button type="button" class="ps-menu-close" data-ps-close aria-label="${esc(t('hudChrome.placeschemaMenu.close'))}">×</button></div>
 <div class="ps-menu-row"><div class="ps-menu-label">${esc(t('hudChrome.placeschemaMenu.account'))}</div><div class="ps-menu-mono">${holder ? esc(shortNpub(holder)) : '—'}</div></div>
-<div class="ps-menu-row"><div class="ps-menu-label">${esc(t('hudChrome.placeschemaMenu.avatar'))}</div><div class="ps-menu-choices">${CHOICES.map((c) => `<button type="button" class="ps-menu-choice${c === current ? ' is-on' : ''}" data-ps-avatar="${c}" aria-pressed="${c === current}"${c === 'minecraft' && noSkin ? ` disabled title="${esc(t('hudChrome.placeschemaMenu.minecraftNone'))}"` : c === 'generic' && noAvatar ? ` disabled title="${esc(t('hudChrome.placeschemaMenu.genericNone'))}"` : ''}>${esc(t(`hudChrome.placeschemaMenu.${c}` as const))}</button>`).join('')}</div></div>
+<div class="ps-menu-row"><div class="ps-menu-label">${esc(t('hudChrome.placeschemaMenu.avatar'))}</div><div class="ps-menu-choices">${CHOICES.map((c) => `<button type="button" class="ps-menu-choice${c === current ? ' is-on' : ''}" data-ps-avatar="${c}" aria-pressed="${c === current}"${c === 'carried' && noSkin ? ` disabled title="${esc(t('hudChrome.placeschemaMenu.minecraftNone'))}"` : c === 'generic' && noAvatar ? ` disabled title="${esc(t('hudChrome.placeschemaMenu.genericNone'))}"` : ''}>${esc(t(`hudChrome.placeschemaMenu.${labelKey(c)}` as const))}</button>`).join('')}</div></div>
 <div class="ps-menu-row"><div class="ps-menu-label">${esc(t('hudChrome.placeschemaMenu.carried'))}</div>${carried.length ? `<ul class="ps-menu-list">${carried.map((n) => `<li>${esc(n)}</li>`).join('')}</ul>` : `<div class="ps-menu-dim">${esc(t('hudChrome.placeschemaMenu.carriedNone'))}</div>`}</div>`;
   };
   const open = (): void => {

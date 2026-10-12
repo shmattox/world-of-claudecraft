@@ -3,6 +3,7 @@ import type { MaterialStackSelection } from '../sim/material_stack_selection';
 import { resolveInitialActionBarLayout } from './action_bar_restore';
 import { materialStorageTransferPayload } from './material_storage_command';
 import { applyPlaceSchemaFrame } from './placeschema_frame';
+import { avatarChoiceSender } from '../placeschema_skin_state';
 import { decodeWeeklyRewardInfo, sendWeekly, type WeeklyRewardInfo } from './weekly_rewards_wire';
 
 // Online play: REST auth client + WebSocket world mirror.
@@ -1948,6 +1949,7 @@ export class ClientWorld extends ReconWireState implements IWorld {
   }
 
   close(): void {
+    this.avatarSender?.stop();
     this.endSession();
     this.ws.onclose = null;
     this.ws.close();
@@ -2321,6 +2323,7 @@ export class ClientWorld extends ReconWireState implements IWorld {
         this.onReconnected?.();
       }
       this.connected = true;
+      this.avatarSender?.sync(true); // PLACE-1157: a new or resumed socket hears the choice shown
       // onReconnected() above (and the join-time push in main.ts) can only
       // queue session preferences before this point: canSendCommand() requires
       // this.connected, so any cmd() sent from onReconnected is silently
@@ -2350,7 +2353,9 @@ export class ClientWorld extends ReconWireState implements IWorld {
       this.mouselookFacing = null;
       return;
     }
-    if (msg.t === 'placeschema') return void applyPlaceSchemaFrame(msg);
+    // PLACE-1157: once the realm says PlaceSchema is here, tell it the body shown, so a portal hop carries it
+    if (msg.t === 'placeschema')
+      return void (applyPlaceSchemaFrame(msg) === 'status' && this.avatarSender?.sync(true));
     if (msg.t === 'gbanklog') {
       // The one-shot answer to a `guild_bank_log` request. The mirror matches
       // it against the query it is waiting on and merges or drops it.
@@ -3673,6 +3678,9 @@ export class ClientWorld extends ReconWireState implements IWorld {
         ...anchorFields(target),
       });
   }
+  private readonly avatarSender = avatarChoiceSender((choice) =>
+    this.cmd({ cmd: 'ps_avatar', choice }),
+  ); // PLACE-1157
   carryItem(slotIndex: number): void {
     this.cmd({ cmd: 'ps_carry', slot: slotIndex });
   }

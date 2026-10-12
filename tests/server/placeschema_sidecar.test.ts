@@ -94,6 +94,7 @@ function world() {
   let bagCap = Number.POSITIVE_INFINITY; // how many slots the bags hold
   let manifest: unknown = {}; // the destination's /.well-known/placeschema.json
   const frames: unknown[] = [];
+  let joinAvatar: unknown; // PLACE-1157: the join answer's arrival avatar choice, when set
   const faults: Record<string, Fault> = {};
   const clients = new Map<number, Session>();
   let session: Session = { accountId: 7, characterId: 70, pid: 1, selfHeavyDirty: false };
@@ -126,6 +127,7 @@ function world() {
           add: [...escrow.values()]
             .filter((e) => e.state === 'held' && e.readd)
             .map((e) => ({ grant: e.grant, label: e.label })),
+          ...(joinAvatar ? { avatar: joinAvatar } : {}),
         },
       };
     if (path === '/mod/link') return { status: 200, body: { url: 'https://sidecar.test/link#x' } };
@@ -281,6 +283,9 @@ function world() {
   return {
     carry: make(),
     calls,
+    setJoinAvatar: (a: unknown) => {
+      joinAvatar = a;
+    },
     bodies,
     worn,
     standAt(x: number, z: number) {
@@ -533,6 +538,20 @@ describe('placeschema sidecar game side (PLACE-276)', () => {
     expect(w.accepted.has(G1)).toBe(false); // left in the same save as the item
     expect(w.escrow.get(G1)?.state).toBe('in-transit');
     expect(w.copies(G1)).toBe(1);
+  });
+
+  it('PLACE-1157: carry-out sends the avatar the player shows; join hands the arrival choice to the client on every join', async () => {
+    const w = await holding();
+    w.carry.onAvatarCommand(w.session(), 'generic');
+    w.carry.onAvatarCommand(w.session(), 'dragon'); // an unknown word is ignored
+    await w.carry.carry(w.session(), [G1]);
+    expect(w.bodies['/mod/carry-out'].avatar).toBe('generic');
+    w.setJoinAvatar({ choice: 'carried', landing: 'cd'.repeat(16) });
+    await w.carry.join(w.session());
+    await w.carry.join(w.session()); // every join: a frame lost to a dropped socket comes again; the client wears it once
+    const sent = w.frames.filter((f: any) => f?.kind === 'avatar');
+    const frame = { t: 'placeschema', kind: 'avatar', choice: 'carried', landing: 'cd'.repeat(16) };
+    expect(sent).toEqual([frame, frame]);
   });
 
   it('walks the player to the ticket after a successful carry', async () => {
