@@ -1905,9 +1905,9 @@ const MONOLITHS: MonolithRow[] = [
     // placeschema frame route; the handling lives in src/net/placeschema_frame.ts.
     // RECORDED RAISE at the PLACE-611 resync to upstream v0.44.4: upstream lowered this ceiling
     // while the PlaceSchema fork's additions (PLACE-276/410/479/480) sit on top. wc -l on the merged tree.
-    // RECORDED RAISE +7 (PLACE-1157): the avatar-choice sender's field, stop on close and the status resend;
+    // RECORDED RAISE +8 (PLACE-1157): the avatar-choice sender's field, stop on close, the hello and status resends;
     // its logic lives in placeschema_skin_state.ts.
-    ceiling: 5371,
+    ceiling: 5372,
     seam: 'a src/net sibling module (the refactor/net-online split is the template)',
   },
   {

@@ -2262,6 +2262,7 @@ export class ClientWorld extends ReconWireState implements IWorld {
       this.onMovementWireNegotiated?.(this.movementWireVersion, performance.now());
       this.playerId = msg.pid;
       this.ownPlayerId = msg.pid;
+      this.avatarSender.sync(true); // PLACE-1157: a new or resumed socket hears the choice shown
       this.cfg.seed = msg.seed;
       if (typeof msg.realm === 'string') this.realm = msg.realm;
       this.accountAdmin = msg.admin === true;

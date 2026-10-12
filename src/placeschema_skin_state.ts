@@ -144,15 +144,15 @@ export function onAvatarChoiceChange(f: () => void): () => void {
   return () => choiceListeners.delete(f);
 }
 /** PLACE-1157: send the server the choice shown now when it changes; `sync(true)` resends it (a realm status).
- *  `stop()` when the connection closes. */
-export function avatarChoiceSender(send: (choice: AvatarChoice) => void): {
+ *  `send` answers whether it went out. `stop()` when the connection closes. */
+export function avatarChoiceSender(send: (choice: AvatarChoice) => boolean): {
   sync(force?: boolean): void;
   stop(): void;
 } {
   let sent: AvatarChoice | null = null;
   const sync = (force = false) => {
     const c = effectiveAvatarChoice();
-    if (force || c !== sent) send((sent = c));
+    if ((force || c !== sent) && send(c)) sent = c; // unsent (socket down): tried again on the next change or status
   };
   return { sync, stop: onAvatarChoiceChange(() => sync()) };
 }

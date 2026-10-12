@@ -164,10 +164,22 @@ describe('the PlaceSchema menu (PLACE-1018)', () => {
     get.mockRestore();
   });
 
+  it('PLACE-1157: a choice that could not be sent is tried again', () => {
+    setAvatarChoice('native');
+    let up = false;
+    const sent: string[] = [];
+    const sender = avatarChoiceSender((c) => up && sent.push(c) > 0);
+    sender.sync(); // socket down: nothing went out
+    up = true;
+    sender.sync();
+    expect(sent).toEqual(['native']);
+    sender.stop();
+  });
+
   it('PLACE-1157: the server is sent the choice shown, on change and on demand, until stopped', () => {
     setAvatarChoice('native');
     const sent: string[] = [];
-    const sender = avatarChoiceSender((c) => sent.push(c));
+    const sender = avatarChoiceSender((c) => sent.push(c) > 0);
     sender.sync();
     sender.sync(); // unchanged: not resent
     setAvatarChoice('carried'); // no carried skin here, so it shows (and sends) what the menu shows

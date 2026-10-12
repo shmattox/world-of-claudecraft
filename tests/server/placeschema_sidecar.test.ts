@@ -540,7 +540,7 @@ describe('placeschema sidecar game side (PLACE-276)', () => {
     expect(w.copies(G1)).toBe(1);
   });
 
-  it('PLACE-1157: carry-out sends the avatar the player shows; join hands an arrival choice to the client once', async () => {
+  it('PLACE-1157: carry-out sends the avatar the player shows; join hands the arrival choice to the client on every join', async () => {
     const w = await holding();
     w.carry.onAvatarCommand(w.session(), 'generic');
     w.carry.onAvatarCommand(w.session(), 'dragon'); // an unknown word is ignored
@@ -548,22 +548,10 @@ describe('placeschema sidecar game side (PLACE-276)', () => {
     expect(w.bodies['/mod/carry-out'].avatar).toBe('generic');
     w.setJoinAvatar({ choice: 'carried', landing: 'cd'.repeat(16) });
     await w.carry.join(w.session());
-    await w.carry.join(w.session()); // the same landing on the next join: sent once
+    await w.carry.join(w.session()); // every join: a frame lost to a dropped socket comes again; the client wears it once
     const sent = w.frames.filter((f: any) => f?.kind === 'avatar');
-    expect(sent).toEqual([
-      { t: 'placeschema', kind: 'avatar', choice: 'carried', landing: 'cd'.repeat(16) },
-    ]);
-  });
-
-  it('PLACE-1157: an arrival choice is held for the resumed join while the socket is down', async () => {
-    const w = await holding();
-    w.setJoinAvatar({ choice: 'generic', landing: 'cd'.repeat(16) });
-    w.session().linkdead = true;
-    await w.carry.join(w.session());
-    expect(w.frames.filter((f: any) => f?.kind === 'avatar')).toEqual([]);
-    w.session().linkdead = false;
-    await w.carry.join(w.session());
-    expect(w.frames.filter((f: any) => f?.kind === 'avatar')).toHaveLength(1);
+    const frame = { t: 'placeschema', kind: 'avatar', choice: 'carried', landing: 'cd'.repeat(16) };
+    expect(sent).toEqual([frame, frame]);
   });
 
   it('walks the player to the ticket after a successful carry', async () => {

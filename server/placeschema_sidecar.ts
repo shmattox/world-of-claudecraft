@@ -436,7 +436,6 @@ export class PlaceSchemaCarry<S extends CarrySession> {
   private readonly marks = new WeakMap<S, Set<string>>();
   /** PLACE-1157: the body each player shows now (from the client), and the last landing whose choice was sent */
   private readonly avatars = new WeakMap<S, string>();
-  private readonly avatarSent = new WeakMap<S, string>();
   /** each session's walk-in gate for the portals (PLACE-954) */
   private readonly gates = new WeakMap<S, PlaceSchemaPortalGate>();
   /** the link status last sent to each session */
@@ -518,23 +517,15 @@ export class PlaceSchemaCarry<S extends CarrySession> {
       });
       if (!r.ok) return;
       this.setLinked(s, r.body.holder ?? null);
-      // PLACE-1157: the choice made where this player left from, once per landing; the client wears and keeps it
+      // PLACE-1157: the choice made where this player left from, every join; the client wears each landing once
       const av = r.body.avatar;
-      if (
-        av &&
-        typeof av.choice === 'string' &&
-        typeof av.landing === 'string' &&
-        this.avatarSent.get(s) !== av.landing &&
-        !s.linkdead
-      ) {
-        this.avatarSent.set(s, av.landing); // a dropped socket's frame is lost: leave it for the resumed join
+      if (av && typeof av.choice === 'string' && typeof av.landing === 'string')
         this.d.send(s, {
           t: 'placeschema',
           kind: 'avatar',
           choice: av.choice,
           landing: av.landing,
         });
-      }
       const offered = (r.body.add ?? []) as Added[];
       // PLACE-990: our own minter, known BEFORE anything is claimed (no await between a claim and its
       // item). Unknown (the manifest fetch failed): a grant carrying native data waits for a later join,
