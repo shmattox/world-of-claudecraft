@@ -438,7 +438,7 @@ export function wearCarriedSkin(
 /** PLACE-1018: the Minecraft skin the local player wears: the carried one when they chose it, else
  *  none (WoC's own body, or PlaceSchema's Avatar: wearPlaceSchemaAvatar). */
 export function ownSkin(): CarriedSkin | null {
-  return effectiveAvatarChoice() === 'minecraft' ? carriedSkin() : null;
+  return effectiveAvatarChoice() === 'carried' ? carriedSkin() : null;
 }
 
 /** A PNG data URL's pixel height, read from its IHDR (64, or 32 for a legacy skin). */

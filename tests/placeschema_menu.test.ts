@@ -116,12 +116,38 @@ describe('the PlaceSchema menu (PLACE-1018)', () => {
     expect(avatarChoice()).toBe('native');
     localStorage.setItem('woc_session', JSON.stringify({ username: 'sam' }));
     restoreCarriedSkin(); // another account keeps its own (the default)
-    expect(avatarChoice()).toBe('minecraft');
+    expect(avatarChoice()).toBe('carried');
+  });
+
+  it('PLACE-1157: a choice saved under its old name, minecraft, reads as carried', () => {
+    localStorage.setItem('woc_session', JSON.stringify({ username: 'old' }));
+    restoreCarriedSkin();
+    setAvatarChoice('native'); // find this account's key, then write the legacy word under it
+    const key = Object.keys(localStorage).find((k) => k.includes('.avatar.'))!;
+    localStorage.setItem(key, 'minecraft');
+    restoreCarriedSkin();
+    expect(avatarChoice()).toBe('carried');
+  });
+
+  it('PLACE-1157: an arrival frame wears its avatar choice once per landing; a choice made here stands', () => {
+    setPlaceSchemaHolder('ab'.repeat(32));
+    setAvatarChoice('carried');
+    const landing = 'cd'.repeat(16);
+    expect(applyPlaceSchemaFrame({ kind: 'avatar', choice: 'generic', landing })).toBe('avatar');
+    expect(avatarChoice()).toBe('generic');
+    setAvatarChoice('native'); // the player changes it here
+    expect(applyPlaceSchemaFrame({ kind: 'avatar', choice: 'generic', landing })).toBeNull(); // the same landing again
+    expect(avatarChoice()).toBe('native');
+    expect(applyPlaceSchemaFrame({ kind: 'avatar', choice: 'dragon', landing: 'ef'.repeat(16) })).toBeNull();
+    expect(applyPlaceSchemaFrame({ kind: 'avatar', choice: 'carried', landing: 'nope' })).toBeNull();
+    expect(applyPlaceSchemaFrame({ kind: 'avatar', choice: 'carried', landing: 'ef'.repeat(16) })).toBe('avatar');
+    expect(avatarChoice()).toBe('carried');
+    setPlaceSchemaHolder(null);
   });
 
   it('Native skips the carried skin; Minecraft wears it', () => {
     setCarriedSkin(SKIN);
-    setAvatarChoice('minecraft');
+    setAvatarChoice('carried');
     expect(ownSkin()).toEqual(SKIN);
     setAvatarChoice('native');
     expect(ownSkin()).toBeNull();
@@ -130,11 +156,11 @@ describe('the PlaceSchema menu (PLACE-1018)', () => {
 
   it('PLACE-1129: no carried skin: Minecraft is disabled with a reason and WoC is what shows', () => {
     setCarriedSkin(null);
-    setAvatarChoice('minecraft');
+    setAvatarChoice('carried');
     mount('full');
     setPlaceSchemaLinked(true);
     document.dispatchEvent(new Event('placeschema:open-menu'));
-    const mc = document.querySelector<HTMLButtonElement>('[data-ps-avatar="minecraft"]')!;
+    const mc = document.querySelector<HTMLButtonElement>('[data-ps-avatar="carried"]')!;
     expect(mc.disabled).toBe(true);
     expect(mc.title).toMatch(/No Minecraft skin/);
     expect(document.querySelector('[data-ps-avatar="native"]')!.getAttribute('aria-pressed')).toBe(
@@ -143,7 +169,7 @@ describe('the PlaceSchema menu (PLACE-1018)', () => {
     expect(effectiveAvatarChoice()).toBe('native');
     expect(ownSkin()).toBeNull();
     setCarriedSkin(SKIN); // a skin arrives: the choice stands and is worn
-    expect(effectiveAvatarChoice()).toBe('minecraft');
+    expect(effectiveAvatarChoice()).toBe('carried');
     expect(ownSkin()).toEqual(SKIN);
     setCarriedSkin(null);
   });

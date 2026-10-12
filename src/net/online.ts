@@ -3,6 +3,7 @@ import type { MaterialStackSelection } from '../sim/material_stack_selection';
 import { resolveInitialActionBarLayout } from './action_bar_restore';
 import { materialStorageTransferPayload } from './material_storage_command';
 import { applyPlaceSchemaFrame } from './placeschema_frame';
+import { avatarChoice, onAvatarChoiceChange } from '../placeschema_skin_state';
 import { decodeWeeklyRewardInfo, sendWeekly, type WeeklyRewardInfo } from './weekly_rewards_wire';
 
 // Online play: REST auth client + WebSocket world mirror.
@@ -1729,6 +1730,7 @@ export class ClientWorld extends ReconWireState implements IWorld {
 
   constructor(token: string, characterId: number, cls: PlayerClass, base = '', clientSeed = '') {
     super();
+    onAvatarChoiceChange(() => this.sendAvatarChoice()); // PLACE-1157
     this.characterId = characterId;
     this.token = token;
     this.base = normalizeOrigin(base) || NATIVE_API_ORIGIN || DESKTOP_API_ORIGIN;
@@ -2350,7 +2352,11 @@ export class ClientWorld extends ReconWireState implements IWorld {
       this.mouselookFacing = null;
       return;
     }
-    if (msg.t === 'placeschema') return void applyPlaceSchemaFrame(msg);
+    if (msg.t === 'placeschema') {
+      // PLACE-1157: once the realm says PlaceSchema is here, tell it the body shown, so a portal hop carries it
+      if (applyPlaceSchemaFrame(msg) === 'status') this.sendAvatarChoice(true);
+      return;
+    }
     if (msg.t === 'gbanklog') {
       // The one-shot answer to a `guild_bank_log` request. The mirror matches
       // it against the query it is waiting on and merges or drops it.
@@ -3672,6 +3678,14 @@ export class ClientWorld extends ReconWireState implements IWorld {
         slot: target.slotIndex,
         ...anchorFields(target),
       });
+  }
+  private sentAvatar: string | null = null;
+  /** PLACE-1157: the avatar choice shown now, sent when it changes (and once per realm status). */
+  private sendAvatarChoice(force = false): void {
+    const c = avatarChoice();
+    if (!force && c === this.sentAvatar) return;
+    this.sentAvatar = c;
+    this.cmd({ cmd: 'ps_avatar', choice: c });
   }
   carryItem(slotIndex: number): void {
     this.cmd({ cmd: 'ps_carry', slot: slotIndex });

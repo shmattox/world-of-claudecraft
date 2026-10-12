@@ -551,6 +551,7 @@ export const COMMAND_NAMES = [
   'lock_item',
   'ps_carry',
   'ps_link',
+  'ps_avatar',
   'buy',
   'sell',
   'buyback',

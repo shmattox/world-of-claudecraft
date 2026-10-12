@@ -73,10 +73,11 @@ export function setPlaceSchemaHolder(next: string | null): void {
   holder = next;
 }
 
-/** PLACE-1018: which body the local player wears: WoC's own (`native`), the carried Minecraft skin,
- *  or PlaceSchema's generic black-and-white body. Kept per WoC account in this browser. */
-export type AvatarChoice = 'native' | 'minecraft' | 'generic';
-const CHOICES: readonly AvatarChoice[] = ['native', 'minecraft', 'generic'];
+/** PLACE-1018: which body the local player wears: WoC's own (`native`), the carried game skin (`carried`),
+ *  or PlaceSchema's generic black-and-white body. Kept per WoC account in this browser, and carried across
+ *  portal hops in PlaceSchema's one vocabulary (PLACE-1157). */
+export type AvatarChoice = 'native' | 'carried' | 'generic';
+export const AVATAR_CHOICES: readonly AvatarChoice[] = ['native', 'carried', 'generic'];
 let choice: AvatarChoice | null = null; // read once, then cached (wearCarriedSkin asks every frame)
 const choiceListeners = new Set<() => void>();
 export function avatarChoice(): AvatarChoice {
@@ -88,14 +89,15 @@ export function avatarChoice(): AvatarChoice {
   } catch {
     /* storage blocked: the default */
   }
-  choice = CHOICES.includes(saved as AvatarChoice) ? (saved as AvatarChoice) : 'minecraft';
+  if (saved === 'minecraft') saved = 'carried'; // PLACE-1157: the choice's old name, read as the new one
+  choice = AVATAR_CHOICES.includes(saved as AvatarChoice) ? (saved as AvatarChoice) : 'carried';
   return choice;
 }
 /** PLACE-1129: what the local player actually wears. "Minecraft skin" needs a carried skin on this
  *  account; without one it is WoC's own body, and the menu shows that choice (never a silent swap). */
 export function effectiveAvatarChoice(): AvatarChoice {
   const c = avatarChoice();
-  if (c === 'minecraft' && !skin) return 'native';
+  if (c === 'carried' && !skin) return 'native';
   return c === 'generic' && avatarUnavailable ? 'native' : c;
 }
 /** PLACE-1129: PlaceSchema's Avatar body could not be loaded here, so that choice is unavailable. */
@@ -114,6 +116,21 @@ export function setAvatarChoice(next: AvatarChoice): void {
     /* storage blocked: kept for this page only */
   }
   for (const f of choiceListeners) f();
+}
+/** PLACE-1157: wear the choice made where the player left from, once per landing (the landing's id), and keep it
+ *  as this account's own; a choice made here afterwards stands on the next join. */
+export function wearArrivedAvatar(next: unknown, landing: unknown): boolean {
+  if (!AVATAR_CHOICES.includes(next as AvatarChoice) || typeof landing !== 'string' || !/^[0-9a-f]{32}$/.test(landing))
+    return false;
+  const key = `placeschema.avatar-landing.v1.${holder ?? 'unlinked'}`;
+  try {
+    if (localStorage.getItem(key) === landing) return false;
+    localStorage.setItem(key, landing);
+  } catch {
+    /* storage blocked: worn for this page */
+  }
+  setAvatarChoice(next as AvatarChoice);
+  return true;
 }
 export function onAvatarChoiceChange(f: () => void): () => void {
   choiceListeners.add(f);

@@ -7735,6 +7735,9 @@ export class GameServer {
       case 'ps_carry':
         this.placeschema?.onCarryCommand(session, msg.slot);
         break;
+      case 'ps_avatar': // PLACE-1157: the body this player shows now, carried with a portal hop
+        this.placeschema?.onAvatarCommand(session, msg.choice);
+        break;
       case 'ps_link': // PLACE-479: the bag's "Link PlaceSchema account" button
         void this.placeschema
           ?.link(session)

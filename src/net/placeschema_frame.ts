@@ -17,6 +17,7 @@ import {
   setPlaceSchemaPortalArt,
   setPortalDestinationName,
   setPortalDestinationPicture,
+  wearArrivedAvatar,
 } from '../placeschema_skin_state';
 
 const SAFE = /^https?:\/\//;
@@ -35,6 +36,9 @@ export interface PlaceSchemaFrame {
   name?: unknown;
   /** PLACE-412: another player's skin, by entity id */
   pid?: unknown;
+  /** PLACE-1157: an arrival's avatar choice and its landing id */
+  choice?: unknown;
+  landing?: unknown;
 }
 
 export interface Nav {
@@ -66,7 +70,8 @@ export function applyPlaceSchemaFrame(
   msg: PlaceSchemaFrame,
   nav: Nav = browserNav,
   ownPid?: number,
-): 'ticket' | 'link' | 'skin' | 'skins' | 'status' | 'portal' | null {
+): 'ticket' | 'link' | 'skin' | 'skins' | 'status' | 'portal' | 'avatar' | null {
+  if (msg.kind === 'avatar') return wearArrivedAvatar(msg.choice, msg.landing) ? 'avatar' : null;
   if (msg.kind === 'skins') {
     clearPeerSkins(); // PLACE-412: a new connection; the server sends the current ones next
     return 'skins';
