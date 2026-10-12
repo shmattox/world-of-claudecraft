@@ -127,12 +127,16 @@ export function wearArrivedAvatar(next: unknown, landing: unknown): boolean {
     !/^[0-9a-f]{32}$/.test(landing)
   )
     return false;
-  const key = 'placeschema.avatar-landing.v1'; // a landing id is a random nonce: no holder needed (known late on reload)
+  // A landing id is a random nonce, so one list serves every account (the holder is known late on a reload).
+  // ponytail: the last 32 landings; an older one replayed after 32 newer arrivals on this browser would wear again
+  const key = 'placeschema.avatar-landings.v1';
   if (wornLandings.has(landing)) return false;
   wornLandings.add(landing); // kept for this page too: storage may be blocked or full
   try {
-    if (localStorage.getItem(key) === landing) return false;
-    localStorage.setItem(key, landing);
+    const seen: unknown = JSON.parse(localStorage.getItem(key) ?? '[]');
+    const list = Array.isArray(seen) ? seen : [];
+    if (list.includes(landing)) return false;
+    localStorage.setItem(key, JSON.stringify([...list, landing].slice(-32)));
   } catch {
     /* storage blocked: this page's set remembers it */
   }

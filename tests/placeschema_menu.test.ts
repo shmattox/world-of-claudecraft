@@ -139,6 +139,16 @@ describe('the PlaceSchema menu (PLACE-1018)', () => {
     setAvatarChoice('native'); // the player changes it here
     expect(applyPlaceSchemaFrame({ kind: 'avatar', choice: 'generic', landing })).toBeNull(); // the same landing again
     expect(avatarChoice()).toBe('native');
+    const other = '34'.repeat(16); // another account lands later on this browser
+    expect(applyPlaceSchemaFrame({ kind: 'avatar', choice: 'carried', landing: other })).toBe(
+      'avatar',
+    );
+    setAvatarChoice('native');
+    vi.resetModules(); // a reload: only storage remembers
+    expect(JSON.parse(localStorage.getItem('placeschema.avatar-landings.v1')!)).toEqual([
+      landing,
+      other,
+    ]);
     expect(
       applyPlaceSchemaFrame({ kind: 'avatar', choice: 'dragon', landing: 'ef'.repeat(16) }),
     ).toBeNull();
