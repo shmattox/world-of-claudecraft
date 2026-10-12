@@ -550,7 +550,20 @@ describe('placeschema sidecar game side (PLACE-276)', () => {
     await w.carry.join(w.session());
     await w.carry.join(w.session()); // the same landing on the next join: sent once
     const sent = w.frames.filter((f: any) => f?.kind === 'avatar');
-    expect(sent).toEqual([{ t: 'placeschema', kind: 'avatar', choice: 'carried', landing: 'cd'.repeat(16) }]);
+    expect(sent).toEqual([
+      { t: 'placeschema', kind: 'avatar', choice: 'carried', landing: 'cd'.repeat(16) },
+    ]);
+  });
+
+  it('PLACE-1157: an arrival choice is held for the resumed join while the socket is down', async () => {
+    const w = await holding();
+    w.setJoinAvatar({ choice: 'generic', landing: 'cd'.repeat(16) });
+    w.session().linkdead = true;
+    await w.carry.join(w.session());
+    expect(w.frames.filter((f: any) => f?.kind === 'avatar')).toEqual([]);
+    w.session().linkdead = false;
+    await w.carry.join(w.session());
+    expect(w.frames.filter((f: any) => f?.kind === 'avatar')).toHaveLength(1);
   });
 
   it('walks the player to the ticket after a successful carry', async () => {

@@ -1721,7 +1721,8 @@ const MONOLITHS: MonolithRow[] = [
     // Lowered 9852 -> 9829 at the PLACE-611 resync (upstream's extractions); wc -l on the merged tree.
     // PlaceSchema fork, PLACE-940 (#14): +1, its `leave` wiring for the carry ticket (one line in the
     // startPlaceSchemaCarry deps), merged without a re-pin. Exact count, zero slack.
-    ceiling: 9830,
+    // RECORDED RAISE +3 (PLACE-1157): the ps_avatar command arm; its logic lives in placeschema_sidecar.ts.
+    ceiling: 9833,
     seam: 'a sibling server module; see the hot-path seams in server/CLAUDE.md',
   },
   {
@@ -1904,7 +1905,9 @@ const MONOLITHS: MonolithRow[] = [
     // placeschema frame route; the handling lives in src/net/placeschema_frame.ts.
     // RECORDED RAISE at the PLACE-611 resync to upstream v0.44.4: upstream lowered this ceiling
     // while the PlaceSchema fork's additions (PLACE-276/410/479/480) sit on top. wc -l on the merged tree.
-    ceiling: 5364,
+    // RECORDED RAISE +7 (PLACE-1157): the avatar-choice sender's field, stop on close and the status resend;
+    // its logic lives in placeschema_skin_state.ts.
+    ceiling: 5371,
     seam: 'a src/net sibling module (the refactor/net-online split is the template)',
   },
   {

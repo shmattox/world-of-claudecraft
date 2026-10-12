@@ -520,9 +520,20 @@ export class PlaceSchemaCarry<S extends CarrySession> {
       this.setLinked(s, r.body.holder ?? null);
       // PLACE-1157: the choice made where this player left from, once per landing; the client wears and keeps it
       const av = r.body.avatar;
-      if (av && typeof av.choice === 'string' && typeof av.landing === 'string' && this.avatarSent.get(s) !== av.landing) {
-        this.avatarSent.set(s, av.landing);
-        this.d.send(s, { t: 'placeschema', kind: 'avatar', choice: av.choice, landing: av.landing });
+      if (
+        av &&
+        typeof av.choice === 'string' &&
+        typeof av.landing === 'string' &&
+        this.avatarSent.get(s) !== av.landing &&
+        !s.linkdead
+      ) {
+        this.avatarSent.set(s, av.landing); // a dropped socket's frame is lost: leave it for the resumed join
+        this.d.send(s, {
+          t: 'placeschema',
+          kind: 'avatar',
+          choice: av.choice,
+          landing: av.landing,
+        });
       }
       const offered = (r.body.add ?? []) as Added[];
       // PLACE-990: our own minter, known BEFORE anything is claimed (no await between a claim and its
@@ -966,7 +977,8 @@ export class PlaceSchemaCarry<S extends CarrySession> {
    *  the marked items (PLACE-954), or all of them when none is marked. */
   /** PLACE-1157: the `ps_avatar` command: the client's current choice, one of the three words. */
   onAvatarCommand(s: S, choice: unknown): void {
-    if (choice === 'native' || choice === 'carried' || choice === 'generic') this.avatars.set(s, choice);
+    if (choice === 'native' || choice === 'carried' || choice === 'generic')
+      this.avatars.set(s, choice);
   }
 
   onCarryCommand(s: S, slot: unknown): void {

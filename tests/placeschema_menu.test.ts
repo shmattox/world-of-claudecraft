@@ -3,10 +3,11 @@
 // partial tiers, the Esc-menu row, and the avatar choice (persisted per WoC account; Native skips
 // the carried skin).
 
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { applyPlaceSchemaFrame } from '../src/net/placeschema_frame';
 import {
   avatarChoice,
+  avatarChoiceSender,
   effectiveAvatarChoice,
   menuTier,
   placeSchemaPortalArt,
@@ -138,11 +139,48 @@ describe('the PlaceSchema menu (PLACE-1018)', () => {
     setAvatarChoice('native'); // the player changes it here
     expect(applyPlaceSchemaFrame({ kind: 'avatar', choice: 'generic', landing })).toBeNull(); // the same landing again
     expect(avatarChoice()).toBe('native');
-    expect(applyPlaceSchemaFrame({ kind: 'avatar', choice: 'dragon', landing: 'ef'.repeat(16) })).toBeNull();
-    expect(applyPlaceSchemaFrame({ kind: 'avatar', choice: 'carried', landing: 'nope' })).toBeNull();
-    expect(applyPlaceSchemaFrame({ kind: 'avatar', choice: 'carried', landing: 'ef'.repeat(16) })).toBe('avatar');
+    expect(
+      applyPlaceSchemaFrame({ kind: 'avatar', choice: 'dragon', landing: 'ef'.repeat(16) }),
+    ).toBeNull();
+    expect(
+      applyPlaceSchemaFrame({ kind: 'avatar', choice: 'carried', landing: 'nope' }),
+    ).toBeNull();
+    expect(
+      applyPlaceSchemaFrame({ kind: 'avatar', choice: 'carried', landing: 'ef'.repeat(16) }),
+    ).toBe('avatar');
     expect(avatarChoice()).toBe('carried');
     setPlaceSchemaHolder(null);
+  });
+
+  it('PLACE-1157: with storage blocked, a landing is still worn once per page', () => {
+    const get = vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
+      throw new Error('blocked');
+    });
+    const landing = '12'.repeat(16);
+    expect(applyPlaceSchemaFrame({ kind: 'avatar', choice: 'generic', landing })).toBe('avatar');
+    setAvatarChoice('native');
+    expect(applyPlaceSchemaFrame({ kind: 'avatar', choice: 'generic', landing })).toBeNull();
+    expect(avatarChoice()).toBe('native');
+    get.mockRestore();
+  });
+
+  it('PLACE-1157: the server is sent the choice shown, on change and on demand, until stopped', () => {
+    setAvatarChoice('native');
+    const sent: string[] = [];
+    const sender = avatarChoiceSender((c) => sent.push(c));
+    sender.sync();
+    sender.sync(); // unchanged: not resent
+    setAvatarChoice('carried'); // no carried skin here, so it shows (and sends) what the menu shows
+    expect(sent).toEqual([
+      'native',
+      ...(effectiveAvatarChoice() === 'native' ? [] : [effectiveAvatarChoice()]),
+    ]);
+    sender.sync(true);
+    expect(sent.at(-1)).toBe(effectiveAvatarChoice());
+    const n = sent.length;
+    sender.stop();
+    setAvatarChoice('generic');
+    expect(sent.length).toBe(n);
   });
 
   it('Native skips the carried skin; Minecraft wears it', () => {

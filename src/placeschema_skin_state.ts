@@ -80,6 +80,7 @@ export type AvatarChoice = 'native' | 'carried' | 'generic';
 export const AVATAR_CHOICES: readonly AvatarChoice[] = ['native', 'carried', 'generic'];
 let choice: AvatarChoice | null = null; // read once, then cached (wearCarriedSkin asks every frame)
 const choiceListeners = new Set<() => void>();
+const wornLandings = new Set<string>(); // PLACE-1157
 export function avatarChoice(): AvatarChoice {
   if (choice) return choice;
   let saved: unknown = null;
@@ -120,14 +121,20 @@ export function setAvatarChoice(next: AvatarChoice): void {
 /** PLACE-1157: wear the choice made where the player left from, once per landing (the landing's id), and keep it
  *  as this account's own; a choice made here afterwards stands on the next join. */
 export function wearArrivedAvatar(next: unknown, landing: unknown): boolean {
-  if (!AVATAR_CHOICES.includes(next as AvatarChoice) || typeof landing !== 'string' || !/^[0-9a-f]{32}$/.test(landing))
+  if (
+    !AVATAR_CHOICES.includes(next as AvatarChoice) ||
+    typeof landing !== 'string' ||
+    !/^[0-9a-f]{32}$/.test(landing)
+  )
     return false;
   const key = `placeschema.avatar-landing.v1.${holder ?? 'unlinked'}`;
+  if (wornLandings.has(`${key}:${landing}`)) return false;
+  wornLandings.add(`${key}:${landing}`); // kept for this page too: storage may be blocked or full
   try {
     if (localStorage.getItem(key) === landing) return false;
     localStorage.setItem(key, landing);
   } catch {
-    /* storage blocked: worn for this page */
+    /* storage blocked: this page's set remembers it */
   }
   setAvatarChoice(next as AvatarChoice);
   return true;
@@ -135,6 +142,19 @@ export function wearArrivedAvatar(next: unknown, landing: unknown): boolean {
 export function onAvatarChoiceChange(f: () => void): () => void {
   choiceListeners.add(f);
   return () => choiceListeners.delete(f);
+}
+/** PLACE-1157: send the server the choice shown now when it changes; `sync(true)` resends it (a realm status).
+ *  `stop()` when the connection closes. */
+export function avatarChoiceSender(send: (choice: AvatarChoice) => void): {
+  sync(force?: boolean): void;
+  stop(): void;
+} {
+  let sent: AvatarChoice | null = null;
+  const sync = (force = false) => {
+    const c = effectiveAvatarChoice();
+    if (force || c !== sent) send((sent = c));
+  };
+  return { sync, stop: onAvatarChoiceChange(() => sync()) };
 }
 
 /** PLACE-954: the destination's own picture (its manifest preview), shown in the portal; null until
