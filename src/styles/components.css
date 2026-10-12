@@ -26525,7 +26525,7 @@
   width: auto;
   z-index: 60;
   opacity: 0.9;
-  pointer-events: none;
+  cursor: pointer; /* PLACE-1249: the mark opens the menu */
 }
 .ps-menu-button {
   position: fixed;

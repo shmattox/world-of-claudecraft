@@ -129,8 +129,8 @@ export function mountPlaceSchemaMenu(deps: {
   };
   const paint = (): void => {
     const linked = placeSchemaLinked() === true && placeSchemaMenuTier() !== 'off';
-    mark.hidden = button.hidden = !linked || placeSchemaMenuTier() !== 'full';
-    if (!button.hidden) place();
+    mark.hidden = !linked || placeSchemaMenuTier() !== 'full';
+    button.hidden = true; // PLACE-1249: no menu icon; the mark opens the menu (PLACE-1128: PLACESCHEMA_MENU_ICON off)
     if (!linked) panel.hidden = true;
     if (panel.hidden) return;
     const holder = placeSchemaHolder();
@@ -154,6 +154,7 @@ export function mountPlaceSchemaMenu(deps: {
   };
 
   button.addEventListener('click', () => (panel.hidden ? open() : close()));
+  mark.addEventListener('click', () => (panel.hidden ? open() : close()));
   panel.addEventListener('click', (e) => {
     const el = e.target as HTMLElement;
     const choice = el.closest<HTMLElement>('[data-ps-avatar]')?.dataset.psAvatar as
