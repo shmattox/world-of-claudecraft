@@ -161,6 +161,7 @@ export function mountPlaceSchemaMenu(deps: {
   mark.addEventListener('keydown', (e) => {
     if (e.key !== 'Enter' && e.key !== ' ') return;
     e.preventDefault();
+    e.stopPropagation(); // the game's input (chat, jump) never sees it
     if (panel.hidden) open();
     else close();
   });

@@ -213,7 +213,7 @@ function buildCustom(): THREE.Group | null {
   const width = Math.max(box.max.x - box.min.x, 1e-3);
   const group = new THREE.Group();
   group.name = 'placeschema-portal';
-  built.body.scale.setScalar(Math.min(1, GATE_WIDTH / width));
+  built.body.scale.setScalar(GATE_WIDTH / width); // PLACE-1249: always the gate's width, so the art matches the trigger (it was capped at native size)
   group.add(built.body);
   return group;
 }
