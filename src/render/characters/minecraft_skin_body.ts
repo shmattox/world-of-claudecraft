@@ -351,10 +351,12 @@ export function wearMinecraftSkin(
         scale: slot.scale.clone(),
       };
       const own = restore?.parent ?? holder;
-      bind(own)
-        .setPosition(joint.clone().addScaledVector(along, reach * u))
-        .decompose(hand.position, hand.quaternion, hand.scale);
-      ride(on, hand);
+      const wrist = joint.clone().addScaledVector(along, reach * u);
+      bind(own).setPosition(wrist).decompose(hand.position, hand.quaternion, hand.scale);
+      // PLACE-1249: the box is a straight arm, but the grip keeps the rig's elbow and wrist turns
+      // (a shadow of the hand bone, riding the arm's, at the box's end); without them a sword held
+      // forward by a bent arm pointed down and back.
+      ride(shadow(own, wrist), hand);
       const local = [slot.position.clone(), slot.quaternion.clone(), slot.scale.clone()] as const;
       hand.add(slot);
       slot.position.copy(local[0]);
