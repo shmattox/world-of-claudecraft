@@ -977,9 +977,9 @@ describe('PLACE-954: carrying out is a walk through the portal', () => {
 
   it('only the gate counts: beside its frame never fires, a run straight through always does', () => {
     const g = new PlaceSchemaPortalGate();
-    expect(g.tick({ x: shore.x + 1.9, z: shore.z - 3 })).toBe(false);
-    expect(g.tick({ x: shore.x + 1.9, z: shore.z })).toBe(false); // alongside the frame
-    expect(g.tick({ x: shore.x + 1.9, z: shore.z + 3 })).toBe(false); // past it
+    expect(g.tick({ x: shore.x + 3.7, z: shore.z - 3 })).toBe(false);
+    expect(g.tick({ x: shore.x + 3.7, z: shore.z })).toBe(false); // alongside the frame
+    expect(g.tick({ x: shore.x + 3.7, z: shore.z + 3 })).toBe(false); // past it
     expect(g.tick({ x: shore.x, z: shore.z + 3 })).toBe(false);
     expect(g.tick({ x: shore.x + 0.3, z: shore.z - 2 })).toBe(true); // through the sheet between looks
   });
