@@ -60,8 +60,8 @@ describe('the PlaceSchema menu (PLACE-1018)', () => {
     expect(shown('.ps-menu-mark') || shown('.ps-menu-button')).toBe(false);
     setPlaceSchemaLinked(true);
     expect(shown('.ps-menu-mark')).toBe(true);
-    expect(shown('.ps-menu-button')).toBe(true);
-    document.querySelector<HTMLButtonElement>('.ps-menu-button')!.click();
+    expect(shown('.ps-menu-button')).toBe(false); // PLACE-1249: no icon; the mark opens the menu
+    document.querySelector<HTMLElement>('.ps-menu-mark')!.click();
     expect(shown('.ps-menu-panel')).toBe(true);
   });
 
@@ -81,7 +81,7 @@ describe('the PlaceSchema menu (PLACE-1018)', () => {
       false,
     );
     applyPlaceSchemaFrame({ kind: 'status', linked: true, menu: 'full' });
-    expect(shown('.ps-menu-button')).toBe(true);
+    expect(shown('.ps-menu-mark')).toBe(true);
     // PLACE-1026: the portal art rides the same status; anything but custom is default
     applyPlaceSchemaFrame({ kind: 'status', linked: true, art: 'custom' });
     expect(placeSchemaPortalArt()).toBe('custom');

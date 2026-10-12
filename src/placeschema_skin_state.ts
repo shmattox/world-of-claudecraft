@@ -44,7 +44,7 @@ export function onPlaceSchemaLinkedChange(f: () => void): void {
 }
 
 /** PLACE-1018: how much PlaceSchema menu this realm shows, from the server's PLACESCHEMA_MENU (sent
- *  with the status): full = mark + menu button + Esc row, partial = Esc row only, off = nothing. */
+ *  with the status): full = mark (opens the menu; no separate menu button, PLACE-1249) + Esc row, partial = Esc row only, off = nothing. */
 export type MenuTier = 'full' | 'partial' | 'off';
 export function menuTier(raw: unknown): MenuTier {
   return raw === 'partial' || raw === 'off' ? raw : 'full';

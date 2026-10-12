@@ -21,7 +21,7 @@ export const PLACESCHEMA_PORTALS: readonly PlaceSchemaPortalSpot[] = [
 
 /** The gate's unit in yards (once a Minecraft block, when the gate was drawn as one): the walk-in
  *  is four of them wide, and the drawn portal is sized to that width. */
-export const PLACESCHEMA_PORTAL_BLOCK = 0.9;
+export const PLACESCHEMA_PORTAL_BLOCK = 1.8; // PLACE-1249: twice the first size (Seth)
 /** The gate: two units either side of the centre line (the drawn portal's whole width; it has no
  *  collider, so stepping through its rim is stepping through the gate), and this deep. */
 const HALF_WIDTH = 2 * PLACESCHEMA_PORTAL_BLOCK;
