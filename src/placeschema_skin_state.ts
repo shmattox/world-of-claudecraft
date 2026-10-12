@@ -127,9 +127,9 @@ export function wearArrivedAvatar(next: unknown, landing: unknown): boolean {
     !/^[0-9a-f]{32}$/.test(landing)
   )
     return false;
-  const key = `placeschema.avatar-landing.v1.${holder ?? 'unlinked'}`;
-  if (wornLandings.has(`${key}:${landing}`)) return false;
-  wornLandings.add(`${key}:${landing}`); // kept for this page too: storage may be blocked or full
+  const key = 'placeschema.avatar-landing.v1'; // a landing id is a random nonce: no holder needed (known late on reload)
+  if (wornLandings.has(landing)) return false;
+  wornLandings.add(landing); // kept for this page too: storage may be blocked or full
   try {
     if (localStorage.getItem(key) === landing) return false;
     localStorage.setItem(key, landing);
