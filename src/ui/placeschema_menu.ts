@@ -1,13 +1,13 @@
 // PLACE-1018: the PlaceSchema menu a linked account gets in game. Once the sidecar says the account
-// is linked: the PlaceSchema mark (top left, the "you're connected" signal) and a double-hamburger
-// (top right) that opens one panel with
+// is linked: the PlaceSchema mark (top left, the "you're connected" signal), which opens one panel
+// with
 // the linked key, the copies carried from other worlds, and the avatar choice (WoC's own body, the
 // carried Minecraft skin, or PlaceSchema's generic black-and-white body), which switches live and is
 // kept per WoC account. WoC's Esc menu also gets a PlaceSchema row (options_view.ts), so the menu is
 // reachable in the full and partial tiers. The integrator picks the tier with the game server's
 // PLACESCHEMA_MENU, which reaches the client with the sidecar status (placeschema_skin_state.ts):
-//   full (default)  mark + menu button + Esc row
-//   partial         Esc row only (the mark and button would clash with the game's own UI)
+//   full (default)  mark (opens the menu) + Esc row; no top-right menu button (PLACE-1249)
+//   partial         Esc row only (the mark would clash with the game's own UI)
 //   off             nothing
 // Looks: PlaceSchema's black-and-white hairline tokens (src/styles/components.css, --ps-*).
 
@@ -107,6 +107,9 @@ export function mountPlaceSchemaMenu(deps: {
   mark.className = 'ps-menu-mark';
   mark.src = MARK;
   mark.alt = 'PlaceSchema';
+  mark.tabIndex = 0;
+  mark.setAttribute('role', 'button');
+  mark.setAttribute('aria-label', t('hudChrome.placeschemaMenu.open'));
   const button = document.createElement('button');
   button.type = 'button';
   button.className = 'ps-menu-button';
@@ -155,6 +158,12 @@ export function mountPlaceSchemaMenu(deps: {
 
   button.addEventListener('click', () => (panel.hidden ? open() : close()));
   mark.addEventListener('click', () => (panel.hidden ? open() : close()));
+  mark.addEventListener('keydown', (e) => {
+    if (e.key !== 'Enter' && e.key !== ' ') return;
+    e.preventDefault();
+    if (panel.hidden) open();
+    else close();
+  });
   panel.addEventListener('click', (e) => {
     const el = e.target as HTMLElement;
     const choice = el.closest<HTMLElement>('[data-ps-avatar]')?.dataset.psAvatar as
