@@ -24972,6 +24972,9 @@ export const en_CA: EnTranslations = {
       "wyrmshadow_talongrips": {
         "name": "Nightfang Talongrips"
       },
+      "ps_keepsake": {
+        "name": "Carried Keepsake"
+      },
       "reliquary_plate_chest": {
         "name": "Reliquary Guard Hauberk"
       },

@@ -625,6 +625,7 @@ describe('chip reachability census: the All-only set, pinned', () => {
     'pattern_warspice_skewers',
     'pattern_wyrmfall_pendant',
     'plans_dense_sharpening_stone',
+    'ps_keepsake',
     'pvp_skull_bag',
     'recipe_elixir_of_mana_regeneration',
     'recipe_potion_of_invisibility',

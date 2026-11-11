@@ -197,8 +197,9 @@ const repoRoot = fileURLToPath(new URL('..', import.meta.url));
 // Sim.sitOnSeat) on feature/walkable-tavern-aaa: 248/262/14 on its own. Merged with
 // the v0.45.0 integration's 262/276: 263/277/14.
 // Main commands plus Gourdlight Eve trick-or-treat.
-const EXPECTED_SEND_COUNT = 273;
-const EXPECTED_DISPATCH_COUNT = 287;
+// PlaceSchema adds carry, avatar, and account-link send/dispatch pairs.
+const EXPECTED_SEND_COUNT = 276;
+const EXPECTED_DISPATCH_COUNT = 290;
 const EXPECTED_DISPATCH_ONLY_COUNT = 14;
 
 // The chat sub-channel routing switch (server/game.ts `switch

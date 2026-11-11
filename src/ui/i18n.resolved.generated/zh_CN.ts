@@ -1130,9 +1130,9 @@ export const zh_CN: EnTranslations = {
       "avatar": "你在这里的外形",
       "native": "World of ClaudeCraft",
       "minecraft": "Minecraft 皮肤",
-      "minecraftNone": "No Minecraft skin carried on this account",
+      "minecraftNone": "此账号未携带 Minecraft 皮肤",
       "generic": "PlaceSchema",
-      "genericNone": "PlaceSchema's body couldn't be loaded here",
+      "genericNone": "无法在此加载 PlaceSchema 的形体",
       "close": "关闭"
     },
     "unstuck": {
@@ -14243,9 +14243,9 @@ export const zh_CN: EnTranslations = {
     "balancePreviewAria": "已连接钱包余额预览：{balance}。绑定钱包即可验证持有者标识。",
     "balanceAmount": "{amount} $WOC",
     "bagConnect": "绑定钱包",
-    "placeSchemaLink": "Link to carry items",
-    "placeSchemaLinkTitle": "Link this account to PlaceSchema so items from other worlds arrive here. Not a Solana wallet.",
-    "placeSchemaLinked": "Carrying items: linked",
+    "placeSchemaLink": "关联以携带物品",
+    "placeSchemaLinkTitle": "将此账号关联至 PlaceSchema，让其他世界的物品来到这里。这不是 Solana 钱包。",
+    "placeSchemaLinked": "物品携带：已关联",
     "bagLink": "验证钱包",
     "bagReconnect": "重新连接钱包",
     "connected": "已连接：{address}",
@@ -24972,6 +24972,9 @@ export const zh_CN: EnTranslations = {
       "wyrmshadow_talongrips": {
         "name": "夜牙利爪握套"
       },
+      "ps_keepsake": {
+        "name": "随身纪念品"
+      },
       "reliquary_plate_chest": {
         "name": "圣物库守卫锁甲"
       },
@@ -29843,12 +29846,12 @@ export const zh_CN: EnTranslations = {
         }
       },
       "q_ps_a_blade_that_travels": {
-        "title": "A Blade That Travels",
-        "text": "Not everything I ferry stays on one shore, {playerName}. Drillmaster Rook keeps a blade for every recruit, made to travel: carry it out of this world and into another, and it stays itself. He hands one only to a recruit who has felled a straw effigy in his practice yard, up the path west of the Gauntlet. Left-click an effigy to target it and keep attacking until it falls; it will not strike back. Then press F on Rook.",
-        "completion": "Straw down and your arm still attached. Here, {playerName}: yours. Wield it here, or carry it with you wherever you go next; it will still be this blade when it gets there.",
+        "title": "游历诸界之刃",
+        "text": "并非我渡送的所有东西都会留在同一片海岸，{playerName}。操练官鲁克为每位新兵都备了一把能远行的武器：把它从这个世界带到另一个世界，它仍是原来的模样。他只会把武器交给在练武场打倒过一个草人的新兵，练武场就在试炼跑道以西的小路上。用鼠标左键点击草人选中它，持续攻击直到它倒下；它不会还手。然后走到鲁克身边按 F。",
+        "completion": "草人倒了，你的胳膊还在。拿着，{playerName}：这是你的了。在这里挥舞它，或带着它去往下一站；无论到了哪里，它仍是这把武器。",
         "objectives": {
           "0": {
-            "label": "Training Effigy felled"
+            "label": "击倒训练草人"
           }
         }
       },

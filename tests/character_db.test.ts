@@ -278,7 +278,7 @@ describe('deleteCharacter', () => {
       /FROM referral_transfer_characters/.test(statement),
     );
     const deletion = sql.findIndex((statement) => /DELETE FROM characters/.test(statement));
-    expect(sql).toHaveLength(10);
+    expect(sql).toHaveLength(11);
     expect(sql[0]).toBe('BEGIN');
     expect(sql[1]).toContain('statement_timeout = 15000');
     expect(sql[1]).toContain("lock_timeout = '2s'");
@@ -295,6 +295,9 @@ describe('deleteCharacter', () => {
     // identity checks, so a drifted constant is a conscious edit here.
     expect(sql[deletion - 1]).toBe('SET LOCAL statement_timeout = 60000');
     expect(sql[deletion + 1]).toBe('SET LOCAL statement_timeout = 15000');
+    expect(sql[deletion + 2]).toContain(
+      'DELETE FROM placeschema_accepted WHERE character_id = $1 AND pending',
+    );
     expect(CHARACTER_SAVE_STATEMENT_TIMEOUT_MS).toBe(60_000);
     expect(DELETE_RESTORE_STATEMENT_TIMEOUT_MS).toBe(15_000);
     expect(sql.at(-1)).toBe('COMMIT');

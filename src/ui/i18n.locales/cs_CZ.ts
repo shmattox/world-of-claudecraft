@@ -2,6 +2,7 @@
 import type { TranslationKey } from '../i18n.catalog';
 
 export const cs_CZ: Partial<Record<TranslationKey, string>> = {
+  'entities.items.ps_keepsake.name': 'Přenesená památka',
   'auth.wocBuilder.cat.eyeColor': 'Barva očí',
   'auth.wocBuilder.cat.hairColor': 'Barva vlasů',
   'auth.wocBuilder.cat.skinTone': 'Odstín pleti',

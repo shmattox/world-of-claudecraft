@@ -24972,6 +24972,9 @@ export const vi_VN: EnTranslations = {
       "wyrmshadow_talongrips": {
         "name": "Bao Tay Trảo Nightfang"
       },
+      "ps_keepsake": {
+        "name": "Kỷ vật mang theo"
+      },
       "reliquary_plate_chest": {
         "name": "Áo Giáp Vệ Binh Thánh Tích"
       },

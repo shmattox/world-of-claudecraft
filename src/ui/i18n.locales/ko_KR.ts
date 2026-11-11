@@ -13,6 +13,19 @@
 import type { TranslationKey } from '../i18n.catalog';
 
 export const ko_KR: Partial<Record<TranslationKey, string>> = {
+  'entities.items.ps_keepsake.name': '가져온 기념품',
+  'entities.quests.q_ps_a_blade_that_travels.title': '세계를 여행하는 칼날',
+  'entities.quests.q_ps_a_blade_that_travels.text':
+    '내가 실어 나르는 모든 것이 한 해안에만 머무르는 건 아니지, {playerName}. 교련관 루크는 신병마다 여행에 가져갈 무기를 준비해 두었네. 이 세계에서 다른 세계로 가져가도 그 모습 그대로지. 하지만 건틀릿 서쪽 오솔길 위 연습장에서 짚 허수아비를 쓰러뜨린 신병에게만 내준다네. 허수아비를 왼쪽 클릭해 대상으로 잡고 쓰러질 때까지 공격하게. 반격하지 않을 걸세. 그다음 루크 앞에서 F를 누르게.',
+  'entities.quests.q_ps_a_blade_that_travels.completion':
+    '짚은 쓰러졌고 자네 팔은 멀쩡하군. 자, {playerName}. 자네 것이네. 여기서 휘둘러도 좋고, 다음 목적지에 가져가도 좋네. 어디에 도착하든 이 무기는 그대로일 걸세.',
+  'entities.quests.q_ps_a_blade_that_travels.objectives.0.label': '훈련용 허수아비 쓰러뜨리기',
+  'hudChrome.placeschemaMenu.minecraftNone': '이 계정에 가져온 Minecraft 스킨이 없습니다',
+  'hudChrome.placeschemaMenu.genericNone': '여기서는 PlaceSchema의 모습을 불러올 수 없습니다',
+  'wallet.placeSchemaLink': '아이템을 가져오려면 연결',
+  'wallet.placeSchemaLinkTitle':
+    '다른 세계의 아이템을 가져오려면 이 계정을 PlaceSchema에 연결하세요. Solana 지갑이 아닙니다.',
+  'wallet.placeSchemaLinked': '아이템 가져오기: 연결됨',
   'hudChrome.wocStore.subscription.checkoutPending':
     '결제가 대기 중입니다. 확인을 기다리고 있습니다.',
   'bossJournal.wildheart.zulgar.pulseSummaryRework':

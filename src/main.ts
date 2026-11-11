@@ -352,7 +352,10 @@ import { openStripeCheckout } from './net/stripe_checkout';
 import type { WalletOption, WalletPickerMode, WalletPickerResult } from './net/wallet';
 import { resolveWalletCapability } from './net/wallet_capability';
 import { installWalletResumeHandlers } from './net/wallet_resume';
-import { restoreCarriedSkin } from './placeschema_skin_state';
+import {
+  mountPlaceSchemaClientMenu,
+  prepareCarriedCharselect,
+} from './placeschema_client_bootstrap';
 import { setArrivalEstablishingShot } from './render/arrival_cover';
 import {
   prepareGraphicsProfileAssets,
@@ -373,7 +376,6 @@ import {
   setModularLookProvider,
 } from './render/characters';
 import {
-  carriedWeaponVisualId,
   ensureCharacterUrl,
   modularCacheStats,
   pollRiftCharacterStream,
@@ -525,7 +527,7 @@ import {
 } from './ui/discord_status';
 import { renderDiscordWidget } from './ui/discord_widget';
 import { finderLootItemIds } from './ui/dungeon_finder_view';
-import { classDisplayName, itemDisplayName, tEntity } from './ui/entity_i18n';
+import { classDisplayName, tEntity } from './ui/entity_i18n';
 import { showEntryGuardBanner } from './ui/entry_guard_banner';
 import { refreshEpicLinkStatus, wireEpicLink } from './ui/epic_link';
 import { esc } from './ui/esc';
@@ -594,7 +596,6 @@ import { applyPerfOrnamentVars, applyWindowOrnamentVars } from './ui/perf_orname
 import { PerfOverlay } from './ui/perf_overlay';
 import { type PerfOverlayConfig, PerfOverlayConfigStore } from './ui/perf_overlay_config';
 import { buildPerfOverlayView, FrameMeter } from './ui/perf_overlay_model';
-import { mountPlaceSchemaMenu } from './ui/placeschema_menu';
 import { hydratePortraits, portraitChipHtml } from './ui/portrait_chip';
 import { hideReconnectOverlay, showReconnectOverlay } from './ui/reconnect_overlay';
 import { createSpectateBadge } from './ui/spectate_badge';
@@ -1526,11 +1527,7 @@ async function startGame(
       devCommandsEnabled: import.meta.env.DEV,
       constrainedMemory: GFX.constrainedMemory,
     });
-    // PLACE-1018: the PlaceSchema menu for a linked account (its tier: the server's PLACESCHEMA_MENU)
-    mountPlaceSchemaMenu({
-      world: () => world,
-      itemName: (id) => (ITEMS[id] ? itemDisplayName(ITEMS[id]) : id),
-    });
+    mountPlaceSchemaClientMenu(() => world);
     setThornhollowPrewarmHooks({
       startPreview: () => battlegroundAssetPrewarm.startPreview(),
       pausePreview: () => battlegroundAssetPrewarm.pausePreview(),
@@ -6771,18 +6768,9 @@ const activeClassDetailsTimeouts: Record<string, number | null> = {};
  *  with a unit test. */
 function showCharselectCharacter(c: CharacterSummary): void {
   if (!characterPreview) return;
-  // PLACE-955: as the world draws it, the account's carried Minecraft skin (remembered by this
-  // browser) and a carried copy's own mesh in the hand (the roster's mainhandMesh; once it loads,
-  // the turntable is shown again holding it).
-  restoreCarriedSkin();
-  characterPreview.wearCarried(true);
-  const held = carriedWeaponVisualId(
-    c.mainhandItemId ?? null,
-    { psMesh: (c as { mainhandMesh?: unknown }).mainhandMesh },
-    // still this row on the char-select stage (not since moved to creation or redesign)
-    () =>
-      charselectSelected === c && characterPreview?.wearingCarried && showCharselectCharacter(c),
-  );
+  const held = prepareCarriedCharselect(characterPreview, c, () => {
+    if (charselectSelected === c && characterPreview?.wearingCarried) showCharselectCharacter(c);
+  });
   // Streamed Armory models load on demand for either kind of roster body.
   ensureCharacterUrl(weaponSkinModelUrl(c.weaponSkinId ?? null));
   const look = charselectLook(c);

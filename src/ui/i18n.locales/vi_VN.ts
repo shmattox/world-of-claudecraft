@@ -2,6 +2,7 @@
 import type { TranslationKey } from '../i18n.catalog';
 
 export const vi_VN: Partial<Record<TranslationKey, string>> = {
+  'entities.items.ps_keepsake.name': 'Kỷ vật mang theo',
   'auth.wocBuilder.cat.eyeColor': 'Màu mắt',
   'auth.wocBuilder.cat.hairColor': 'Màu tóc',
   'auth.wocBuilder.cat.skinTone': 'Màu da',

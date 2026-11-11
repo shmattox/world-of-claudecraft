@@ -242,6 +242,8 @@ const ALLOWED_UNCLASSIFIED_JUNK = [
   'harvest_feast',
   'last_keep_signet',
   'membership_token',
+  // A foreign carried keepsake has no crafting-material role.
+  'ps_keepsake',
   // The World PvP Skull Bag is a carried sub-inventory, kind-junk by the bag
   // taxonomy, not a crafting material.
   'pvp_skull_bag',

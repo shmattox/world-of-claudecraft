@@ -165,6 +165,7 @@ const inventoryUnreachablePaths = new Set(
   SURFACE_INVENTORY.filter((r) => r.unreachable).map((r) => r.path),
 );
 const REGISTRY_ONLY_PARAM_PATHS = new Set([
+  '/api/placeschema/media/:name',
   '/api/characters/:id/deeds-recent',
   // The Cheater mark pair: the first registry-only :param routes on the ADMIN
   // surface, so admin.ts holds no `*Match` regex for them either.

@@ -24972,6 +24972,9 @@ export const sv_SE: EnTranslations = {
       "wyrmshadow_talongrips": {
         "name": "Nightfang-klogrepp"
       },
+      "ps_keepsake": {
+        "name": "Medförd minnessak"
+      },
       "reliquary_plate_chest": {
         "name": "Relikvarievaktens ringbrynja"
       },

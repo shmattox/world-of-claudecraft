@@ -1130,9 +1130,9 @@ export const ru_RU: EnTranslations = {
       "avatar": "Ваш облик здесь",
       "native": "World of ClaudeCraft",
       "minecraft": "Скин Minecraft",
-      "minecraftNone": "No Minecraft skin carried on this account",
+      "minecraftNone": "На этом аккаунте нет перенесённого скина Minecraft",
       "generic": "PlaceSchema",
-      "genericNone": "PlaceSchema's body couldn't be loaded here",
+      "genericNone": "Не удалось загрузить облик PlaceSchema в этом мире",
       "close": "Закрыть"
     },
     "unstuck": {
@@ -14243,9 +14243,9 @@ export const ru_RU: EnTranslations = {
     "balancePreviewAria": "Предпросмотр баланса подключенного кошелька: {balance}. Привяжите кошелек, чтобы подтвердить отметку держателя.",
     "balanceAmount": "{amount} $WOC",
     "bagConnect": "Привязать кошелёк",
-    "placeSchemaLink": "Link to carry items",
-    "placeSchemaLinkTitle": "Link this account to PlaceSchema so items from other worlds arrive here. Not a Solana wallet.",
-    "placeSchemaLinked": "Carrying items: linked",
+    "placeSchemaLink": "Привязать для переноса предметов",
+    "placeSchemaLinkTitle": "Привяжите этот аккаунт к PlaceSchema, чтобы получать здесь предметы из других миров. Это не кошелёк Solana.",
+    "placeSchemaLinked": "Перенос предметов: аккаунт привязан",
     "bagLink": "Подтвердить кошелёк",
     "bagReconnect": "Подключить кошелёк снова",
     "connected": "Подключено: {address}",
@@ -24972,6 +24972,9 @@ export const ru_RU: EnTranslations = {
       "wyrmshadow_talongrips": {
         "name": "Захваты когтя Ночного Клыка"
       },
+      "ps_keepsake": {
+        "name": "Перенесённый сувенир"
+      },
       "reliquary_plate_chest": {
         "name": "Хауберк стражи реликвария"
       },
@@ -29843,12 +29846,12 @@ export const ru_RU: EnTranslations = {
         }
       },
       "q_ps_a_blade_that_travels": {
-        "title": "A Blade That Travels",
-        "text": "Not everything I ferry stays on one shore, {playerName}. Drillmaster Rook keeps a blade for every recruit, made to travel: carry it out of this world and into another, and it stays itself. He hands one only to a recruit who has felled a straw effigy in his practice yard, up the path west of the Gauntlet. Left-click an effigy to target it and keep attacking until it falls; it will not strike back. Then press F on Rook.",
-        "completion": "Straw down and your arm still attached. Here, {playerName}: yours. Wield it here, or carry it with you wherever you go next; it will still be this blade when it gets there.",
+        "title": "Клинок для путешествий",
+        "text": "Не всё, что я перевожу, остаётся на одном берегу, {playerName}. Мастер муштры Рук держит для каждого новобранца оружие, готовое к путешествию: унеси его из этого мира в другой, и оно останется собой. Он выдаёт его лишь тому, кто повалил соломенное чучело на тренировочном дворе, вверх по тропе к западу от Полосы. Щёлкни по чучелу левой кнопкой мыши, чтобы выбрать цель, и атакуй, пока оно не упадёт. Оно не даст сдачи. Затем подойди к Руку и нажми F.",
+        "completion": "Солома повержена, а рука на месте. Держи, {playerName}: теперь это твоё. Сражайся им здесь или бери с собой, куда бы ни отправился. В новом мире это будет всё то же оружие.",
         "objectives": {
           "0": {
-            "label": "Training Effigy felled"
+            "label": "Повалить тренировочное чучело"
           }
         }
       },

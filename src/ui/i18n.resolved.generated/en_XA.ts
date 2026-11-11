@@ -24972,6 +24972,9 @@ export const en_XA: EnTranslations = {
       "wyrmshadow_talongrips": {
         "name": "[Ñíĝĥţƒáñĝ Ţáļóñĝŕíþš]"
       },
+      "ps_keepsake": {
+        "name": "[Çáŕŕíéð Ķééþšáķé]"
+      },
       "reliquary_plate_chest": {
         "name": "[Ŕéļíɋúáŕý Ĝúáŕð Ĥáúƀéŕķ]"
       },

@@ -24972,6 +24972,9 @@ export const pl_PL: EnTranslations = {
       "wyrmshadow_talongrips": {
         "name": "Szponiaste chwyty Nightfang"
       },
+      "ps_keepsake": {
+        "name": "Przeniesiona pamiątka"
+      },
       "reliquary_plate_chest": {
         "name": "Kolczuga strażnika relikwiarza"
       },

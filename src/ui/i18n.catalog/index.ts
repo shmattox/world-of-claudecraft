@@ -1981,6 +1981,7 @@ export const en = {
       ...itemNames.en.entities.items,
       ...mergeEntities.en.items,
       ...mergeExtra.en.items,
+      ps_keepsake: { name: 'Carried Keepsake' },
       // Delve items, Collapsed Reliquary loot and Marks vendor stock.
       reliquary_plate_chest: { name: 'Reliquary Guard Hauberk' },
       reliquary_leather_chest: { name: 'Dustwarden Jerkin' },

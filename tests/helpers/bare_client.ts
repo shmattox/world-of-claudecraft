@@ -13,6 +13,7 @@ import { emptyBuddySelfMirror } from '../../src/net/buddy_wire';
 import { EMPTY_MST_CRAFTS } from '../../src/net/crafting_wire';
 import { GuildBankLogMirror } from '../../src/net/guild_bank_log_mirror';
 import { ClientWorld } from '../../src/net/online';
+import { avatarChoiceSender } from '../../src/placeschema_skin_state';
 import { freshAccountLedger } from '../../src/sim/account_ledger';
 import { emptyAllocation, emptyModifiers } from '../../src/sim/content/talents';
 import { ALL_RECIPES } from '../../src/sim/data';
@@ -54,6 +55,7 @@ export function bareClient(pid: number, overrides: BareClientOverrides = {}): Cl
   // biome-ignore lint/suspicious/noExplicitAny: the sanctioned bareClient idiom (tests/CLAUDE.md)
   const c: any = Object.create(ClientWorld.prototype);
   c.cfg = { seed: 20061, playerClass };
+  c.avatarSender = avatarChoiceSender((choice) => c.cmd({ cmd: 'ps_avatar', choice }));
   c.entities = new Map();
   c.entityRosterVersion = 0;
   c.playerId = pid;

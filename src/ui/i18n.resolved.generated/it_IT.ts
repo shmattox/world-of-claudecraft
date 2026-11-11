@@ -24972,6 +24972,9 @@ export const it_IT: EnTranslations = {
       "wyrmshadow_talongrips": {
         "name": "Prese Artiglio Nightfang"
       },
+      "ps_keepsake": {
+        "name": "Ricordo trasportato"
+      },
       "reliquary_plate_chest": {
         "name": "Usbergo della guardia del reliquiario"
       },

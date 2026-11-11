@@ -1244,6 +1244,17 @@ export const SURFACE_INVENTORY: readonly SurfaceRoute[] = [
     limiter: 'publicReadRateLimited',
     requireOwnedExpected: null,
   },
+  // Public content-addressed media from the configured PlaceSchema sidecar.
+  {
+    dispatcher: DISPATCH.mainApi,
+    method: 'GET',
+    path: '/api/placeschema/media/:name',
+    handler: 'server/placeschema_media.ts mediaHandler (registry-only RouteDef)',
+    contentType: BINARY,
+    authScope: AUTH_SCOPE.public,
+    limiter: null,
+    requireOwnedExpected: REQUIRE_OWNED.publicRead,
+  },
   // Realm Builder of the Month: the public roll the Eastbrook Vale monument
   // reads while a client loads the world. Registry-only RouteDef born after the
   // migration (server/http/CLAUDE.md), so no legacy ladder arm. Anonymous and

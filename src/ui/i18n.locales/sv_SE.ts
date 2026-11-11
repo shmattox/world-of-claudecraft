@@ -2,6 +2,7 @@
 import type { TranslationKey } from '../i18n.catalog';
 
 export const sv_SE: Partial<Record<TranslationKey, string>> = {
+  'entities.items.ps_keepsake.name': 'Medförd minnessak',
   'auth.wocBuilder.cat.eyeColor': 'Ögonfärg',
   'auth.wocBuilder.cat.hairColor': 'Hårfärg',
   'auth.wocBuilder.cat.skinTone': 'Hudton',

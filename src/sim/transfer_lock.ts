@@ -4,7 +4,6 @@
 // directly so the $WOC rail shares the exact rule without inheriting the
 // transfer module's runtime import graph (which reaches the whole content
 // tree through the sanitize-on-load helpers).
-import { isSignedCopy } from './item_lock_flag';
 import type { ItemInstancePayload } from './types';
 
 /** True when this copy is locked out of the anonymous exchange pipes (market
@@ -22,4 +21,12 @@ export function isTransferLockedInstance(instance: ItemInstancePayload | undefin
     instance !== undefined &&
     (instance.bindOnTrade === true || instance.boundTo !== undefined || isSignedCopy(instance))
   );
+}
+
+/** True for a PlaceSchema-signed copy (PLACE-410), or a quest reward waiting for its mint: its
+ *  grant says it exists, so it is never sold, salvaged, disenchanted or consumed here. Keys match
+ *  server/placeschema_sidecar.ts GRANT_KEY / PENDING_KEY. */
+export function isSignedCopy(instance: ItemInstancePayload | undefined): boolean {
+  const i = instance as { psGrant?: unknown; psPending?: unknown } | undefined;
+  return typeof i?.psGrant === 'string' || typeof i?.psPending === 'string';
 }

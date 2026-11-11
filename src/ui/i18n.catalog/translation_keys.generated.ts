@@ -6502,6 +6502,7 @@ export type TranslationKeyFlat =
   | 'entities.items.ps_briny_lure.name'
   | 'entities.items.ps_castaway_crate.name'
   | 'entities.items.ps_ferry_bell.name'
+  | 'entities.items.ps_keepsake.name'
   | 'entities.items.ps_lustrous_pearl.name'
   | 'entities.items.ps_passing_stone.name'
   | 'entities.items.pvp_skull_bag.name'

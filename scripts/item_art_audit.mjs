@@ -172,7 +172,7 @@ const build = await buildItemArtAudit({
     catalogCount: 2191,
     liveItemCount: 2220,
     // Companion items are removed; only the Infernal Quiver awaits artwork.
-    pendingArtCount: 1,
+    pendingArtCount: 2,
     generatedHeroicDefinitions: 116,
     heroicDefinitionsWithOwnWebp: 86,
     heroicWeaponArtAliases: 30,

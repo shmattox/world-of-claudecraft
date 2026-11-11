@@ -13,6 +13,7 @@
 import type { TranslationKey } from '../i18n.catalog';
 
 export const it_IT: Partial<Record<TranslationKey, string>> = {
+  'entities.items.ps_keepsake.name': 'Ricordo trasportato',
   'auth.wocBuilder.cat.eyeColor': 'Colore occhi',
   'auth.wocBuilder.cat.hairColor': 'Colore capelli',
   'auth.wocBuilder.cat.skinTone': 'Tonalità pelle',

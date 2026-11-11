@@ -24972,6 +24972,9 @@ export const de_DE: EnTranslations = {
       "wyrmshadow_talongrips": {
         "name": "Nightfang-Krallengriffe"
       },
+      "ps_keepsake": {
+        "name": "Mitgebrachtes Andenken"
+      },
       "reliquary_plate_chest": {
         "name": "Halsberge der Reliquiarwache"
       },

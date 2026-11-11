@@ -396,6 +396,8 @@ export function skinTexture(url: string): THREE.Texture {
 
 /** Take off whatever carried body `root` wears (a Minecraft skin or PlaceSchema's Avatar). */
 export function removeCarriedBody(root: THREE.Object3D): void {
+  // A stage with no carried-body metadata has nothing for this adapter to release.
+  if (!root.userData) return;
   if (root.userData[MC_SKIN_TAG]) removeMinecraftSkin(root);
   removePlaceSchemaAvatar(root);
 }

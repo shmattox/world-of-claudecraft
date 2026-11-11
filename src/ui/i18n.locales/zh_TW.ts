@@ -13,6 +13,19 @@
 import type { TranslationKey } from '../i18n.catalog';
 
 export const zh_TW: Partial<Record<TranslationKey, string>> = {
+  'entities.items.ps_keepsake.name': '隨身紀念品',
+  'entities.quests.q_ps_a_blade_that_travels.title': '遊歷諸界之刃',
+  'entities.quests.q_ps_a_blade_that_travels.text':
+    '並非我渡送的所有東西都會留在同一片海岸，{playerName}。操練官魯克為每位新兵都備了一把能遠行的武器：把它從這個世界帶到另一個世界，它仍是原來的模樣。他只會把武器交給在練武場打倒過一個草人的新兵，練武場就在試煉跑道以西的小路上。用滑鼠左鍵點擊草人選取它，持續攻擊直到它倒下；它不會還手。然後走到魯克身邊按 F。',
+  'entities.quests.q_ps_a_blade_that_travels.completion':
+    '草人倒了，你的胳膊還在。拿著，{playerName}：這是你的了。在這裡揮舞它，或帶著它去往下一站；無論到了哪裡，它仍是這把武器。',
+  'entities.quests.q_ps_a_blade_that_travels.objectives.0.label': '擊倒訓練草人',
+  'hudChrome.placeschemaMenu.minecraftNone': '此帳號未攜帶 Minecraft 外觀',
+  'hudChrome.placeschemaMenu.genericNone': '無法在此載入 PlaceSchema 的形體',
+  'wallet.placeSchemaLink': '連結以攜帶物品',
+  'wallet.placeSchemaLinkTitle':
+    '將此帳號連結至 PlaceSchema，讓其他世界的物品來到這裡。這不是 Solana 錢包。',
+  'wallet.placeSchemaLinked': '物品攜帶：已連結',
   'hudChrome.wocStore.subscription.checkoutPending': '結帳待處理。正在等待確認。',
   'bossJournal.wildheart.zulgar.pulseSummaryRework':
     '每{every}秒施法{cast}秒，對{radius}碼內所有玩家造成{min}至{max}點傷害。被釘住的玩家無論距離多遠都會受到{pinMult}倍傷害。',

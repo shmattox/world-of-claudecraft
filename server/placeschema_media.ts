@@ -44,7 +44,13 @@ async function mediaHandler(ctx: Ctx): Promise<void> {
 }
 
 export const routes: readonly RouteDef[] = [
-  { method: 'GET', path: '/api/placeschema/media/:name', surface: 'api', handler: mediaHandler },
+  {
+    method: 'GET',
+    path: '/api/placeschema/media/:name',
+    surface: 'api',
+    meta: { publicRead: true },
+    handler: mediaHandler,
+  },
 ];
 
 /** A response body read up to `max` bytes: undefined (and the stream cancelled) once it passes. */

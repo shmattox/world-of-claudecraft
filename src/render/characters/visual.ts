@@ -1928,7 +1928,7 @@ export class CharacterVisual {
       s.moving,
       s.casting,
       reducedMotion,
-      this.root.visible && !this.farShown(),
+      this.root.visible && !farMeshShown(this.far, this.farMesh !== null, this.farCompilePending),
     );
     if (this.holdCooldown > 0) this.holdCooldown = Math.max(0, this.holdCooldown - dt);
     // Deferred sheathe swap: lands at the gesture's windup peak (see
@@ -2339,7 +2339,7 @@ export class CharacterVisual {
       // Gated on the far mesh ACTUALLY standing in, like updateWeaponVfx:
       // while the far bake is shown the props are hidden with the rig, so the
       // mixer would write node TRS nothing draws.
-      if (!this.farShown()) {
+      if (!farMeshShown(this.far, this.farMesh !== null, this.farCompilePending)) {
         updateHeldPropIdles(this.model, animationDt);
       }
       this.pendingDt = 0;
@@ -3387,6 +3387,8 @@ export class CharacterVisual {
   }
 
   setFar(far: boolean): void {
+    // Carried Minecraft skins live on the articulated rig, never the WoC far bake.
+    if (this.root.userData[MC_SKIN_TAG]) far = false;
     if (far !== this.far) {
       this.far = far;
       // First crossing of a composed body: mint its far LOD, BUDGETED. Cached
@@ -3413,14 +3415,6 @@ export class CharacterVisual {
    *  the LOD edge, update()'s retry and the per-frame setFar all land here, so
    *  a far mesh whose materials are still linking never draws early and the
    *  articulated rig never hides without a ready stand-in. */
-  /** Is the baked far mesh the one drawn? PLACE-412: a carried Minecraft skin is worn on the
-   *  articulated rig and the far mesh is WoC's own body, so a skinned player stays articulated at
-   *  every distance, as the local player does; every far-dependent update reads this. */
-  private farShown(): boolean {
-    if (this.root?.userData[MC_SKIN_TAG]) return false;
-    return farMeshShown(this.far, this.farMesh !== null, this.farCompilePending);
-  }
-
   private syncFarVisibility(): void {
     // A gesture hiding part of the model (the Saurian's broken howdah) keeps the
     // articulated rig: the far bake still carries the part. A whole-model hide
@@ -3430,7 +3424,8 @@ export class CharacterVisual {
     // first (the LOD pass, the shadow plan, update): the body draws the frame its head is
     // live. Free afterwards: the latch never re-arms.
     if (this.wocHeadAwaited && !this.wocHead?.awaited) this.wocHeadAwaited = false;
-    const farStandsIn = hidden === 'none' && this.farShown();
+    const farStandsIn =
+      hidden === 'none' && farMeshShown(this.far, this.farMesh !== null, this.farCompilePending);
     const showRig = bodyDrawn(!farStandsIn, this.wocHeadAwaited);
     const showFar = bodyDrawn(farStandsIn, this.wocHeadAwaited);
     if (this.modelWrap.visible !== showRig) this.modelWrap.visible = showRig;
@@ -4994,7 +4989,7 @@ export class CharacterVisual {
     // Skipping on `far` alone would freeze a rig that is still drawing,
     // leaving its motes hanging in the air and its light stuck at whatever
     // the last flicker wrote.
-    if (this.farShown()) return;
+    if (farMeshShown(this.far, this.farMesh !== null, this.farCompilePending)) return;
     // A veil that drops the weapon-skin VFX hides them and holds the light at 0.
     if (this.veilDrops('weaponVfx')) return;
     this.applyWeaponVfxShed(shed);

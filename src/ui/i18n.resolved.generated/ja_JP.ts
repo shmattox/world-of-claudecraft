@@ -1130,9 +1130,9 @@ export const ja_JP: EnTranslations = {
       "avatar": "ここでのあなたの姿",
       "native": "World of ClaudeCraft",
       "minecraft": "Minecraft スキン",
-      "minecraftNone": "No Minecraft skin carried on this account",
+      "minecraftNone": "このアカウントには Minecraft スキンが持ち込まれていません",
       "generic": "PlaceSchema",
-      "genericNone": "PlaceSchema's body couldn't be loaded here",
+      "genericNone": "ここでは PlaceSchema の姿を読み込めませんでした",
       "close": "閉じる"
     },
     "unstuck": {
@@ -14243,9 +14243,9 @@ export const ja_JP: EnTranslations = {
     "balancePreviewAria": "接続中ウォレット残高プレビュー: {balance}。ウォレットを連携するとホルダー表示を認証できます。",
     "balanceAmount": "{amount} $WOC",
     "bagConnect": "ウォレットをリンク",
-    "placeSchemaLink": "Link to carry items",
-    "placeSchemaLinkTitle": "Link this account to PlaceSchema so items from other worlds arrive here. Not a Solana wallet.",
-    "placeSchemaLinked": "Carrying items: linked",
+    "placeSchemaLink": "アイテムの持ち込み用にリンク",
+    "placeSchemaLinkTitle": "このアカウントを PlaceSchema にリンクして、他のワールドのアイテムを持ち込みます。Solana ウォレットではありません。",
+    "placeSchemaLinked": "アイテムの持ち込み：リンク済み",
     "bagLink": "ウォレットを認証",
     "bagReconnect": "ウォレットを再接続",
     "connected": "接続済み: {address}",
@@ -24972,6 +24972,9 @@ export const ja_JP: EnTranslations = {
       "wyrmshadow_talongrips": {
         "name": "ナイトファングの鉤爪握り"
       },
+      "ps_keepsake": {
+        "name": "持ち込んだ記念品"
+      },
       "reliquary_plate_chest": {
         "name": "聖遺物庫衛兵のホーバーク"
       },
@@ -29843,12 +29846,12 @@ export const ja_JP: EnTranslations = {
         }
       },
       "q_ps_a_blade_that_travels": {
-        "title": "A Blade That Travels",
-        "text": "Not everything I ferry stays on one shore, {playerName}. Drillmaster Rook keeps a blade for every recruit, made to travel: carry it out of this world and into another, and it stays itself. He hands one only to a recruit who has felled a straw effigy in his practice yard, up the path west of the Gauntlet. Left-click an effigy to target it and keep attacking until it falls; it will not strike back. Then press F on Rook.",
-        "completion": "Straw down and your arm still attached. Here, {playerName}: yours. Wield it here, or carry it with you wherever you go next; it will still be this blade when it gets there.",
+        "title": "世界を渡る刃",
+        "text": "私が渡すものすべてが、ひとつの岸に留まるわけじゃない、{playerName}。訓練長ルークは新兵一人ひとりに、旅に持ち出せる武器を用意している。この世界から別の世界へ持ち出しても、同じ武器のままだ。だが、彼が武器を渡すのは練習場で藁のかかしを倒した新兵だけ。練習場はガントレットの西へ続く道の先だ。かかしを左クリックで選び、倒れるまで攻撃し続けろ。反撃はしてこない。その後、ルークの前で F を押すんだ。",
+        "completion": "藁は倒れたし、腕も無事だな。ほら、{playerName}。お前のものだ。ここで振るうもよし、次の旅先へ持ち出すもよし。どこへ行っても、この武器はこの武器のままだ。",
         "objectives": {
           "0": {
-            "label": "Training Effigy felled"
+            "label": "訓練用のかかしを倒す"
           }
         }
       },

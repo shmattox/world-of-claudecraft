@@ -251,11 +251,7 @@ import {
 } from './characters/form_visual_slots_core';
 import { installSpiritVeil } from './characters/ghost_veil';
 import { visualKeyFor, weaponSkinModelUrl } from './characters/manifest';
-import {
-  heldWeaponId,
-  PlaceSchemaPortals,
-  wearCarriedSkin,
-} from './characters/placeschema_carry_view';
+import { heldWeaponId, PlaceSchemaPortals, wearCarriedSkin } from './characters/placeschema_carry';
 import { PooledVisualLifecycle } from './characters/pooled_visual_lifecycle';
 import { effectiveHelmHidden } from './characters/seasonal_head_core';
 import { playerRangedAttackStartsAtLaunch } from './characters/skin_attack';

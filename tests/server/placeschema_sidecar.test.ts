@@ -1277,7 +1277,7 @@ describe('PLACE-990: a copy carries its own WoC data and comes home whole', () =
       license: 'CC0-1.0',
     });
     expect(templateFor('redbrook_blade', undefined, origin).look?.model.sha256).toBe(
-      sha('models/weapons/sword_d.glb'),
+      sha('models/weapons/sword_field_iron.glb'),
     );
     expect(templateFor('mistveil_cord', undefined, origin).look).toBeUndefined(); // no open file
     expect(templateFor('cryptbone_greaves', undefined, '').look).toBeUndefined(); // no origin

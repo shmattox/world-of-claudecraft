@@ -79,8 +79,11 @@ export function tryRingFerryBell(
   if (isOnProvingShore(obj.pos.x, obj.pos.z)) {
     // PLACE-950: leaving the shore without the carry errand skips it, so the first ring says so
     // and a second ring sails (the twin bell in town still brings the player back).
+    // Finishing Set Sail already confirms departure, so graduates sail on their first ring.
+    const finalQuestId = PROVING_SHORE_QUEST_ORDER[PROVING_SHORE_QUEST_ORDER.length - 1];
     const warned = warnedAt.get(meta);
     if (
+      !meta.questsDone.has(finalQuestId) &&
       !meta.questsDone.has(BLADE_ERRAND_ID) &&
       (warned === undefined || ctx.time - warned > ERRAND_WARNING_S)
     ) {
@@ -102,7 +105,6 @@ export function tryRingFerryBell(
     // content/deeds.ts prog_ready_for_an_adventure): this home ride with the
     // whole rail handed in. The rail is strict (each quest requires the
     // previous), so its final quest in questsDone means all of it is.
-    const finalQuestId = PROVING_SHORE_QUEST_ORDER[PROVING_SHORE_QUEST_ORDER.length - 1];
     if (meta.questsDone.has(finalQuestId)) {
       bumpDeedStat(ctx, meta, 'tutorialGraduations', 1);
     }

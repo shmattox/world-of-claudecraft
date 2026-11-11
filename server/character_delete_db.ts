@@ -324,11 +324,11 @@ export async function deleteOwnedCharacterRow(
         RETURNING ${DELETED_CHARACTER_HOLDINGS_RETURNING}`,
       [characterId, accountId, realm],
     );
-    // PLACE-276: this character's pending PlaceSchema claims (items it never saved) are released.
-    if ((deleted.rowCount ?? 0) > 0) await releasePendingClaimsOf(transaction, characterId);
     // Deliberately skipped when the DELETE throws: the catch below rolls the
     // whole transaction back, which clears every SET LOCAL with it.
     await transaction.query(`SET LOCAL statement_timeout = ${DELETE_RESTORE_STATEMENT_TIMEOUT_MS}`);
+    // PLACE-276: release pending claims under the ordinary bound, in the same transaction.
+    if ((deleted.rowCount ?? 0) > 0) await releasePendingClaimsOf(transaction, characterId);
     // Same transaction, so the consume rows commit iff the delete does. No
     // statement at all when the character held no tracked copy.
     await recordDeletedCharacterCopies(transaction, realm, accountId, deleted.rows?.[0]);

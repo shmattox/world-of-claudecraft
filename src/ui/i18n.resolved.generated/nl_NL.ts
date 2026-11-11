@@ -24972,6 +24972,9 @@ export const nl_NL: EnTranslations = {
       "wyrmshadow_talongrips": {
         "name": "Nightfang-Klauwgrepen"
       },
+      "ps_keepsake": {
+        "name": "Meegebracht aandenken"
+      },
       "reliquary_plate_chest": {
         "name": "Reliekwacht-Maliënkolder"
       },

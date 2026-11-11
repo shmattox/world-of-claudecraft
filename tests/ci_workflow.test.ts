@@ -2083,6 +2083,10 @@ describe('CI workflow parity', () => {
       new URL('../.github/workflows/nightly.yml', import.meta.url),
       'utf8',
     );
+    const placeschema = readFileSync(
+      new URL('../.github/workflows/placeschema.yml', import.meta.url),
+      'utf8',
+    );
     // The classification. wired: carries the per-leg Postgres service and the
     // job-level env pinned below. dbless: runs vitest with NO database, each
     // member covered by a coupled guard below. testFree: never runs the node
@@ -2099,6 +2103,12 @@ describe('CI workflow parity', () => {
         wired: ['tests'],
         dbless: ['browser'],
         testFree: ['targets', 'checks', 'report'],
+      },
+      {
+        source: placeschema,
+        wired: ['placeschema'],
+        dbless: [],
+        testFree: [],
       },
     ];
     for (const { source, wired, dbless, testFree } of classes) {
@@ -2230,11 +2240,11 @@ describe('CI workflow parity', () => {
     expect(portMap5433.test('- "5433:5432"')).toBe(true);
     expect(portMap5433.test('- 127.0.0.1:5433:5432')).toBe(true);
     expect(url5433.test('postgres://u:p@h:5433/db')).toBe(true);
-    for (const source of [workflow, nightly]) {
+    for (const source of [workflow, nightly, placeschema]) {
       expect(source).not.toMatch(portMap5433);
       expect(source).not.toMatch(url5433);
     }
-    // The classification covers the two vitest-carrying workflow files;
+    // The classification covers the vitest-carrying workflow files;
     // every OTHER workflow must stay free of test invocations, and the
     // corpus is the git index (the shared-walker doctrine), so a NEW
     // workflow file forces a decision here instead of running tests nobody
@@ -2253,7 +2263,12 @@ describe('CI workflow parity', () => {
       '.github/workflows/ota-publish.yml',
     ];
     expect(listed).toEqual(
-      ['.github/workflows/ci.yml', '.github/workflows/nightly.yml', ...testFreeWorkflows].sort(),
+      [
+        '.github/workflows/ci.yml',
+        '.github/workflows/nightly.yml',
+        '.github/workflows/placeschema.yml',
+        ...testFreeWorkflows,
+      ].sort(),
     );
     for (const file of testFreeWorkflows) {
       const text = codeLines(readFileSync(new URL(`../${file}`, import.meta.url), 'utf8'));

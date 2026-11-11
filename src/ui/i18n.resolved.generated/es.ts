@@ -24972,6 +24972,9 @@ export const es: EnTranslations = {
       "wyrmshadow_talongrips": {
         "name": "Agarraderas Garra Nightfang"
       },
+      "ps_keepsake": {
+        "name": "Recuerdo transportado"
+      },
       "reliquary_plate_chest": {
         "name": "Loriga de la Guardia del Relicario"
       },

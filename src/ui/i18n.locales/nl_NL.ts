@@ -2,6 +2,7 @@
 import type { TranslationKey } from '../i18n.catalog';
 
 export const nl_NL: Partial<Record<TranslationKey, string>> = {
+  'entities.items.ps_keepsake.name': 'Meegebracht aandenken',
   'auth.wocBuilder.cat.eyeColor': 'Oogkleur',
   'auth.wocBuilder.cat.hairColor': 'Haarkleur',
   'auth.wocBuilder.cat.skinTone': 'Huidskleur',

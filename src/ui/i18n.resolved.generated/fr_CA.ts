@@ -24972,6 +24972,9 @@ export const fr_CA: EnTranslations = {
       "wyrmshadow_talongrips": {
         "name": "Poignes-serres Nightfang"
       },
+      "ps_keepsake": {
+        "name": "Souvenir emporté"
+      },
       "reliquary_plate_chest": {
         "name": "Haubert de la garde du reliquaire"
       },

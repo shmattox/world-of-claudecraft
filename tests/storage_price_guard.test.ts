@@ -191,6 +191,8 @@ const familyAllowed: AllowFn = anchoredAllow(FAMILY_ALLOWANCES, usedFamilyAnchor
 // distinctive price value, each anchored on the named constant sharing its
 // line. The exercised-allowance arm below reds if one goes stale.
 const TREE_ALLOWANCES: ReadonlyArray<[file: string, value: number, anchor: string]> = [
+  // PlaceSchema's skin data URL length cap is a wire-size bound, not a storage price.
+  ['src/net/placeschema_frame.ts', 200000, 'msg.url.length > 200000'],
   // Five minutes in milliseconds, twice: neither is money.
   ['src/ui/daily_rewards_launcher_core.ts', 300000, 'DAILY_REWARDS_LAUNCHER_THROTTLE_MS'],
   ['src/ui/hud/loot/loot_roll_controller.ts', 300000, 'MASTER_LOOT_DURATION_MS'],

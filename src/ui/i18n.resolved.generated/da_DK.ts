@@ -24972,6 +24972,9 @@ export const da_DK: EnTranslations = {
       "wyrmshadow_talongrips": {
         "name": "Nightfang-Klogreb"
       },
+      "ps_keepsake": {
+        "name": "Medbragt minde"
+      },
       "reliquary_plate_chest": {
         "name": "Relikvievogterens Brynje"
       },

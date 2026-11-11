@@ -24972,6 +24972,9 @@ export const id_ID: EnTranslations = {
       "wyrmshadow_talongrips": {
         "name": "Sarung Tangan Cakar Nightfang"
       },
+      "ps_keepsake": {
+        "name": "Kenang-kenangan bawaan"
+      },
       "reliquary_plate_chest": {
         "name": "Baju Zirah Penjaga Relikuari"
       },

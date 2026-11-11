@@ -167,6 +167,9 @@ const PROFESSIONS_BLOB_FIELDS = [
 // included, since a key absent from the fixture is harmless here while a
 // missing one is not.
 const NON_PROFESSIONS_BLOB_FIELDS = [
+  // PlaceSchema grant receipts are portable-item deduplication state, not crafting state.
+  'placeschemaAccepted',
+  'placeschemaReleased',
   // Per-link reward receipts and the bounded inviter tier mask, never crafting state.
   'referralRewards',
   'referralInviterRewards',
@@ -2048,10 +2051,11 @@ describe('the whole-character gear-heavy maximal blob (Phase 18 U-MEASURE)', () 
     // skull 42 + Titan 26 + PvP titles 138 + Hard maze 34 + skull bag 62
     // + vault retune 119 + quiver 66 + quest shields 68. No storage limit changes.
     // Advanced riding adds the sparse ridingTier scalar (+15, PR 4390).
-    expect(baselineBytes).toBe(261480);
+    // PlaceSchema adds ps_keepsake's discovery id (+14) and its quest receipt (+28).
+    expect(baselineBytes).toBe(261522);
     expect(bytes - baselineBytes).toBe(8284);
     // 266,699 -> 266,721 with Wobbles the Slime's reins (+22, kept).
-    expect(bytes).toBe(269764);
+    expect(bytes).toBe(269806);
     // Keep the warning threshold unchanged: saves above it remain whole.
     expect(bytes).toBeGreaterThan(CHARACTER_BLOB_WARN_BYTES);
     process.stdout.write(
@@ -2441,7 +2445,19 @@ describe('the whole-character gear-heavy maximal blob (Phase 18 U-MEASURE)', () 
     // (`"membership_staff",`, +19, PR 4281), isolated with membership below.
     // 249,984 -> 250,006 with Wobbles the Slime's reins (+22, kept).
     // Advanced riding adds the sparse ridingTier scalar (+15, PR 4390).
-    expect(beforeReferralBytes).toBe(250915);
+    // Fork content adds exactly two inventory entries: one item discovery and one quest.
+    const withoutPlaceSchema = {
+      ...withoutReferral,
+      questsDone: withoutReferral.questsDone.filter((id) => id !== 'q_ps_a_blade_that_travels'),
+      deedStats: {
+        ...withoutReferral.deedStats,
+        itemsDiscovered: (withoutReferral.deedStats?.itemsDiscovered ?? []).filter(
+          (id) => id !== 'ps_keepsake',
+        ),
+      },
+    };
+    expect(beforeReferralBytes - Buffer.byteLength(JSON.stringify(withoutPlaceSchema))).toBe(42);
+    expect(beforeReferralBytes).toBe(250957);
     expect(bytes - gourdlightEveBytes - stampCardBytes - beforeReferralBytes).toBe(122);
     expect(
       fieldBytes(beforeStampCards, 'deedStats') - fieldBytes(withoutReferral, 'deedStats'),
@@ -2467,7 +2483,7 @@ describe('the whole-character gear-heavy maximal blob (Phase 18 U-MEASURE)', () 
     expect(membershipIds.size).toBe(9);
     const beforeMembershipBytes = Buffer.byteLength(JSON.stringify(withoutMembership), 'utf8');
     // 249,810 -> 249,832 with Wobbles the Slime's reins (+22, kept).
-    expect(beforeMembershipBytes).toBe(250741);
+    expect(beforeMembershipBytes).toBe(250783);
     expect(beforeReferralBytes - beforeMembershipBytes).toBe(174);
     expect(
       fieldBytes(withoutReferral, 'deedStats') - fieldBytes(withoutMembership, 'deedStats'),
@@ -2993,7 +3009,9 @@ describe('the whole-character gear-heavy maximal blob (Phase 18 U-MEASURE)', () 
         // rewards carry no Reliquary page, so no firstFind row. MEASURED.
         68 +
         // Advanced riding adds the sparse scalar ,"ridingTier":2 (15 bytes).
-        15,
+        15 +
+        // PlaceSchema quest completion (+28) and keepsake discovery (+14).
+        42,
     );
     const forgeBaseline = {
       questsDone: 4606,
@@ -3031,7 +3049,7 @@ describe('the whole-character gear-heavy maximal blob (Phase 18 U-MEASURE)', () 
       // and reliquary 80 -> 892 at the trinket slot (PR 4173): the 18 trinket
       // item ids and the 17 trinket Reliquary pages (+324 and +812 of the
       // +1,136 above).
-      questsDone: 100,
+      questsDone: 128,
       knownRecipes: 411,
       // deeds 672 -> 708 and deedStats 5,861 -> 5,979 at the fourth
       // release/v0.44.0 base merge: the ferry deed and its four visit marks
@@ -3055,7 +3073,7 @@ describe('the whole-character gear-heavy maximal blob (Phase 18 U-MEASURE)', () 
       // Then -> 21,354: the 36 legacy buddy item ids add 706 discovery bytes.
       // Then -> 21,373 with the Staff of Changing's discovery id (+19, PR 4281).
       // +18 for the sprite buddy's whistle id in itemsDiscovered: 21373 -> 21436.
-      deedStats: 21080,
+      deedStats: 21094,
       reliquary: 14565,
     });
     // Removing field_kit AND the Bramblehide release content reproduces the
@@ -3105,7 +3123,7 @@ describe('the whole-character gear-heavy maximal blob (Phase 18 U-MEASURE)', () 
       // The Staff of Changing's discovery id adds 19 (247,136, PR 4281).
       // The sprite buddy's whistle id adds 18 (247,154).
       // Advanced riding contributes 15 bytes for the armed ridingTier scalar.
-    ).toBe(248045);
+    ).toBe(248087);
     // Removing ONLY field_kit (the Bramblehide release content and the two
     // dev-mount reins items still present, current staged tree) reproduces
     // 209,524 plus the 1,548-byte Bramblehide delta plus the 71-byte
@@ -3147,7 +3165,7 @@ describe('the whole-character gear-heavy maximal blob (Phase 18 U-MEASURE)', () 
       // The Staff of Changing's discovery id adds 19 (249,946, PR 4281); reins_nightwing_chimera adds 26 (249,972).
       // reins_wobbles_slime adds 22 (249,994).
       // Advanced riding contributes the same 15 bytes here.
-    ).toBe(250903);
+    ).toBe(250945);
     const priorContent = withoutCrucibleContent(withoutReferral);
     const contentDelta = Object.fromEntries(
       (['knownRecipes', 'deedStats', 'reliquary'] as const).map((key) => [
@@ -3296,8 +3314,9 @@ describe('the whole-character gear-heavy maximal blob (Phase 18 U-MEASURE)', () 
     // Release composition: 250,982 bytes excluding referral cards; retain the 381-byte band.
     // RE-BASED for advanced riding: up exactly 15 for the sparse ridingTier
     // scalar (250,273). Same 381-byte band.
-    expect(bytes - gourdlightEveBytes - stampCardBytes, reMint).toBeGreaterThan(250657);
-    expect(bytes - gourdlightEveBytes - stampCardBytes, reMint).toBeLessThan(251038);
+    // PlaceSchema's two content entries add 42 bytes; retain the same 381-byte band.
+    expect(bytes - gourdlightEveBytes - stampCardBytes, reMint).toBeGreaterThan(250699);
+    expect(bytes - gourdlightEveBytes - stampCardBytes, reMint).toBeLessThan(251080);
 
     // The Crucible database review approved 229,376 bytes (224 KiB), the first
     // 32-KiB step above the corrected 209,261-byte pre-field-kit fixture it was

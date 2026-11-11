@@ -423,12 +423,13 @@ describe('async balance reads repaint the FOOTER, not the whole window', () => {
     // `!== 'none'` reads a never-opened window as shown (#1538), so the old form
     // would paint a window the player has never opened on every balance read.
     const sites = hud.match(/this\.bagsWindow\.refreshMoneyRow\(\);/g) ?? [];
-    expect(sites).toHaveLength(2);
+    // The fork also refreshes the link chip when PlaceSchema's status arrives.
+    expect(sites).toHaveLength(3);
     const guarded =
       hud.match(
         /if \(bagsWindowShown\(\$\('#bags'\)\.style\.display\)\) this\.bagsWindow\.refreshMoneyRow\(\);/g,
       ) ?? [];
-    expect(guarded).toHaveLength(2);
+    expect(guarded).toHaveLength(3);
   });
 });
 

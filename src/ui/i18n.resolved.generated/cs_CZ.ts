@@ -24972,6 +24972,9 @@ export const cs_CZ: EnTranslations = {
       "wyrmshadow_talongrips": {
         "name": "Spárové rukavice nočního tesáku"
       },
+      "ps_keepsake": {
+        "name": "Přenesená památka"
+      },
       "reliquary_plate_chest": {
         "name": "Hauberk stráže relikviáře"
       },

@@ -156,6 +156,7 @@ export const API_CONTENT_TYPE: Readonly<Record<string, ContentTypeClass>> = {
   '/api/claudium/spend': PROBLEM_JSON,
   '/api/deeds/rarity': PROBLEM_JSON,
   '/api/realm-builder': PROBLEM_JSON,
+  '/api/placeschema/media/:name': BINARY,
   '/api/world-quests/leaderboard': PROBLEM_JSON,
   '/api/guilds/roster': PROBLEM_JSON,
   '/api/reliquary/rarity': PROBLEM_JSON,

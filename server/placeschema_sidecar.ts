@@ -165,7 +165,9 @@ export function typeFor(def: (typeof ITEMS)[string]): string {
  *  hashed once from the server's working directory (the game root): `public/` in a checkout, else
  *  `dist/` (the production image ships the built client, which holds `public/` as is, and no
  *  `public/`). Unreadable or no origin: no look. */
-const OPEN_LOOKS: Record<string, string> = { redbrook_blade: 'models/weapons/sword_d.glb' };
+const OPEN_LOOKS: Record<string, string> = {
+  redbrook_blade: 'models/weapons/sword_field_iron.glb',
+};
 const hashes = new Map<string, string | null>();
 function fileSha256(rel: string): string | undefined {
   if (!hashes.has(rel)) {

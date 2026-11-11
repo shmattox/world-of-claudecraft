@@ -13,6 +13,19 @@
 import type { TranslationKey } from '../i18n.catalog';
 
 export const ru_RU: Partial<Record<TranslationKey, string>> = {
+  'entities.items.ps_keepsake.name': 'Перенесённый сувенир',
+  'entities.quests.q_ps_a_blade_that_travels.title': 'Клинок для путешествий',
+  'entities.quests.q_ps_a_blade_that_travels.text':
+    'Не всё, что я перевожу, остаётся на одном берегу, {playerName}. Мастер муштры Рук держит для каждого новобранца оружие, готовое к путешествию: унеси его из этого мира в другой, и оно останется собой. Он выдаёт его лишь тому, кто повалил соломенное чучело на тренировочном дворе, вверх по тропе к западу от Полосы. Щёлкни по чучелу левой кнопкой мыши, чтобы выбрать цель, и атакуй, пока оно не упадёт. Оно не даст сдачи. Затем подойди к Руку и нажми F.',
+  'entities.quests.q_ps_a_blade_that_travels.completion':
+    'Солома повержена, а рука на месте. Держи, {playerName}: теперь это твоё. Сражайся им здесь или бери с собой, куда бы ни отправился. В новом мире это будет всё то же оружие.',
+  'entities.quests.q_ps_a_blade_that_travels.objectives.0.label': 'Повалить тренировочное чучело',
+  'hudChrome.placeschemaMenu.minecraftNone': 'На этом аккаунте нет перенесённого скина Minecraft',
+  'hudChrome.placeschemaMenu.genericNone': 'Не удалось загрузить облик PlaceSchema в этом мире',
+  'wallet.placeSchemaLink': 'Привязать для переноса предметов',
+  'wallet.placeSchemaLinkTitle':
+    'Привяжите этот аккаунт к PlaceSchema, чтобы получать здесь предметы из других миров. Это не кошелёк Solana.',
+  'wallet.placeSchemaLinked': 'Перенос предметов: аккаунт привязан',
   'hudChrome.wocStore.subscription.checkoutPending': 'Оформление покупки ожидает подтверждения.',
   "bossJournal.wildheart.zulgar.pulseSummaryRework": "Каждые {every} сек. он читает заклинание {cast} сек. и наносит от {min} до {max} урона всем в радиусе {radius} ярд. Пригвождённые получают в {pinMult} раза больше урона на любом расстоянии.",
   "bossJournal.wildheart.zulgar.spearSummary": "За {cast} сек. пригвождает игрока, кроме танка; танка выбирает, если больше никого нет. Обездвиживание длится до {seconds} сек. и наносит {bleed} урона каждые {tick} сек.",

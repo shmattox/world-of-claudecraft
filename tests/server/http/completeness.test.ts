@@ -108,6 +108,7 @@ const EXCLUDED_PATHS = new Set<string>(ORPHAN_DEVIATION?.routes ?? []);
 // stays-delegate-served requirement does not apply; the loop below asserts the
 // router-owned-only shape instead (the same assertion pair as the orphan).
 const REGISTRY_ONLY_PATHS = new Set<string>([
+  '/api/placeschema/media/:name',
   '/api/deeds/rarity',
   '/api/guilds/roster',
   '/api/world-quests/leaderboard',
@@ -371,6 +372,7 @@ describe('registry completeness: migrated baseline (public reads + auth + charac
     // The Realm Builder of the Month roll (server/realm_builder.ts):
     // registry-only like the deeds family, per the same new-route rule.
     { method: 'GET', path: '/api/realm-builder' },
+    { method: 'GET', path: '/api/placeschema/media/:name' },
     // The Steam link trio (server/steam/routes.ts): registry-only like the
     // deeds pair, env-gated dark until STEAM_ENABLED=1.
     { method: 'POST', path: '/api/steam/link' },

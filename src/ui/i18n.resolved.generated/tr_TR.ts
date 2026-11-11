@@ -24972,6 +24972,9 @@ export const tr_TR: EnTranslations = {
       "wyrmshadow_talongrips": {
         "name": "Nightfang Pençe Kavramaları"
       },
+      "ps_keepsake": {
+        "name": "Taşınan hatıra"
+      },
       "reliquary_plate_chest": {
         "name": "Emanetlik Muhafızı Zırhı"
       },

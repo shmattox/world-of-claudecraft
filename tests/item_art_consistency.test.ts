@@ -899,7 +899,7 @@ describe('item-art consistency accepted-art provenance', () => {
     // All five referral rewards now own paintings; only the retired Phoenix remains pending.
     // Wobbles the Slime's reins (reins_wobbles_slime, a render of the shipped mount): 2,213.
     // + the sprite buddy's whistle (whistle_sprites): 2,214.
-    expect(Object.keys(ITEMS)).toHaveLength(2221);
+    expect(Object.keys(ITEMS)).toHaveLength(2222);
     expect(Object.values(verdict.auditScope.groups).reduce((sum, count) => sum + count, 0)).toBe(
       1255,
     );
@@ -1139,7 +1139,7 @@ describe('item-art consistency accepted-art provenance', () => {
     // The restored legacy whistle and charm definitions add 36 item ids.
     // All five referral rewards now own paintings; only the retired Phoenix remains pending.
     // Wobbles the Slime's reins (reins_wobbles_slime, a render of the shipped mount): 2,213.
-    expect(Object.keys(ITEMS)).toHaveLength(2221);
+    expect(Object.keys(ITEMS)).toHaveLength(2222);
 
     const datedVerdict = readJson<FinalAuditVerdict>(CURRENT_VERDICT_PATH);
     const oldPassIds = sorted(datedVerdict.visualVerdict.passIds);

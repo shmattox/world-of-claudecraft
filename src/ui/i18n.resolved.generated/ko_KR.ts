@@ -1130,9 +1130,9 @@ export const ko_KR: EnTranslations = {
       "avatar": "여기서의 모습",
       "native": "World of ClaudeCraft",
       "minecraft": "Minecraft 스킨",
-      "minecraftNone": "No Minecraft skin carried on this account",
+      "minecraftNone": "이 계정에 가져온 Minecraft 스킨이 없습니다",
       "generic": "PlaceSchema",
-      "genericNone": "PlaceSchema's body couldn't be loaded here",
+      "genericNone": "여기서는 PlaceSchema의 모습을 불러올 수 없습니다",
       "close": "닫기"
     },
     "unstuck": {
@@ -14243,9 +14243,9 @@ export const ko_KR: EnTranslations = {
     "balancePreviewAria": "연결된 지갑 잔액 미리보기: {balance}. 지갑을 연결해 보유자 표시를 인증하세요.",
     "balanceAmount": "{amount} $WOC",
     "bagConnect": "지갑 연결",
-    "placeSchemaLink": "Link to carry items",
-    "placeSchemaLinkTitle": "Link this account to PlaceSchema so items from other worlds arrive here. Not a Solana wallet.",
-    "placeSchemaLinked": "Carrying items: linked",
+    "placeSchemaLink": "아이템을 가져오려면 연결",
+    "placeSchemaLinkTitle": "다른 세계의 아이템을 가져오려면 이 계정을 PlaceSchema에 연결하세요. Solana 지갑이 아닙니다.",
+    "placeSchemaLinked": "아이템 가져오기: 연결됨",
     "bagLink": "지갑 인증",
     "bagReconnect": "지갑 다시 연결",
     "connected": "연결됨: {address}",
@@ -24972,6 +24972,9 @@ export const ko_KR: EnTranslations = {
       "wyrmshadow_talongrips": {
         "name": "밤송곳니 갈퀴손아귀"
       },
+      "ps_keepsake": {
+        "name": "가져온 기념품"
+      },
       "reliquary_plate_chest": {
         "name": "성물실 수호 갑옷"
       },
@@ -29843,12 +29846,12 @@ export const ko_KR: EnTranslations = {
         }
       },
       "q_ps_a_blade_that_travels": {
-        "title": "A Blade That Travels",
-        "text": "Not everything I ferry stays on one shore, {playerName}. Drillmaster Rook keeps a blade for every recruit, made to travel: carry it out of this world and into another, and it stays itself. He hands one only to a recruit who has felled a straw effigy in his practice yard, up the path west of the Gauntlet. Left-click an effigy to target it and keep attacking until it falls; it will not strike back. Then press F on Rook.",
-        "completion": "Straw down and your arm still attached. Here, {playerName}: yours. Wield it here, or carry it with you wherever you go next; it will still be this blade when it gets there.",
+        "title": "세계를 여행하는 칼날",
+        "text": "내가 실어 나르는 모든 것이 한 해안에만 머무르는 건 아니지, {playerName}. 교련관 루크는 신병마다 여행에 가져갈 무기를 준비해 두었네. 이 세계에서 다른 세계로 가져가도 그 모습 그대로지. 하지만 건틀릿 서쪽 오솔길 위 연습장에서 짚 허수아비를 쓰러뜨린 신병에게만 내준다네. 허수아비를 왼쪽 클릭해 대상으로 잡고 쓰러질 때까지 공격하게. 반격하지 않을 걸세. 그다음 루크 앞에서 F를 누르게.",
+        "completion": "짚은 쓰러졌고 자네 팔은 멀쩡하군. 자, {playerName}. 자네 것이네. 여기서 휘둘러도 좋고, 다음 목적지에 가져가도 좋네. 어디에 도착하든 이 무기는 그대로일 걸세.",
         "objectives": {
           "0": {
-            "label": "Training Effigy felled"
+            "label": "훈련용 허수아비 쓰러뜨리기"
           }
         }
       },

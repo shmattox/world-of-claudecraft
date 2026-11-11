@@ -316,7 +316,7 @@ function missingPaintedWaveItemIds(): string[] {
 
 describe('item webp icons', () => {
   it('serves unique paintings for all five former referral aliases', () => {
-    expect(ITEM_ART_PLACEHOLDERS).toEqual({});
+    expect(ITEM_ART_PLACEHOLDERS).toEqual({ ps_keepsake: 'guardian_core' });
     const ids = [
       'referral_fog_charm',
       'referral_hollow_charm',
@@ -424,7 +424,7 @@ describe('item webp icons', () => {
     expect(
       [...ITEM_ART_PENDING].sort(),
       'art debt is enumerated and re-pinned deliberately, never grown quietly',
-    ).toEqual(['infernal_quiver']);
+    ).toEqual(['infernal_quiver', 'ps_keepsake']);
     // And the inverse: an id with committed art must still win the static url.
     expect(itemImageUrl('linen_pouch')).toBe('/ui/items/linen_pouch.webp');
   });

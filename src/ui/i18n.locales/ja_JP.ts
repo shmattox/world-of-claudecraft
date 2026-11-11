@@ -13,6 +13,20 @@
 import type { TranslationKey } from '../i18n.catalog';
 
 export const ja_JP: Partial<Record<TranslationKey, string>> = {
+  'entities.items.ps_keepsake.name': '持ち込んだ記念品',
+  'entities.quests.q_ps_a_blade_that_travels.title': '世界を渡る刃',
+  'entities.quests.q_ps_a_blade_that_travels.text':
+    '私が渡すものすべてが、ひとつの岸に留まるわけじゃない、{playerName}。訓練長ルークは新兵一人ひとりに、旅に持ち出せる武器を用意している。この世界から別の世界へ持ち出しても、同じ武器のままだ。だが、彼が武器を渡すのは練習場で藁のかかしを倒した新兵だけ。練習場はガントレットの西へ続く道の先だ。かかしを左クリックで選び、倒れるまで攻撃し続けろ。反撃はしてこない。その後、ルークの前で F を押すんだ。',
+  'entities.quests.q_ps_a_blade_that_travels.completion':
+    '藁は倒れたし、腕も無事だな。ほら、{playerName}。お前のものだ。ここで振るうもよし、次の旅先へ持ち出すもよし。どこへ行っても、この武器はこの武器のままだ。',
+  'entities.quests.q_ps_a_blade_that_travels.objectives.0.label': '訓練用のかかしを倒す',
+  'hudChrome.placeschemaMenu.minecraftNone':
+    'このアカウントには Minecraft スキンが持ち込まれていません',
+  'hudChrome.placeschemaMenu.genericNone': 'ここでは PlaceSchema の姿を読み込めませんでした',
+  'wallet.placeSchemaLink': 'アイテムの持ち込み用にリンク',
+  'wallet.placeSchemaLinkTitle':
+    'このアカウントを PlaceSchema にリンクして、他のワールドのアイテムを持ち込みます。Solana ウォレットではありません。',
+  'wallet.placeSchemaLinked': 'アイテムの持ち込み：リンク済み',
   'hudChrome.wocStore.subscription.checkoutPending': '購入手続きは保留中です。確認を待っています。',
   'bossJournal.wildheart.zulgar.pulseSummaryRework':
     '{every}秒ごとに{cast}秒詠唱し、{radius}ヤード以内の全員に{min}から{max}ダメージ。串刺しのプレイヤーは距離に関係なく{pinMult}倍のダメージを受ける。',

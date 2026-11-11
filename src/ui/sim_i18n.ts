@@ -48,6 +48,7 @@ import { localizeWorldQuestFreightYell, worldQuestFreightSpeakerName } from './w
 import { localizeWorldQuestTraceReaction } from './world_quest_trace_view';
 
 const baseEnTable = {
+  'error.itemBoundToOtherWorld': 'That item is bound to another world and cannot be destroyed.',
   'aura.craftedMomentum': 'Crafted Momentum',
   'aura.craftedShelter': 'Crafted Shelter',
   'aura.craftedPreservation': 'Crafted Preservation',
@@ -11673,6 +11674,7 @@ const BASE_DICT: Record<SupportedLanguage, Partial<Record<BaseSimMessageKey, str
     'aura.demoralized': '士气低落',
     'aura.resurrectionSickness': '复活后遗症',
     'aura.unstuckSickness': '脱困后遗症',
+    'error.itemBoundToOtherWorld': '该物品绑定于另一个世界，无法销毁。',
     'error.lineOfSight': '目标不在视线内。',
     'error.bagsFull': '你的背包已满。',
     'error.bankQuestItem': '你无法将任务物品存入银行。',
@@ -12958,6 +12960,7 @@ const BASE_DICT: Record<SupportedLanguage, Partial<Record<BaseSimMessageKey, str
     'aura.demoralized': '士氣低落',
     'aura.resurrectionSickness': '復活虛弱',
     'aura.unstuckSickness': '脫困虛弱',
+    'error.itemBoundToOtherWorld': '該物品綁定於另一個世界，無法摧毀。',
     'error.lineOfSight': '目標不在視線內。',
     'error.bagsFull': '你的背包已滿。',
     'error.bankQuestItem': '你無法將任務物品存入銀行。',
@@ -14251,6 +14254,7 @@ const BASE_DICT: Record<SupportedLanguage, Partial<Record<BaseSimMessageKey, str
     'aura.demoralized': '사기 저하',
     'aura.resurrectionSickness': '부활의 후유증',
     'aura.unstuckSickness': '탈출의 후유증',
+    'error.itemBoundToOtherWorld': '이 아이템은 다른 세계에 귀속되어 파괴할 수 없습니다.',
     'error.lineOfSight': '시야가 막혀 있습니다.',
     'error.bagsFull': '가방이 가득 찼습니다.',
     'error.bankQuestItem': '퀘스트 아이템은 은행에 보관할 수 없습니다.',
@@ -15584,6 +15588,7 @@ const BASE_DICT: Record<SupportedLanguage, Partial<Record<BaseSimMessageKey, str
     'aura.demoralized': '意気消沈',
     'aura.resurrectionSickness': '復活の後遺症',
     'aura.unstuckSickness': 'スタック解除の後遺症',
+    'error.itemBoundToOtherWorld': 'このアイテムは別のワールドに紐付いているため、破棄できません。',
     'error.lineOfSight': '視線が通っていません。',
     'error.bagsFull': 'バッグがいっぱいです。',
     'error.bankQuestItem': 'クエストアイテムは銀行に預けられません。',
@@ -18348,6 +18353,7 @@ const BASE_DICT: Record<SupportedLanguage, Partial<Record<BaseSimMessageKey, str
     'aura.demoralized': 'Деморализация',
     'aura.resurrectionSickness': 'Болезнь воскрешения',
     'aura.unstuckSickness': 'Болезнь спасения',
+    'error.itemBoundToOtherWorld': 'Этот предмет привязан к другому миру, его нельзя уничтожить.',
     'error.lineOfSight': 'Нет прямой видимости.',
     'error.bagsFull': 'Ваши сумки полны.',
     'error.bankQuestItem': 'Предметы заданий нельзя хранить в банке.',
