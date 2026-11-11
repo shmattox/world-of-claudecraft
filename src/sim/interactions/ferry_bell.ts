@@ -32,13 +32,16 @@ const warnedAt = new WeakMap<PlayerMeta, number>();
 export const ERRAND_WARNING =
   "You haven't earned Rook's blade that travels yet: ask Ferryman Odo for A Blade That Travels. Ring again to sail anyway.";
 
-/** Where the island bell sets a graduate down: the harbor town's dock road,
- *  beside the return bell at (-7.5, -100), facing up the crafts lane toward
- *  the Ravenpost mailbox so the first thing a graduate sees is the town, not
- *  the sea. Well clear of the authored spawn at (-94, -58), so an arrival
- *  never stacks on a fresh spawn. The optional golden guidance leads from
- *  here to Marshal on the civic square. */
-export const FERRY_BELL_TOWN_LANDING = { x: -4.5, z: -101.5, facing: -0.87 } as const;
+/** Where the island bell sets a graduate down: on Eastbrook's quay, a
+ *  stride from the return bell at (-95, -45), facing up into town toward the
+ *  Eastbrook chapel (anchor (28.2, -119.6), eastbrook_layout.ts), so the first
+ *  thing a graduate sees is the town, not the sea. Clear of the bell's own
+ *  footprint and of the quay's crates. The optional golden guidance leads
+ *  from here to Marshal Redbrook wherever he stands
+ *  (render/eastbrook_wolves_guidance_core.ts). Facing follows the player
+ *  convention: f points along (sin f, cos f), as eastbrook_layout.ts
+ *  facingToward computes it. */
+export const FERRY_BELL_TOWN_LANDING = { x: -92.5, z: -46.5, facing: 2.12 } as const;
 
 /** Whether this character has never worked the shore: no Proving Shore quest
  *  in the log and none turned in. The arrival note is a TEACHING moment (it
@@ -76,8 +79,11 @@ export function tryRingFerryBell(
   if (isOnProvingShore(obj.pos.x, obj.pos.z)) {
     // PLACE-950: leaving the shore without the carry errand skips it, so the first ring says so
     // and a second ring sails (the twin bell in town still brings the player back).
+    // Finishing Set Sail already confirms departure, so graduates sail on their first ring.
+    const finalQuestId = PROVING_SHORE_QUEST_ORDER[PROVING_SHORE_QUEST_ORDER.length - 1];
     const warned = warnedAt.get(meta);
     if (
+      !meta.questsDone.has(finalQuestId) &&
       !meta.questsDone.has(BLADE_ERRAND_ID) &&
       (warned === undefined || ctx.time - warned > ERRAND_WARNING_S)
     ) {
@@ -99,7 +105,6 @@ export function tryRingFerryBell(
     // content/deeds.ts prog_ready_for_an_adventure): this home ride with the
     // whole rail handed in. The rail is strict (each quest requires the
     // previous), so its final quest in questsDone means all of it is.
-    const finalQuestId = PROVING_SHORE_QUEST_ORDER[PROVING_SHORE_QUEST_ORDER.length - 1];
     if (meta.questsDone.has(finalQuestId)) {
       bumpDeedStat(ctx, meta, 'tutorialGraduations', 1);
     }

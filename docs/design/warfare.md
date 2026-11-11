@@ -215,9 +215,17 @@ Breakpoints are 2, 4 and 7 of the seven armor pieces, the same in every family:
 
 | Tier | Bonus |
 | --- | --- |
-| 2 pieces | +40 Warfare Defense Rating |
+| 2 pieces | +40 Warfare Defense Rating, and immunity to damage cast pushback |
 | 4 pieces | +40 Warfare Offense Rating, and crowd control cast on you by hostile players lasts 15 percent less |
 | 7 pieces | +80 Warfare Offense and Defense Rating, plus the family signature |
+
+The 2-piece pushback immunity (`PVP_SET_2PC_PUSHBACK_REDUCTION` in `content/item_sets.ts`)
+is on every family, not only the caster ones: the Strength and Agility wearers carry casts
+damage can delay too (Marksmanship's Long Draw, Measured Shot and Fevered Draw, every
+hunter's Volley, the paladin and shaman self-heals, the druid's caster-form spells). It is
+the one set effect that is not PvP-gated: it folds into `Entity.castPushbackReduction` like
+any stat-set knob, so it works against monsters too. The Season 2 sets carry the same rider.
+Pinned by `tests/pvp_set_pushback.test.ts`.
 
 The 4-piece wording is deliberate: no pet applies hard crowd control today (pet
 abilities apply slows, damage over time and a spell-vulnerability mark, none of
@@ -337,11 +345,18 @@ Phase 1 starts with these owner-selected values:
   against a routine 120, a ratio of 1.33x.
 - Killing blow 10, assist 4 (`BATTLEGROUND_KILL_HONOR`,
   `BATTLEGROUND_ASSIST_HONOR`).
+- The day's Honor world quests: two of the rotating world quests each realm
+  cycle pay a flat 150 Honor on completion (`WORLD_QUEST_HONOR_REWARD`,
+  `WORLD_QUEST_HONOR_SLOTS_PER_CYCLE`, `src/sim/world_quest_honor_slots.ts`).
+  The same two for the whole realm, re-picked at the realm reset with the rest
+  of the rotation, and shown on the world map hover. Owner tuning: a PvE head
+  start toward Warfare gear for players who have not queued yet, capped at 300
+  Honor a day per character since a world quest completes once per cycle.
 
 Every Thornhollow Fields award above was DOUBLED on 2026-09-25 (owner tuning,
-alongside King of the Hill's ramp) so Warfare Season 2 gear is a goal of weeks,
-not a season: the figures further down that quote 60/20 and a 900-a-day session
-are the pre-doubling record.
+alongside King of the Hill's ramp, since flattened at the same total) so
+Warfare Season 2 gear is a goal of weeks, not a season: the figures further
+down that quote 60/20 and a 900-a-day session are the pre-doubling record.
 
 Every weekend is the Double Honor Weekend: every Thornhollow Fields Honor
 award (the result, the kill and assist drip, and the first-win bonus) pays
@@ -433,6 +448,28 @@ them. A flag takes `WORLD_PVP_DISARM_SECONDS` (300, the classic five minutes) to
 come down and the drop waits for combat to end, so switching off can never fizzle
 the blow already on its way. Raising it needs `WORLD_PVP_MIN_LEVEL` (10).
 
+Keeping `/pvp` fully armed grants 10% more XP, including lifetime XP at the
+level cap. `WORLD_PVP_XP_BONUS` and `worldPvpXpAmount` in
+`src/sim/pvp/world_pvp_rewards_rules.ts` own the multiplier. `grantXp` applies it
+before rested kill XP and rounds boosted awards down to whole points. Requesting
+`/pvp off` stops the bonus immediately, including during the disarm countdown.
+The realm kill switch disables it. Faction reputation is unchanged.
+
+World PvP also tracks a capped played-time streak for five permanent cosmetic
+titles: Bold at 1 hour (5 Renown), Defiant at 3 hours (10), Dauntless at 6 hours
+(10), Unyielding at 24 hours (25), and Indomitable at 168 hours (50).
+`world_pvp_rewards.ts` advances the timer using simulation ticks while the flag
+is fully armed. Alive, connected players accumulate time in contested or
+free-for-all open-world ground and in registered battleground, ranked arena,
+Fiesta and Yumi arena matches, including preparation and the result countdown.
+Membership in the live match map is required; instance coordinates alone never
+qualify. Sanctuary, PvE instances, death (including ghost travel) and logout
+pause the streak. Disconnect grace also pauses it until reconnect. The precise
+tick total survives character saves; offline time never counts, and it caps at
+168 hours. Requesting World PvP off resets progress immediately, even if the
+disarm countdown is later cancelled. Earned deeds and titles remain permanent.
+The World PvP panel shows elapsed whole minutes and the current pause reason.
+
 Three kinds of ground, declared per zone as `ZoneDef.worldPvp` (data-as-code in
 `src/sim/content/`) and resolved by `worldPvpZonePolicyAt` through the strict
 rectangle containment, so the instance plane reads as contested rather than as
@@ -498,6 +535,43 @@ alone is the owner's stated shape.
   flagged strangers in a free-for-all zone earns the honor and nothing else, so
   gold only ever moves between two players who both carry the stake, and
   hunting flags from behind no flag is never the best play.
+- Spoils (`src/sim/pvp/world_pvp_spoils.ts`): when the victim AND the killing
+  blow are both flagged, the killing blow's gold share does not go straight to
+  their purse; it drops on the victim's body beside a trophy skull
+  (`pvp_trophy_skull`, a vendor-worthless keepsake so skull camping can never
+  mint gold). The killer loots both through the ordinary corpse path. Skulls
+  stack like gathered materials: every skull shares one bag stack, and the stack
+  remembers whose each one is (the victim recorded exactly as a gatherer is), so
+  its tooltip reads "2 x Taken from Bet, 1 x Taken from Gimel" and a stack of one
+  victim's skulls is named "<name>'s Skull". Every other contributor is still paid purse to
+  purse. A player's body lies only until its owner releases or is revived, so
+  the body is SETTLED then: anything unlooted goes to the killer at once (their
+  skull only if it fits their bags or their Skull Bag takes it), or back to the victim's purse if the killer
+  has left the world. The victim can never deny the drop, and no gold is ever
+  destroyed by an unlooted body. The grey rule, the raid rule and the per-pair
+  diminishing returns gate the drop exactly as they gate the payout: no paid
+  killing blow, no spoils.
+- Skull Bag (`src/sim/pvp/skull_bag.ts`): a 500 honor sub-inventory sold by
+  both honor quartermasters (`pvp_skull_bag`, soulbound, one per character,
+  listed under the shop's Goods section and closing the Warfare armory page of
+  the Reliquary). It takes one bag cell and is never socketed. Its contents
+  live outside the bag pools (`PlayerMeta.skullBag`, one material-source
+  composition: one bucket per victim, the same provenance a carried skull stack
+  keeps), so there is no cap. While it is carried, a looted skull goes straight
+  in (the corpse take and the spoils settlement both route through
+  `storeLootedSkulls`), so full bags never leave a skull on a body. Clicking it
+  in the bags opens its pane under the bag grid (`src/ui/hud/skull_bag/`):
+  per-victim rows with Take 1 and Take all, and a Store button that moves every
+  plain carried skull stack in (a locked copy stays put). Both commands need
+  the bag carried; the contents stay on the character either way, so banking
+  or rebuying the bag never loses a skull. The bag is never touched while
+  dead. IWorld reads it as `WorldPvpInfo.skullBag` (absent for anyone with no
+  bag and no skulls); online it never rides the 2 Hz `wpvp` readout, because
+  it has no cap: it has its own `skb` self key (`server/world_pvp_wire.ts`),
+  re-sent only when the contents or the carried flag change, and the client
+  merges it back in (`src/net/social_self_wire.ts`). The contents save beside
+  the World PvP record (`CharacterState.skullBag`, absent when empty), and a
+  corrupt one refuses the character load like every other skull container.
 - Honor: `WORLD_PVP_KILL_HONOR` (10) per kill, the whole pool, split as above.
   Deliberately BELOW the instanced faucets: a Thornhollow Fields win pays 120 plus
   its drip and a ranked 1v1 win pays 25, so a player who wants Warfare gear
@@ -544,6 +618,32 @@ alone is the owner's stated shape.
   contributor pays that contributor nothing (neither honor nor gold), the
   classic grey-kill rule and the reason a capped character cannot farm flagged
   low-level purses.
+- Leaving mid-fight forfeits it (`src/sim/pvp/world_pvp_forfeit.ts`, owner
+  tuning). A player who leaves the world while a world fight is live (an enemy
+  player hit them, or they hit one, inside `WORLD_PVP_ASSIST_WINDOW`, and that
+  enemy is still standing and still world-hostile) dies to that opponent on the
+  spot, through the one shared death hub, so every rule above applies unchanged.
+  Every departure counts: a dropped socket (a closed client or a lost
+  connection, judged BEFORE the linkdead grace begins, so the body is already a
+  corpse while it lingers) and everything that runs `leave()` (a deliberate
+  logout, every kick including the message-flood one, a takeover from another
+  login, the end of the linkdead grace), via `server/world_pvp_departure.ts`.
+  The one exemption is a session whose writes can never land again (an
+  escrow-quarantined zombie displaced by a lease fence or a ledger failure):
+  its death and debit could not persist while the winner's credit would. An
+  opponent who is themselves already leaving (`PlayerMeta.leaving`) is no
+  opponent. The honor pool and the kill land on the
+  opponent at once, the leaver's record takes one death at once, and the stake
+  leaves the leaver's purse at once (their departure save carries the death and
+  the debit); the stake reaches the winner `WORLD_PVP_FORFEIT_PAYOUT_SECONDS`
+  (5 minutes) later, held on the winner's own character
+  (`WorldPvpMetaState.pending`, persisted as remaining seconds and re-anchored
+  on load like the disarm countdown, so it survives the winner logging out or a
+  restart; `src/sim/pvp/world_pvp_payouts.ts`). Walking into a sanctuary,
+  waiting out the window, or an opponent who already fell lets a player leave
+  freely, and a duel, battleground or arena is never a world fight, so their
+  own desertion rules stay in charge (`tests/world_pvp_forfeit.test.ts`,
+  `tests/world_pvp_departure.test.ts`).
 
 Deaths to a mob or the environment stake nothing, whatever the flag or the
 ground says. A flagged player inside a live battleground or arena is under that
@@ -553,15 +653,63 @@ and nothing here draws rng, so the offline Sim, the server and the headless env
 resolve every kill identically (`tests/world_pvp.test.ts`,
 `tests/world_pvp_rules.test.ts`, `tests/world_pvp_zones.test.ts`).
 
+## World PvP bounties
+
+A hot streak in the open world earns a price on its owner's head
+(`src/sim/pvp/world_pvp_bounty.ts`, rules in `world_pvp_bounty_rules.ts`): the
+King of the Hill's "worth taking" incentive, carried off the hill to every
+flagged player, so playing with the flag up pays more and so does hunting the
+players who do.
+
+- Earning one: a FLAGGED player paid for `WORLD_PVP_BOUNTY_STREAK` (5) world
+  kills in a row without dying earns a bounty. Any kill that actually PAID the
+  contributor counts, the killing blow or an assist; a kill that paid nothing (a
+  grey kill, a fully decayed repeat, an assist whose share of a large group's
+  split floors to zero) counts for nothing, which keeps the streak honest
+  against camping and zerg-farming. An assist credited after the contributor
+  already died never restarts the streak their own death ended.
+  The realm is told whose head carries one, and the holder is told what it
+  means. Every player can carry a bounty at the same time: it is a mark a
+  streak earns for itself, never a single realm prize that passes between
+  players.
+- The mark: the holder's whole name tag (the name row with its tags, the
+  guild or pledge line and the deed title) paints blood red on every client
+  (`Entity.bounty`, the `bty` bit of the entity wire, painted by
+  `src/render/nameplate_tag_fill_core.ts`), darker than the hostile-name red so
+  the two never read alike, and the name carries a `<Bounty>` tag as the
+  non-colour cue (forced colours and colour blindness both flatten the red).
+  The chips that mean something else keep their own colour (the AI chip, the
+  Cheater sanction, the badges).
+- The holder's own kills: the per-victim curve is `WORLD_PVP_BOUNTY_HOLDER_DR`
+  (1.5, 1, 0.5, then 0) instead of `HONOR_REPEAT_DR` (1, 0.5, 0.25, then 0), so
+  a solo holder is paid 15, then 10, then 5 honor for the first three kills of
+  one victim inside the hour where an ordinary player gets 10, 5 and 2 (owner
+  spec). The fourth still pays nothing. Gold stays on the ordinary curve: a
+  bounty never raises what a victim's purse is charged.
+- Killing a holder: the honor pool of that kill is doubled
+  (`WORLD_PVP_BOUNTY_KILL_HONOR_MULT`, 2: 20 instead of 10), split among the
+  contributors exactly like the ordinary pool, and the realm is told who
+  collected the bounty (the killing blow when it was paid, else the first paid
+  assist; a kill that paid nobody collects nothing and only tells the holder it
+  lapsed). The bounty does not pass to the killer. A holder who kills a holder
+  takes both rules at once: a solo kill pays floor(20 x 1.5) = 30.
+- Ending one: any death ends the streak and the bounty, a world kill or not, and
+  so does the flag coming down (a holder can never step out of reach and keep
+  the better curve). A lapse that was not a world kill tells only the holder.
+- Session-only: the streak and the bounty live on `PlayerMeta.worldPvp` beside
+  the flag but are never persisted, so a relog ends a streak the way a death
+  does (which only ever costs the holder). No rng, sim clock only
+  (`tests/world_pvp_bounty.test.ts`, `tests/nameplate_bounty.test.ts`,
+  `tests/entity_status_wire.test.ts`).
+
 ## King of the Hill
 
-Once every `HILL_WINDOW_SECONDS` (two hours) a hill rises in one of the three
-northern zones (`hillZones` in `src/sim/pvp/hill_zones.ts`). Their ordinary
-ground policy is contested, independent of hill eligibility. A seed-specific
-warning offset is drawn once and reused each window, so scheduled rises are
-exactly two hours apart. Spot selection remains private-rng and deterministic.
-The first window opens `HILL_FIRST_WINDOW_AT_SECONDS` after boot. A late warning
-slides the full warning and stand together; only one hill stands at a time.
+Once per `HILL_WINDOW_SECONDS` (two hours), a hill is scheduled in one of
+the three northern zones (`hillZones`). Ordinary ground there is contested;
+entering a risen hill enables PvP for eligible players. Each window draws its
+own deterministic warning offset from a private RNG. The first window opens
+`HILL_FIRST_WINDOW_AT_SECONDS` after boot. A late warning slides the full warning
+and stand together; only one hill stands at a time.
 
 A hill has three moments, each announced to the whole realm:
 
@@ -590,25 +738,34 @@ parties only). A party is one group and a lone player a group of one
 (`hillGroupKey`); a raid member does not count at all (`hillStanding`). Only players meeting the normal World PvP level requirement count. The
 largest group that beats the holder's present members by a strict majority
 (`hillChallengeStands`; a tie never moves the hill, an absent holder is beaten
-by anyone) is the challenger, and after `HILL_CAPTURE_SECONDS` (60) of
-unbroken majority it takes the hill (`hillContestStep`: a lapsed challenge
-starts over, a new challenger starts its own clock). The dead do not count.
-Entering the active circle automatically raises the ordinary World PvP flag,
-including for raid members. The warning phase and the rest of the surrounding
-zone do not flag anyone. Dead, jailed, under-level and instanced-PvP players
-cannot be flagged or counted. Party and raid exemptions, stakes, honor kills
-and the realm kill switch retain their normal rules. Leaving or ending a hill
-does not clear the flag. `/pvp off` starts the normal five-minute countdown;
-its expiry is deferred while in combat or inside an active circle.
+by anyone) is the challenger, and after `HILL_CAPTURE_SECONDS` (30, owner spec
+2026-10-12) of majority it takes the hill. Each group keeps its own clock
+(`hillProgressStep`): a rival walking in only PAUSES it (a tie, or a bigger
+group now leading), and it resumes where it stopped once the group leads again;
+the clock is lost only when the group has nobody counted inside, so a death
+(the dead do not count) or walking away resets it. The hold and any clock follow
+their members across a group change (`hillSuccessorKey`): a lone holder who
+forms or joins a party keeps the hill and every bank, and a holding
+party that disbands leaves it with the member still inside.
+Eligible entrants are flagged inside the risen circle. Outside it, the ordinary
+mutual-flag rule applies, and approaching players see the entry warning.
 
-The honor ramp retains payouts of 2, 4, 6, 8, 10 and then 12. Both the payout
-interval and the ramp-step interval are scaled by 29/44: the new 29-minute
-holding period after the unchanged 60-second capture replaces the old 44-minute
-holding period. Payouts occur about every 39.55 seconds, with a ramp step about
-every 197.73 seconds. A full uncontested event pays exactly 388 honor per holder,
-the same as the former 45-minute event. A capture resets the ramp and accruals;
-stepping out pauses personal accrual without erasing it. No diminishing returns
-apply to hill presence rewards.
+Honor is FLAT (owner tuning 2026-10-14): each counted holder standing inside
+banks a second per pass, and every `HILL_ACCRUAL_SECONDS` (60) pays
+`HILL_HONOR_PER_PAYOUT` (9), however long the holding party has held. It replaces
+the 2026-09-25 ramp (2 a minute, 2 more each further five minutes held, capped at
+12, restarting when the hill changed hands), which itself replaced a flat 1 a
+minute that paid 45 for a whole stand. The flat rate keeps the ramp's total: the
+ramp paid 388 over the 44 paid minutes of a full stand, 8.8 a minute, and Honor is
+an integer, so 9 is the nearest whole rate (pinned in `tests/hill_rules.test.ts`).
+A party's size (five) is the payee cap. A holder who steps
+out banks nothing but keeps what they banked; leaving the party or the realm
+forfeits it, and a capture clears the books. The v0.44.1 schedule (a hill every
+two hours standing 30 minutes, restored 2026-10-27 after the v0.45 merge lost it)
+keeps the flat rate, so a full party holding an uncontested hill for its whole
+stand earns 261 each (29 paid minutes), about two Thornhollow Fields wins at the
+doubled award; two held hills a day is about 520, so 10,000 Honor is about
+19 days. No diminishing returns: the cap and the pace are the limit.
 
 The hold ranking (`src/sim/pvp/hill_ranking.ts`, owner spec 2026-09-29): every
 group that takes the hill opens a record (`ActiveHill.holds`) that banks each
@@ -682,6 +839,12 @@ killing blow builds a streak (a grey or raid kill does not). Hill Honor ignores 
 100/50/25/0 repeat decay: each contributor is paid in full for the first five
 kills of one victim on one hill (`HILL_BOUNTY_REPEAT_CAP`), then nothing. The
 gold stake keeps the normal decay.
+
+A victim's world bounty stacks with their hill bounty (owner call 2026-10-27):
+the world-bounty multiplier doubles the hill bounty the same way it doubles the
+plain world kill, so a 20 Honor hill bounty on a world-bounty holder pays 40
+Honor, split like any pool. The killer's own world bounty does not change a
+hill kill: the hill's repeat cap, not the holder curve, sets each share.
 
 A running kill streak of two or more puts the bounty on the player's entity
 (`Entity.hillBounty`, the `hbn` entity wire bit), shown as `<Bounty 23>` on the
@@ -857,14 +1020,12 @@ authored, which is why Thornhide appears last there and fourth in the shop.
 
 ## World PvP flag rewards
 
-Keeping `/pvp` on grants 20% more XP (including lifetime XP) and faction reputation. XP multiplies
-before rested kill XP; reputation multiplies before the existing level cap.
-Positive boosted awards round down to whole points. Turning PvP off stops
-both bonuses immediately, even while the five-minute disarm runs. Automatically
-raised flags receive the same rewards while armed. Played-time progress counts only while alive in
-the open world: death (a corpse or a released ghost), every instance (dungeons, raids, delves, rifts,
-mazes, the arena and battlegrounds) and the Proving Shore pause it without clearing the flag, so the
-titles cannot be banked out of every rival's reach.
+Keeping `/pvp` on grants 10% more XP, including lifetime XP, with no faction
+reputation bonus. XP multiplies before rested kill XP and rounds down to whole
+points. Turning PvP off stops the bonus immediately, including during disarm.
+Automatically raised flags receive the same rewards while armed. Played-time
+progress counts while alive in the open world and while seated in battleground
+or arena matches. Death, PvE instances, and sanctuary ground pause it.
 
 The played-time streak grants permanent titles: Bold at 1 hour, Defiant at
 3 hours, Dauntless at 6 hours, Unyielding at 24 hours, and Indomitable at
@@ -872,7 +1033,7 @@ The played-time streak grants permanent titles: Bold at 1 hour, Defiant at
 when that countdown is later cancelled. Earned titles survive resets.
 This requested played-time reward is an explicit exception to the general
 Book of Deeds rule against attendance rewards. AFK time alive in the open world counts; time spent
-dead, in an instance or on the tutorial island does not. Resurrecting or returning to open-world
+dead, in a PvE instance or on the tutorial island does not. Resurrecting or returning to open-world
 ground resumes the streak.
 
 The existing character JSONB stores optional `worldPvp.rewardTicks`, an integer
@@ -883,7 +1044,7 @@ binaries ignore this additive field and discard streak progress on their next
 save, so rollback preserves earned titles but not an unfinished streak.
 
 The pure leaf `src/sim/pvp/world_pvp_rewards_rules.ts` owns amounts and thresholds.
-XP, reputation and UI consumers import this leaf directly to avoid the PvP
+XP and UI consumers import this leaf directly to avoid the PvP
 barrel's runtime dependency graph. The system `world_pvp_rewards.ts` advances
 the capped counter from `updateWorldPvp`, with `ctx.grantDeed` only at thresholds.
 The wire readout rounds down to whole minutes; the UI patches its h:mm clock in place.

@@ -165,6 +165,7 @@ const inventoryUnreachablePaths = new Set(
   SURFACE_INVENTORY.filter((r) => r.unreachable).map((r) => r.path),
 );
 const REGISTRY_ONLY_PARAM_PATHS = new Set([
+  '/api/placeschema/media/:name',
   '/api/characters/:id/deeds-recent',
   // The Cheater mark pair: the first registry-only :param routes on the ADMIN
   // surface, so admin.ts holds no `*Match` regex for them either.
@@ -172,8 +173,14 @@ const REGISTRY_ONLY_PARAM_PATHS = new Set([
   '/admin/api/moderation/accounts/:id/lift-cheater-mark',
   // The phase 13 legendary-name strip, same registry-only shape.
   '/admin/api/moderation/characters/:id/clear-item-name',
+  // The buddy grant channel (server/buddy_wire.ts), same registry-only shape.
+  '/admin/api/moderation/characters/:id/grant-buddy',
   // The admin-panel kick: the same registry-only shape (server/admin_kick_api.ts).
   '/admin/api/moderation/accounts/:id/kick',
+  // The world quest block pair: the same registry-only shape
+  // (server/world_quest_block_api.ts).
+  '/admin/api/moderation/accounts/:id/world-quests-block',
+  '/admin/api/moderation/accounts/:id/world-quests-unblock',
 ]);
 const registryExactPaths = new Set(
   apiRoutes

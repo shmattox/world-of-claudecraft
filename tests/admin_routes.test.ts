@@ -86,6 +86,14 @@ describe('admin route permission map', () => {
     );
     expect(permissionForAdminRoute('GET', '/admin/api/moderation/accounts/42/kick')).toBeNull();
     expect(permissionForAdminRoute('GET', '/admin/api/blocked-ips')).toBe('moderation.read');
+    // The tracked-item ledger reads (support surface); the per-guid row is a
+    // startsWith arm in the ladder, invisible to the scan above, so it is
+    // pinned here by hand.
+    expect(permissionForAdminRoute('GET', '/admin/api/item-ledger')).toBe('support.read');
+    expect(
+      permissionForAdminRoute('GET', '/admin/api/items/3f2504e0-4f89-41d3-9a0c-0305e82c3301'),
+    ).toBe('support.read');
+    expect(permissionForAdminRoute('GET', '/admin/api/items/not-a-guid')).toBeNull();
     expect(permissionForAdminRoute('GET', '/admin/api/moderation/history')).toBe('moderation.read');
     expect(permissionForAdminRoute('POST', '/admin/api/blocked-ips')).toBe('ipblocks.manage');
     expect(permissionForAdminRoute('POST', '/admin/api/moderation/accounts/42/ban')).toBe(
@@ -110,6 +118,16 @@ describe('admin route permission map', () => {
     // A read never reaches either arm (both are writes).
     expect(
       permissionForAdminRoute('GET', '/admin/api/moderation/accounts/42/cheater-mark'),
+    ).toBeNull();
+    // The world quest block pair: registry-only too, so spot-checked for the same reason.
+    expect(
+      permissionForAdminRoute('POST', '/admin/api/moderation/accounts/42/world-quests-block'),
+    ).toBe('moderation.act');
+    expect(
+      permissionForAdminRoute('POST', '/admin/api/moderation/accounts/42/world-quests-unblock'),
+    ).toBe('moderation.act');
+    expect(
+      permissionForAdminRoute('GET', '/admin/api/moderation/accounts/42/world-quests-block'),
     ).toBeNull();
     expect(permissionForAdminRoute('POST', '/admin/api/chat-filter/config')).toBe(
       'chatfilter.manage',

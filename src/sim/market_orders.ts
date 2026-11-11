@@ -19,7 +19,9 @@
 //     instanced or crafted-recipe row never fills an order (its units do not
 //     merge into the buyer's plain stack), and a deliverer's escrow keeps every
 //     provenance bucket exact through the buyer's collection (the marketList
-//     doctrine, reused rather than reimplemented).
+//     doctrine, reused rather than reimplemented). So a TRACKED def (epic or
+//     legendary gear, every copy instanced with its own guid) refuses a new
+//     order outright: nothing could ever fill it.
 //   - Delivered goods land in the buyer's COLLECTION, never straight into bags:
 //     the buyer is usually offline or away, and the collection already has the
 //     capacity-gated pickup path. The deliverer's proceeds (less the Merchant's
@@ -35,8 +37,10 @@
 // `src/sim`-pure: no DOM/Three/render-ui-game-net imports, no Math.random/Date.now.
 
 import { bagPools, canGrantCopies } from './bags';
+import { MEMBERSHIP_TOKEN_ID } from './content/membership';
 import { ITEMS } from './data';
 import { formatMoney } from './format_money';
+import { isTrackedItemGrant } from './item_tracking';
 import type { MarketCollection, MarketListing } from './market';
 import { recordSale } from './market_sale_log';
 import { MARKET_SWEEP_MAX_UNITS, type SweepableListing } from './market_sweep';
@@ -196,7 +200,7 @@ export interface MarketOrderHost {
   previewPlainBucketCount(meta: PlayerMeta, itemId: string, want: number): number;
   /** Escrow `want` plain units out of `meta`'s bags into provenance buckets. */
   escrowPlainBuckets(meta: PlayerMeta, itemId: string, want: number): InvSlot[];
-  cutPct(): number; // the Merchant's cut, as a fraction (MARKET_CUT)
+  cutPct(meta: PlayerMeta): number; // the Merchant's cut, as a fraction (MARKET_CUT)
   minPrice(): number;
   maxPrice(): number;
 }
@@ -254,6 +258,14 @@ export class MarketOrderBook {
       ctx.error(meta.entityId, 'That item cannot be listed on the World Market.');
       return [];
     }
+    // A tracked (epic or legendary) def is one of a kind: every copy carries
+    // its own guid (item_tracking.ts), so it trades only as its own instanced
+    // listing, never as the plain fungible stock an order fills from. An order
+    // for one could never be filled, so the board never shows one.
+    if (isTrackedItemGrant(def)) {
+      ctx.error(meta.entityId, 'The Merchant takes no orders for one-of-a-kind gear.');
+      return [];
+    }
     const want = sanitizeOrderCount(count);
     if (want === null) {
       ctx.error(meta.entityId, 'Name how many you want.');
@@ -299,7 +311,11 @@ export class MarketOrderBook {
     for (const id of plan.listingIds) {
       const listing = byId.get(id);
       if (!listing) continue;
-      if (!canGrantCopies(meta.inventory, bagPools(meta.bags), itemId, listing.count)) break;
+      if (
+        itemId !== MEMBERSHIP_TOKEN_ID &&
+        !canGrantCopies(meta.inventory, bagPools(meta.bags), itemId, listing.count)
+      )
+        break;
       if (!this.host.settleListing(listing, def, meta)) continue;
       settled.push(listing);
       filled += listing.count;
@@ -401,7 +417,7 @@ export class MarketOrderBook {
       });
     }
     const gross = units * order.unitPrice;
-    const proceeds = Math.max(0, Math.floor(gross * (1 - this.host.cutPct())));
+    const proceeds = Math.max(0, Math.floor(gross * (1 - this.host.cutPct(meta))));
     const col = this.host.collectionFor(this.host.playerKey(meta));
     col.copper += proceeds;
     recordSale(col.sales, {
@@ -505,12 +521,15 @@ export class MarketOrderBook {
 
   /** Once a second (the listing sweep's cadence): refund every expired order's
    *  escrow into the buyer's collection and drop the row. Returns whether the
-   *  board changed (the caller bumps). */
+   *  board changed (the caller bumps). An order for a TRACKED def (one placed
+   *  before item tracking, or restored from such a save) expires at once:
+   *  every new copy is instanced, so nothing could ever fill it, and holding
+   *  the buyer's escrow for the rest of its week helps no one. */
   expire(now: number): boolean {
     let changed = false;
     for (let i = this.orders.length - 1; i >= 0; i--) {
       const o = this.orders[i];
-      if (now < o.expiresAt) continue;
+      if (now < o.expiresAt && !isTrackedItemGrant(ITEMS[o.itemId])) continue;
       this.orders.splice(i, 1);
       changed = true;
       const refund = orderEscrow(o);

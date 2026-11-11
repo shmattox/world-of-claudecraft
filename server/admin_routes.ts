@@ -54,6 +54,11 @@ export const ADMIN_ROUTE_PERMISSIONS: readonly AdminRouteRule[] = [
     pattern: /^\/admin\/api\/moderation\/characters\/(\d+)\/restore-slot$/,
     permission: 'moderation.act',
   },
+  {
+    method: 'POST',
+    pattern: /^\/admin\/api\/moderation\/characters\/(\d+)\/grant-buddy$/,
+    permission: 'moderation.act',
+  },
   // The phase 13 legendary-name strip: it DESTROYS a player-authored name
   // with no in-game undo, so like the guild bank purge below it carries its
   // OWN superadmin-only permission, never moderation.act.
@@ -169,6 +174,14 @@ export const ADMIN_ROUTE_PERMISSIONS: readonly AdminRouteRule[] = [
 
   { method: 'GET', pattern: '/admin/api/bug-reports', permission: 'support.read' },
   { method: 'GET', pattern: '/admin/api/unstuck-reports', permission: 'support.read' },
+  // The tracked-item provenance ledger (server/item_ledger_db.ts): a
+  // support read, beside the reports it answers.
+  { method: 'GET', pattern: '/admin/api/item-ledger', permission: 'support.read' },
+  {
+    method: 'GET',
+    pattern: /^\/admin\/api\/items\/[0-9a-fA-F-]{36}$/,
+    permission: 'support.read',
+  },
   {
     method: 'GET',
     pattern: /^\/admin\/api\/bug-reports\/(\d+)\/screenshot$/,
@@ -230,6 +243,14 @@ export const ADMIN_ROUTE_PERMISSIONS: readonly AdminRouteRule[] = [
   {
     method: 'POST',
     pattern: /^\/admin\/api\/moderation\/accounts\/(\d+)\/lift-cheater-mark$/,
+    permission: 'moderation.act',
+  },
+  // The world quest block (src/sim/world_quest_block.ts): the sanction for world
+  // quest botting, short of a ban, so it sits with the other moderation actions.
+  // Registry-only like the Cheater mark pair, hence listed here by hand.
+  {
+    method: 'POST',
+    pattern: /^\/admin\/api\/moderation\/accounts\/(\d+)\/world-quests-(block|unblock)$/,
     permission: 'moderation.act',
   },
   // The admin-panel kick (server/admin_kick_api.ts): the dashboard twin of the

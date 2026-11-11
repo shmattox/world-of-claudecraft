@@ -16,6 +16,13 @@ export const weeklyRewardStrings = {
   heroicClears: '{count} Heroic',
   normalClears: '{count} Normal',
   viewPossibleLoot: 'View possible loot',
+  lootFocus: 'Loot focus',
+  allClassGear: 'All class gear',
+  specRole: '{name} ({role})',
+  mixedRole: '{first} / {second}',
+  lootFocusHelp: 'Applies to unopened vaults only.',
+  noFocusedLoot: 'No eligible loot. Choose another focus.',
+  rolledFocus: 'Rolled for: {focus}',
   chooseTable: 'Select which table to roll off',
   selectAllTables: 'Select all',
   selectedTables: '{count} tables selected',
@@ -87,6 +94,8 @@ export const weeklyRewardStrings = {
     'Every listed item has an equal chance. Items match your class restrictions. Defeated raids unlock their loot at that difficulty. Legendary items are excluded.',
   selectionPoolRule:
     'For raids and dungeons, select one or more tables before opening. Dungeon tables combine bosses you have cleared at this difficulty. Rolls exclude duplicates, legendary items and equipment requiring more than {maxLevelOffset} levels above your level.',
+  previewPoolRule:
+    'All tables these vaults can roll from. Defeating a boss permanently unlocks its loot for future vaults. A dungeon table holds only the bosses you defeated, and a Heroic kill also unlocks Normal. Rolls exclude items already rolled. Equipment requiring more than {maxLevelOffset} levels above your level is not shown.',
   rare: 'Rare',
   epic: 'Epic',
   unavailable: 'Not yet available',

@@ -45,6 +45,17 @@ function copy(sim: Sim, pid: number) {
   return sim.ctx.players.get(pid)!.inventory.find((s) => s.itemId === ITEM)?.instance;
 }
 
+/** A bagged copy split into its tracked identity (the guid and provenance the
+ *  inventory hub mints on every epic one-per-slot copy) and the rest of its
+ *  payload, so a pin can compare the payload exactly while still requiring
+ *  the identity. */
+function splitIdentity(instance: ItemInstancePayload | undefined) {
+  const { guid, provenance, ...rest } = instance ?? {};
+  return { guid, provenance, rest };
+}
+
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+
 function win(sim: Sim, a: number, b: number) {
   const id = activeLootRolls(sim.ctx, a)[0].rollId;
   sim.submitLootRoll(id, 'need', a);
@@ -134,7 +145,14 @@ describe('enemy quality copies through authoritative loot distribution', () => {
     expect(copy(sim, b)).toBeUndefined();
     sim.removeItem('worn_sword', 1, a);
     sim.lootCorpse(mob.id, a);
-    expect(copy(sim, a)).toEqual(stamp);
+    // The held copy lands exactly as it was held (quality and BoP window
+    // untouched); the only addition is the tracked identity the bags mint on
+    // arrival, credited to the winner from this mob.
+    const landed = splitIdentity(copy(sim, a));
+    expect(landed.rest).toEqual(stamp);
+    expect(stamp?.guid).toBeUndefined();
+    expect(landed.guid).toMatch(UUID);
+    expect(landed.provenance).toMatchObject({ by: 'Alpha', source: 'mob:forest_wolf' });
   });
 
   it('returns distinct passed copies without merging their quality allocations', () => {
@@ -302,7 +320,11 @@ describe('enemy-only quality generation', () => {
     mob.templateId = 'thunzharr_waking_peak';
     const existing = { itemId: ITEM, count: 1 };
     mob.loot!.items = [existing];
-    vi.spyOn(MOBS[mob.templateId], 'loot', 'get').mockReturnValue([{ itemId: ITEM, chance: 1 }]);
+    // A tradeable piece: ITEM is soulbound and warrior-locked, so the class-lock
+    // gate (loot/class_locked_drop.ts) would rightly withhold the mage's copy.
+    vi.spyOn(MOBS[mob.templateId], 'loot', 'get').mockReturnValue([
+      { itemId: 'pendant_of_the_first_tempering', chance: 1 },
+    ]);
     const calls: string[] = [];
     vi.spyOn(sim.ctx.rng, 'chance').mockImplementation(() => {
       calls.push('table');
@@ -331,7 +353,14 @@ describe('enemy-only quality generation', () => {
     expect(slots.map((s) => s.instance?.lootQuality?.tier)).toEqual([undefined, 1, 4]);
     expect(tierRolls).toBe(3);
     expect(slots[1].instance).not.toBe(slots[2].instance);
+    // A plain grant draws no quality roll and carries no quality payload: the
+    // only payload on it is the tracked identity every epic copy is minted
+    // with at the bags.
     sim.addItem(ITEM, 1, a);
-    expect(copy(sim, a)).toBeUndefined();
+    expect(tierRolls).toBe(3);
+    const granted = splitIdentity(copy(sim, a));
+    expect(granted.rest).toEqual({});
+    expect(granted.guid).toMatch(UUID);
+    expect(granted.provenance).toMatchObject({ by: 'Alpha' });
   });
 });

@@ -50,11 +50,11 @@ export const table: ReliquaryLocaleTable = {
   },
   conquerors_wildheart_basin: {
     name: 'ワイルドハート盆地',
-    desc: 'ズルガーと牙王の獣使いから得られる象徴的な武器。',
+    desc: '牙王の獣使い、ゴージブルーム、ズルガーから得られる代表的な武器。',
   },
   conquerors_wildheart_basin_heroic: {
     name: '英雄: ワイルドハート盆地',
-    desc: '盆地の声ズルガーからヒロイックでのみ得られるエピック。',
+    desc: '牙王の獣使い、ゴージブルーム、盆地の声ズルガーからヒロイックでのみ得られるエピック装備と装身具。',
   },
   // The arena entity reads ナイスラクシスのレイドアリーナ; the page collects the
   // raid's spoils rather than naming the room, so the arena noun is dropped and
@@ -70,6 +70,10 @@ export const table: ReliquaryLocaleTable = {
   conquerors_thunzharr: {
     name: 'サンザール、目覚めし峰',
     desc: '目覚めし峰のワールドボスから得られる個人用エピック戦利品。',
+  },
+  conquerors_balgath: {
+    name: 'バルガス、埋もれし監督',
+    desc: 'マイアフェンの塚から引きずり出された戦利品。',
   },
   conquerors_collapsed_reliquary: {
     name: '崩れた聖遺物庫',
@@ -169,7 +173,7 @@ export const table: ReliquaryLocaleTable = {
   },
   conquerors_warfare_armory: {
     name: 'ウォーフェア武器庫',
-    desc: '戦争のアクセサリーと武器。第一シーズンは金で、二つの装飾品は名誉で購入します。',
+    desc: '苦労して得た名誉で購入する戦争の装飾品、武器、雑貨。',
   },
   conquerors_vanguard_gallery: {
     name: 'ヴァンガードギャラリー',

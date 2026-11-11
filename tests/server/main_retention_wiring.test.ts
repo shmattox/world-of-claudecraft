@@ -58,6 +58,7 @@ describe('retention sweep wiring in server/main.ts', () => {
       'pruneLevelUpEventsBatch(',
       'pruneFtueEventsBatch(',
       'pruneCraftRollEventsBatch(',
+      'pruneItemLedgerBatch(',
       'pruneWocBuyNowAbandonsBatch(',
       'pruneResolvedWocOffersBatch(',
       'pruneBookedWocCustodyClaimsBatch(',
@@ -125,6 +126,9 @@ describe('retention sweep wiring in server/main.ts', () => {
       // The chance-based crafting outcome audit (craft_roll_events) grows per
       // eligible craft and Perfecting attempt; same bounded prune.
       'pruneCraftRollEventsBatch(',
+      // The tracked epic/legendary copy provenance ledger (item_ledger) grows
+      // per mint, change of hands, modification and end of life; same prune.
+      'pruneItemLedgerBatch(',
       // The $WOC Exchange retention set; exactly-once is what catches the
       // splice-duplication hazard the listings entry's own comment records.
       // Custody claims prune BOOKED rows only (unbooked rows are the operator
@@ -250,6 +254,7 @@ describe('retention sweep wiring in server/main.ts', () => {
       'ftue_events',
       'world_quest_scores',
       'craft_roll_events',
+      'item_ledger',
       'woc_market_buy_now_abandons',
       'woc_market_directed_offers',
       'woc_market_custody_claims',
@@ -457,7 +462,7 @@ describe('retention sweep wiring in server/main.ts', () => {
   });
 
   it('stops admitting storage recovery before the database pool closes', () => {
-    const shutdown = MAIN.indexOf('const shutdown = async () => {');
+    const shutdown = MAIN.indexOf('const shutdownWork = async () => {');
     const stopRecovery = MAIN.indexOf('await stopStoragePurchaseRecovery();', shutdown);
     const closePool = MAIN.indexOf('await pool.end();', shutdown);
     expect(shutdown).toBeGreaterThan(-1);
@@ -469,11 +474,12 @@ describe('retention sweep wiring in server/main.ts', () => {
   it('starts the ledger-growth monitor after listen and drains it before pool close', () => {
     const listen = MAIN.indexOf('server.listen(');
     const start = MAIN.indexOf('bankLedgerGrowthMonitor.start()');
-    const shutdown = MAIN.indexOf('const shutdown = async () => {');
+    const shutdown = MAIN.indexOf('const shutdownWork = async () => {');
     const stop = MAIN.indexOf('await bankLedgerGrowthMonitor.stop();', shutdown);
     const closePool = MAIN.indexOf('await pool.end();', shutdown);
     expect(listen).toBeGreaterThan(-1);
     expect(start).toBeGreaterThan(listen);
+    expect(shutdown).toBeGreaterThan(-1);
     expect(stop).toBeGreaterThan(shutdown);
     expect(stop).toBeLessThan(closePool);
     expect(count(MAIN, 'bankLedgerGrowthMonitor.start()')).toBe(1);

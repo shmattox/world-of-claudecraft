@@ -1,3 +1,4 @@
+import { assertHeroicMarksGrantsFit } from '../heroic_marks';
 // The Ravenpost: the in-game mail system. A new system module behind SimContext
 // (the market.ts shape): this class OWNS the shared mail book, the mail-id
 // counter, and the mailbox entity ids; the inventory hub (addItem/removeItem/
@@ -39,13 +40,12 @@ import {
   sanitizeEscrowSlot,
 } from '../item_instance_transfer';
 import { removeSellUnitsFromInventory, removeVendorSellUnits } from '../items';
-import { isMaterialItemId } from '../material_ids';
 import { rekeyMaterialSignature } from '../material_signatures';
 import { validateMaterialSlotSourcesOnLoad } from '../material_slot_load';
-
 import { WYRMFALL_CORE_ITEM_ID } from '../professions/masterwrought_materials';
 import type { PlayerMeta } from '../sim';
 import type { SimContext } from '../sim_context';
+import { isStackProvenanceItemId } from '../stack_provenance_ids';
 import {
   cloneInvSlot,
   dist2d,
@@ -56,6 +56,7 @@ import {
 } from '../types';
 import { MailIndex } from './mail_index';
 import { planMaterialMailAttachments } from './material_attachment_plan';
+import { isPurchaseParcel, overflowsBags, purchaseParcelView } from './purchase_parcels';
 
 const MAIL_RANGE = INTERACT_RANGE + 2; // you must stand at a raven pillar to tend your post
 export const MAIL_POSTAGE = 30; // copper per letter
@@ -341,6 +342,9 @@ export class PostOffice {
             letterId: m.letterId,
             pid: meta.entityId,
           });
+          const parcel = purchaseParcelView(m);
+          if (parcel)
+            this.ctx.emit({ type: 'purchaseParcels', parcels: [parcel], pid: meta.entityId });
         }
       }
       const hasEscrow = mailHoldsEscrow(m);
@@ -614,10 +618,10 @@ export class PostOffice {
           this.result(meta.entityId, 'noMailBound');
           return;
         }
-        if (!isMaterialItemId(s.itemId)) {
+        if (!isStackProvenanceItemId(s.itemId)) {
           instancedWanted.push({ itemId: s.itemId, instance: s.instance, count });
         }
-      } else if (!isMaterialItemId(s.itemId)) {
+      } else if (!isStackProvenanceItemId(s.itemId)) {
         wanted.set(s.itemId, (wanted.get(s.itemId) ?? 0) + count);
       }
     }
@@ -792,15 +796,17 @@ export class PostOffice {
     if (!r) return;
     const { meta, e: p } = r;
     if (p.dead) return; // same silent dead-gate as mailSendResolved above
-    if (!this.nearMailbox(p)) {
+    const m = this.deliveredFor(meta).find((x) => x.id === mailId);
+    // A store purchase is collected from its loot window anywhere (purchase_parcels.ts).
+    if (!(m && isPurchaseParcel(m)) && !this.nearMailbox(p)) {
       this.result(meta.entityId, 'tooFar');
       return;
     }
-    const m = this.deliveredFor(meta).find((x) => x.id === mailId);
     if (!m) {
       this.result(meta.entityId, 'letterGone');
       return;
     }
+    assertHeroicMarksGrantsFit(meta, m.items);
     // Escrow in the expiry sense (sub-silver coin alone does not count): the
     // clock write at the tail keys on this, the coin grant below on any coin.
     const hadAttachments = mailHoldsEscrow(m);
@@ -820,7 +826,9 @@ export class PostOffice {
     }
     // Parcels respect bag capacity (#1354, the market-collect rule): a stack that
     // does not fit stays ATTACHED to the letter for a later take, never destroyed
-    // and never force-added past the bag budget. Capacity is checked per stack
+    // and never force-added past the bag budget, except the paid store rewards
+    // (overflowsBags: the membership token and the annual mount reins), which use
+    // the existing visible inventory overflow. Capacity is checked per stack
     // against the live inventory, so cumulative capacity is honoured. An
     // instanced parcel (a marketplace custody delivery or return) grants
     // through addItemInstance so the exact payload survives. Every grant
@@ -837,6 +845,7 @@ export class PostOffice {
       // threads its craftedRecipeId marker through so a mailed crafted item
       // keeps its provenance on arrival, the same as the market fix.
       if (
+        overflowsBags(s.itemId) ||
         canGrantCopies(
           meta.inventory,
           bagPools(meta.bags),
@@ -1026,6 +1035,14 @@ export class PostOffice {
       delaySeconds: letter.delaySeconds ?? 0,
     });
     return true;
+  }
+
+  // Re-offers the loot window for every store purchase still waiting in this
+  // player's mailbox (Sim.addPlayer, so every login after the parcel landed).
+  // One indexed bucket read per join.
+  announcePurchaseParcels(meta: PlayerMeta): void {
+    const parcels = this.deliveredFor(meta).flatMap((m) => purchaseParcelView(m) ?? []);
+    if (parcels.length > 0) this.ctx.emit({ type: 'purchaseParcels', parcels, pid: meta.entityId });
   }
 
   // True when a custody parcel with this broker reference is in the book

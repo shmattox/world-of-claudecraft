@@ -119,6 +119,7 @@ describe('the Mother of Pearl chain in a real sim', () => {
 
     const boss = requireLiveBoss(sim);
     expect(boss.hostile).toBe(true);
+    // Level 2 keeps the unscaled early-game pool before the level-5 ramp.
     expect(boss.maxHp).toBe(42);
     expect(boss.hp).toBe(42);
     // Tapped to the summoner, so nobody else can steal the credit.

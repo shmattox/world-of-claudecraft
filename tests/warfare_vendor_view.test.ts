@@ -1,3 +1,4 @@
+import { SEASON2_JEWELRY_IDS } from '../src/sim/content/pvp_honor_season2';
 // The WARFARE quartermaster's shop view core: how the honor stock divides into
 // its six sections, which offers read as owned, which set-bonus tiers are live,
 // and how many pieces the NEXT unmet tier still wants. Node-only, driving the
@@ -9,14 +10,19 @@
 
 import { describe, expect, it } from 'vitest';
 import { ITEM_SETS } from '../src/sim/content/item_sets';
-import { FURY_STOCK, HONOR_QUARTERMASTER_STOCK } from '../src/sim/content/pvp_honor';
-import { SEASON2_JEWELRY_IDS } from '../src/sim/content/pvp_honor_season2';
+import {
+  FURY_STOCK,
+  HONOR_QUARTERMASTER_STOCK,
+  HONOR_VENDOR_STOCK,
+} from '../src/sim/content/pvp_honor';
 import { ITEMS } from '../src/sim/data';
 import { Sim } from '../src/sim/sim';
 import type { InvSlot, ItemDef, ItemSet } from '../src/sim/types';
 import {
   buildWarfareVendorView,
   isWarfareVendorNpc,
+  WARFARE_SHOP_COMPANIONS_KEY,
+  WARFARE_SHOP_GOODS_KEY,
   WARFARE_SHOP_JEWELRY_KEY,
   WARFARE_SHOP_SEASON2_JEWELRY_KEY,
   WARFARE_SHOP_SEASON2_WEAPONS_KEY,
@@ -119,6 +125,7 @@ function viewer(over: Partial<WarfareShopViewer> = {}): WarfareShopViewer {
     copper: 10_000_000,
     ownedItemIds: new Set<string>(),
     equippedItemIds: new Set<string>(),
+    acquiredBuddyKeys: new Set<string>(),
     ...over,
   };
 }
@@ -426,6 +433,54 @@ describe('warfareShopViewer: the IWorld derivation, identical in both worlds', (
     expect([...fromClient.ownedItemIds].sort()).toEqual([...fromSim.ownedItemIds].sort());
   });
 
+  it.each(['collected', 'pending'] as const)(
+    'marks a %s buddy as acquired even without a whistle in the bags',
+    (state) => {
+      const world: WarfareShopWorld = {
+        cfg: { seed: 7, playerClass: 'warrior' },
+        honor: 100_000,
+        equipment: {},
+        inventory: [],
+        copper: 0,
+        ownedBuddies: () => (state === 'collected' ? ['horse'] : []),
+        pendingBuddies: () => (state === 'pending' ? ['horse'] : []),
+      };
+      const model = warfareShopViewer(world);
+      const view = buildWarfareVendorView([], ITEMS, ITEM_SETS, { ...model, warfareVendor: true });
+      expect(model.acquiredBuddyKeys.has('horse')).toBe(true);
+      expect(view.sections[0].offers[0]).toMatchObject({ owned: true, affordable: true });
+    },
+  );
+
+  it('lists the honor counter companions last, in their own group after the entry tier', () => {
+    const view = buildWarfareVendorView(
+      HONOR_VENDOR_STOCK,
+      ITEMS,
+      ITEM_SETS,
+      viewer({ warfareVendor: true }),
+    );
+    const last = view.sections[view.sections.length - 1];
+    expect(last).toMatchObject({
+      kind: 'companions',
+      group: 'companions',
+      key: WARFARE_SHOP_COMPANIONS_KEY,
+    });
+    expect(last.offers.length).toBeGreaterThan(0);
+    for (const o of last.offers) expect(o.item.kind, o.itemId).toBe('companion');
+    // The only companions-group section, and no companion leaks into a gear group.
+    expect(view.sections.filter((s) => s.group === 'companions')).toEqual([last]);
+    for (const s of view.sections.slice(0, -1)) {
+      expect(s.group, s.key).not.toBe('companions');
+      for (const o of s.offers) expect(o.item.kind, o.itemId).not.toBe('companion');
+    }
+  });
+
+  it('does not mistake a legacy whistle in a bag for a permanent buddy unlock', () => {
+    const model = viewer({ ownedItemIds: new Set(['whistle_horse']) });
+    const view = buildWarfareVendorView([], ITEMS, ITEM_SETS, { ...model, warfareVendor: true });
+    expect(view.sections[0].offers[0].owned).toBe(false);
+  });
+
   it('drops the empty equipment slots rather than counting them as worn ids', () => {
     const client = bareClient(2);
     client.honor = 0;
@@ -559,7 +614,15 @@ describe('buildWarfareVendorView over the full honor stock (Warfare Season 2 fir
       ...WARFARE_SHOP_SET_ORDER,
       WARFARE_SHOP_JEWELRY_KEY,
       WARFARE_SHOP_WEAPONS_KEY,
+      // The World PvP Skull Bag: nothing to wear, so its own Goods section.
+      WARFARE_SHOP_GOODS_KEY,
     ]);
+    const goods = view.sections.find((s) => s.key === WARFARE_SHOP_GOODS_KEY);
+    expect(goods?.kind).toBe('goods');
+    expect(goods?.offers.map((o) => [o.itemId, o.honor])).toEqual([['pvp_skull_bag', 500]]);
+    // Never filed as jewelry.
+    const jewelry = view.sections.find((s) => s.key === WARFARE_SHOP_JEWELRY_KEY);
+    expect(jewelry?.offers.some((o) => o.itemId === 'pvp_skull_bag')).toBe(false);
   });
 
   it('shows every class exactly its own three Season 2 sets', () => {

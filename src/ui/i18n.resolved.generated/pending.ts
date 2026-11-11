@@ -143,64 +143,28 @@ export const pending: Record<string, readonly string[]> = {
     "wallet.placeSchemaLinked"
   ],
   "zh_CN": [
-    "entities.quests.q_ps_a_blade_that_travels.completion",
-    "entities.quests.q_ps_a_blade_that_travels.objectives.0.label",
-    "entities.quests.q_ps_a_blade_that_travels.text",
-    "entities.quests.q_ps_a_blade_that_travels.title",
     "hudChrome.placeschemaMenu.generic",
-    "hudChrome.placeschemaMenu.genericNone",
     "hudChrome.placeschemaMenu.menuButton",
-    "hudChrome.placeschemaMenu.minecraftNone",
     "hudChrome.placeschemaMenu.native",
-    "hudChrome.placeschemaMenu.title",
-    "wallet.placeSchemaLink",
-    "wallet.placeSchemaLinkTitle",
-    "wallet.placeSchemaLinked"
+    "hudChrome.placeschemaMenu.title"
   ],
   "zh_TW": [
-    "entities.quests.q_ps_a_blade_that_travels.completion",
-    "entities.quests.q_ps_a_blade_that_travels.objectives.0.label",
-    "entities.quests.q_ps_a_blade_that_travels.text",
-    "entities.quests.q_ps_a_blade_that_travels.title",
     "hudChrome.placeschemaMenu.generic",
-    "hudChrome.placeschemaMenu.genericNone",
     "hudChrome.placeschemaMenu.menuButton",
-    "hudChrome.placeschemaMenu.minecraftNone",
     "hudChrome.placeschemaMenu.native",
-    "hudChrome.placeschemaMenu.title",
-    "wallet.placeSchemaLink",
-    "wallet.placeSchemaLinkTitle",
-    "wallet.placeSchemaLinked"
+    "hudChrome.placeschemaMenu.title"
   ],
   "ko_KR": [
-    "entities.quests.q_ps_a_blade_that_travels.completion",
-    "entities.quests.q_ps_a_blade_that_travels.objectives.0.label",
-    "entities.quests.q_ps_a_blade_that_travels.text",
-    "entities.quests.q_ps_a_blade_that_travels.title",
     "hudChrome.placeschemaMenu.generic",
-    "hudChrome.placeschemaMenu.genericNone",
     "hudChrome.placeschemaMenu.menuButton",
-    "hudChrome.placeschemaMenu.minecraftNone",
     "hudChrome.placeschemaMenu.native",
-    "hudChrome.placeschemaMenu.title",
-    "wallet.placeSchemaLink",
-    "wallet.placeSchemaLinkTitle",
-    "wallet.placeSchemaLinked"
+    "hudChrome.placeschemaMenu.title"
   ],
   "ja_JP": [
-    "entities.quests.q_ps_a_blade_that_travels.completion",
-    "entities.quests.q_ps_a_blade_that_travels.objectives.0.label",
-    "entities.quests.q_ps_a_blade_that_travels.text",
-    "entities.quests.q_ps_a_blade_that_travels.title",
     "hudChrome.placeschemaMenu.generic",
-    "hudChrome.placeschemaMenu.genericNone",
     "hudChrome.placeschemaMenu.menuButton",
-    "hudChrome.placeschemaMenu.minecraftNone",
     "hudChrome.placeschemaMenu.native",
-    "hudChrome.placeschemaMenu.title",
-    "wallet.placeSchemaLink",
-    "wallet.placeSchemaLinkTitle",
-    "wallet.placeSchemaLinked"
+    "hudChrome.placeschemaMenu.title"
   ],
   "pt_BR": [
     "entities.quests.q_ps_a_blade_that_travels.completion",
@@ -225,19 +189,10 @@ export const pending: Record<string, readonly string[]> = {
     "wallet.placeSchemaLinked"
   ],
   "ru_RU": [
-    "entities.quests.q_ps_a_blade_that_travels.completion",
-    "entities.quests.q_ps_a_blade_that_travels.objectives.0.label",
-    "entities.quests.q_ps_a_blade_that_travels.text",
-    "entities.quests.q_ps_a_blade_that_travels.title",
     "hudChrome.placeschemaMenu.generic",
-    "hudChrome.placeschemaMenu.genericNone",
     "hudChrome.placeschemaMenu.menuButton",
-    "hudChrome.placeschemaMenu.minecraftNone",
     "hudChrome.placeschemaMenu.native",
-    "hudChrome.placeschemaMenu.title",
-    "wallet.placeSchemaLink",
-    "wallet.placeSchemaLinkTitle",
-    "wallet.placeSchemaLinked"
+    "hudChrome.placeschemaMenu.title"
   ],
   "cs_CZ": [
     "entities.quests.q_ps_a_blade_that_travels.completion",

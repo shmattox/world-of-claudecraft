@@ -1,5 +1,6 @@
 import { parkCatEnergy, takeCatFormEntryEnergy } from './combat/cat_form_energy';
 import { resetCraftedCollectionState } from './combat/crafted_collection_effects';
+import { SPOREMENDER_ARMOR_MULT } from './combat/druid_sporemender';
 import { clearUnequippedBenisonPrayers } from './combat/priest/benison_dawnweave';
 import { BATTLE_STANCE, buildStanceAura } from './combat/warrior_stances';
 import { crucibleCollectionFamilyForSet } from './content/crucible_collections';
@@ -10,6 +11,17 @@ import { canDualWield, isShieldItem } from './equipment_rules';
 import { activeItemInstanceStats } from './item_instance_stats';
 import { meetsLevelRequirement } from './item_level_req';
 import { lootQualityWeapon } from './loot_quality';
+import {
+  isMembershipArmour,
+  isReferralArmour,
+  membershipArmourItem,
+  referralArmourItem,
+} from './membership_armour';
+import {
+  isMembershipWeapon,
+  membershipWeaponDisplayId,
+  membershipWeaponItem,
+} from './membership_weapon';
 import { countsWarfareRating, pvpFractionsFromRatings, pvpVitalityFromRating } from './pvp';
 import type {
   Entity,
@@ -32,6 +44,9 @@ import {
   SHIELD_BLOCK_BASE,
   SPELL_POWER_PER_INT,
 } from './types';
+
+/** The Shape of the Foreman's body scale (a little taller than a player). */
+export const FOREMAN_SHAPE_SCALE = 1.1;
 
 function baseEntity(id: number, pos: Vec3): Entity {
   return {
@@ -207,12 +222,15 @@ function baseEntity(id: number, pos: Vec3): Entity {
     spawnPos: { ...pos },
     leashAnchor: null,
     evadeStall: 0,
+    chaseRoute: undefined,
+    routeDenied: undefined,
     chaseStall: 0,
     evadeEpoch: 0,
     chainPullInbound: false,
     // The instance combat hold's pin clock: present from birth (undefined) so a
     // mob's shape never forks on its first pin or release.
     evadeInPlace: undefined,
+    gateSealTick: undefined,
     fleeTimer: 0,
     fleeReturnTimer: 0,
     hasFled: false,
@@ -239,8 +257,11 @@ function baseEntity(id: number, pos: Vec3): Entity {
     skinCatalog: 'class',
     skin: 0,
     mountKey: '',
+    ridingTier: 0,
     mountCastRemaining: 0,
     mountCastKey: '',
+    buddyKey: '',
+    buddyAutoloot: false,
     mainhandItemId: null,
     offhandItemId: null,
     weaponSkinLoadout: {},
@@ -342,8 +363,17 @@ export function recalcPlayerStats(
   for (const slot of ALL_EQUIP_SLOTS) {
     const itemId = equipment[slot];
     if (!itemId) continue;
-    const item = ITEMS[itemId];
-    if (!item) continue;
+    const baseItem = ITEMS[itemId];
+    if (!baseItem) continue;
+    if ((isMembershipArmour(itemId) || isMembershipWeapon(itemId)) && !e.membershipActive) continue;
+    if (isReferralArmour(itemId) && !e.referralInviterName) continue;
+    const item = referralArmourItem(
+      membershipArmourItem(baseItem, cls, mods?.spec, lvl, !!e.membershipActive),
+      cls,
+      mods?.spec,
+      lvl,
+      !!e.referralInviterName,
+    );
     // Gear above the wearer's level is inert: it stays equipped (still rendered
     // and occupying the slot, see the render mirrors below) but grants no stats,
     // armor, spell power, or set pieces until the character reaches its required
@@ -425,6 +455,7 @@ export function recalcPlayerStats(
   let bearForm = false;
   let catForm = false;
   let moonkinForm = false;
+  let sporemenderForm = false;
   let scaleMul = 1; // Fiesta buff_scale: body-size multiplier (>1 also adds hp)
   let flatAuraArmor = 0;
   // Percent raid buffs (Mark of the Wild / Arcane Intellect / Power Word: Fortitude /
@@ -475,6 +506,12 @@ export function recalcPlayerStats(
     else if (a.kind === 'buff_scale') scaleMul *= a.value;
     // Metamorphosis: a temporary demon transform that also makes the caster larger.
     else if (a.kind === 'form_metamorph') scaleMul *= 1.35;
+    // The Shape of the Foreman (combat/balgath_trinkets.ts): the cyclops's body, a head
+    // taller than a player rather than raid-boss sized, and value percent more armor.
+    else if (a.kind === 'form_foreman') {
+      scaleMul *= FOREMAN_SHAPE_SCALE;
+      buffArmorPct += a.value / 100;
+    }
     // Percent raid buffs store integer percent POINTS (5 = +5%) so they survive the
     // integer-rounding talent value multiplier; converted to a fraction here.
     else if (a.kind === 'buff_stats_pct') allStatsPct += a.value / 100;
@@ -496,6 +533,9 @@ export function recalcPlayerStats(
       bonusSp += a.value;
       moonkinForm = true;
     }
+    // Sporemender Form: Groveheart's caster form (+20% healing done rides
+    // combat/druid_sporemender.ts at heal resolution; the armor folds below).
+    else if (a.kind === 'form_sporemender') sporemenderForm = true;
   }
   // Talent passive stat modifiers (flat additions + a stamina percent before the
   // HP derivation below). AP/armor/maxHp percents are applied at their own steps.
@@ -553,6 +593,8 @@ export function recalcPlayerStats(
   // Moonkin Form: a hardy caster form that adds 50% armor (its +20% spell damage rides a
   // separate buff_spelldmg aura the form applies).
   if (moonkinForm) s.armor = Math.round(s.armor * 1.5);
+  // Sporemender Form: a hardy healer form that adds 40% armor.
+  if (sporemenderForm) s.armor = Math.round(s.armor * SPOREMENDER_ARMOR_MULT);
   // Protection's Vanguard: bonus armor from Strength, added (on the fully-summed
   // Strength) before the armor multiplier so armorPct amplifies it too.
   if (mods?.stats.armorFromStrPct) s.armor += Math.round(s.str * mods.stats.armorFromStrPct);
@@ -583,15 +625,27 @@ export function recalcPlayerStats(
   // damage (and drop the weapon-type flags, e.g. dagger, that gate abilities)
   // until the wearer is high enough level. The mainhand still stays worn (see
   // e.mainhandItemId below) so the weapon model keeps rendering.
-  const mainhand = equipment.mainhand ? ITEMS[equipment.mainhand] : undefined;
+  const baseMainhand = equipment.mainhand ? ITEMS[equipment.mainhand] : undefined;
+  const mainhand = baseMainhand
+    ? membershipWeaponItem(baseMainhand, cls, mods?.spec, lvl, !!e.membershipActive)
+    : undefined;
   const weapon =
     mainhand?.weapon && meetsLevelRequirement(lvl, mainhand)
-      ? lootQualityWeapon(mainhand, equipmentInstance?.mainhand)!
+      ? lootQualityWeapon(
+          mainhand,
+          isMembershipWeapon(mainhand.id) && !e.membershipActive
+            ? undefined
+            : equipmentInstance?.mainhand,
+        )!
       : { min: 1, max: 2, speed: 2 };
   e.weapon = weapon;
-  const offhand = equipment.offhand ? ITEMS[equipment.offhand] : undefined;
+  const baseOffhand = equipment.offhand ? ITEMS[equipment.offhand] : undefined;
+  const offhand = baseOffhand
+    ? membershipWeaponItem(baseOffhand, cls, mods?.spec, lvl, !!e.membershipActive)
+    : undefined;
   const offhandWeapon =
     canDualWield(cls, mods?.spec) &&
+    !(offhand && isMembershipWeapon(offhand.id) && !e.membershipActive) &&
     offhand?.kind === 'weapon' &&
     meetsLevelRequirement(lvl, offhand)
       ? lootQualityWeapon(offhand, equipmentInstance?.offhand)!
@@ -616,7 +670,7 @@ export function recalcPlayerStats(
     meetsLevelRequirement(lvl, offhand);
   e.blockChance = activeShield ? SHIELD_BLOCK_BASE : 0;
   e.blockValue = activeShield ? (offhand.blockValue ?? 0) : 0;
-  // The equipped mainhand item id: drives the held weapon model on the client
+  // The held weapon identity drives the model on the client
   // (mapped via ITEM_WEAPON_VARIANTS) AND legendary weapon procs in combat
   // (combat/equip_procs.ts, which re-applies the level gate above so an inert
   // over-level weapon's procs are inert too). Gated on the item actually being
@@ -631,6 +685,10 @@ export function recalcPlayerStats(
       isShieldItem(ITEMS[equipment.offhand]))
       ? equipment.offhand
       : null;
+  // Membership forms use ordinary no-proc donor identities for the model and
+  // weapon-type consumers. Persistent ownership stays in equippedItems below.
+  e.mainhandItemId = membershipWeaponDisplayId(e.mainhandItemId, cls, mods?.spec);
+  e.offhandItemId = membershipWeaponDisplayId(e.offhandItemId, cls, mods?.spec);
   // Resolve the active weapon-skin cosmetic against the (possibly changed)
   // mainhand: swapping to a different weapon type drops a non-matching skin and
   // re-shows the matching one automatically. Cosmetic only; never feeds stats.
@@ -852,6 +910,13 @@ export function createMob(id: number, template: MobTemplate, level: number, pos:
   e.scale = template.scale;
   e.color = template.color;
   e.swingTimer = 0;
+  // An authored boss that opts into telegraphed mechanics carries the same per-spawn
+  // spacing a rift stamps on its bosses, which is also what arms the ground-ring windup.
+  // Set ONLY when the template asks for it: defining the field on every mob would churn
+  // the parity golden's entity samples for mobs whose behaviour has not changed.
+  if (template.telegraphedMechanics !== undefined) {
+    e.riftMechanicSpacing = template.telegraphedMechanics;
+  }
   // Telegraph the first War Stomp: delay it one full interval after engage.
   if (template.stomp) e.stompTimer = template.stomp.every;
   // Telegraph the first pulse blast the same way: one full interval after engage.
@@ -912,6 +977,10 @@ export function createNpc(id: number, def: NpcDef, pos: Vec3): Entity {
   e.questIds = [...def.questIds];
   e.vendorItems = [...(def.vendorItems ?? [])];
   e.devVendor = def.devVendor ?? false;
+  if (def.visualKey) e.visualKey = def.visualKey;
+  // Studio-authored ambient VFX (render-only). Conditional so a built-in NPC
+  // (which never carries one) keeps the exact release entity shape.
+  if (def.authorVfx) e.authorVfx = { ...def.authorVfx };
   return e;
 }
 

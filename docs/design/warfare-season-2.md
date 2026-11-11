@@ -36,7 +36,12 @@ cheaper entry tier:
 
 Season 2 combines the two. **Every 2-piece bonus is PvP utility, and every 4-piece builds on
 its own 2-piece.** The 2-piece bends a mobility, control or defensive button. The 4-piece
-adds a follow-up that fires off that button.
+adds a follow-up that fires off that button. Every set whose spec has a cast damage can delay
+(`VANGUARD_PUSHBACK_SET_IDS` in `content/vanguard_set_bonuses.ts`) also grants immunity to
+damage cast pushback at two pieces, the rider every Season 1 family carries. That is all 14
+caster sets plus the Protection and Retribution paladin, all three hunter, Enhancement
+shaman and Feral druid sets. Only the six warrior and rogue sets go without: rogues have no
+cast-time ability, and Bladestorm already ignores pushback.
 
 ## The PvE promise: never better than the raid tier in raids
 
@@ -72,8 +77,11 @@ everywhere. These rules hold them together:
   - every **4-piece** is sized below the same spec's raid 4-piece;
   - where a Season 2 bonus touches a number a raid bonus also bends, the two combine as the
     larger value, never added.
-- **No spell-pushback immunity on any honor set.** Every caster raid 2-piece carries it, and
-  it would be the strongest PvP rider of all.
+- **Spell-pushback immunity (reversed 2026-10, owner call):** the original rule kept it off
+  every honor set as the strongest PvP rider of all. It now rides every 2-piece whose spec
+  has a cast damage can delay (see above), so a caster or a Marksmanship hunter can finish a
+  cast under pressure. It is the same knob the caster raid 2-pieces set and max-combines
+  with it, so it never stacks past full immunity.
 - **WARFARE ratings (rebalanced 2026-09-25, owner rule "make Season 2 better than Season
   1"):** a full Season 1 kit reaches every Warfare cap through its 4-piece and 7-piece
   bonuses (+200 rating), and Season 2's ability bonuses carry no rating, so at 1x the slot
@@ -129,13 +137,18 @@ everywhere. These rules hold them together:
 - **Where it is sold:** both honor quartermasters (FURY in Eastbrook Vale, Warmarshal Draven
   Kole in Highwatch). The shop lists a Season 2 group first: the viewer's own three spec
   sets (the sets are class-locked, so the shop shows only what the viewer can wear), then the
-  season weapons the viewer can wield, then the eight Season 2 jewelry pieces (no class lock,
-  so every class sees all eight). The entry tier follows as its own group, unfiltered.
-- **Art:** the weapons ship painted icons (the `warfare-season2-weapons-2026-09-25`
-  and `warfare-season2-feral-staff-2026-09-29` batches in `public/ui/items/mapping.json`)
-  and held models on shipped GLBs. The 135 armor
-  pieces sit on `ITEM_ART_PENDING` (pinned in `tests/item_icons.test.ts`) and draw their
-  procedural icon until a follow-up art pass paints them.
+  season weapons the viewer can wield. The entry tier follows as its own group, unfiltered.
+- **The Weekly Vault:** the PvP row (1, 3 and 5 ranked arena or rated battleground wins a
+  week) rolls Season 2 and nothing else, class-filtered like every vault row, so a character
+  rolls only its own three spec sets and the season weapons it can wield (`weeklyLootPool` in
+  `src/sim/weekly_rewards.ts`; amended 2026-10-07). The Reliquary's Vanguard Gallery names
+  both quartermasters and the `weekly_vault_pvp` activity on every slot.
+- **Art:** the four weapons ship painted icons (the `warfare-season2-weapons-2026-09-25`
+  batch in `public/ui/items/mapping.json`) and held models on shipped GLBs. All 135 armor
+  pieces across the nine classes ship individual paintings from the
+  `warfare-season2-*-icons-2026-10-22` batches in `public/ui/items/mapping.json`.
+  `tests/item_icons.test.ts` verifies complete static coverage;
+  `tests/warfare_season2_icon_art.test.ts` pins every set and its accepted shipping hashes.
 - **Ids:** sets use a new prefix, `vanguard_<spec>`, so the existing `warfare_*` pins keep
   meaning the entry tier.
 
@@ -323,7 +336,7 @@ Implementation routes:
 - **4pc:** "Shieldcrack reduces Faultline's remaining cooldown by 1 sec."
   Route: DATA, castNth refund on `shield_slam` (n 1) to `faultline`, 1 sec. With
   Shieldcrack every 6 sec, effective Faultline about 21 sec.
-- **PvE ceiling:** Forgewall 2pc (Iron Resolve 5 absorb per rage, +25 percent) and 4pc
+- **PvE ceiling:** Forgewall 2pc (Iron Resolve shield 25 percent of max health, up from 20) and 4pc
   (Shieldcrack refunds Iron Resolve 2 sec). Season 2 touches only a stun that bosses
   ignore; Faultline's damage is a minor share. Zero mitigation, so it cannot compete
   with Forgewall's absorb economy; it is trash-pack control only.
@@ -409,7 +422,7 @@ Implementation routes:
 ### Marksmanship (`marksmanship`, signature Cold Focus `cold_focus`)
 - **Set:** Farsight Harness. Farsight Coif, Farsight Spaulders, Farsight Jerkin, Farsight Legguards, Farsight Gauntlets.
 - **2pc:** "Trailbreak's cooldown is reduced by 4 sec."
-  Route: DATA, ability row `{ ability: 'trailbreak', cooldownFlat: -4 }` (15 to 11 sec,
+  Route: DATA, ability row `{ ability: 'trailbreak', cooldownFlat: -4 }` (20 to 16 sec,
   12 yd backward leap).
 - **4pc:** "Trailbreak makes your next Long Draw within 6 sec instant. Cannot occur more
   than once every 15 sec."
@@ -573,6 +586,8 @@ Implementation routes:
   - Route: DATA ProcDef. `trigger: { on: 'castNth', n: 1, abilities: ['stormstrike'] }`, `responses: [{ kind: 'cooldownRefund', ability: 'elemental_trance', seconds: 4 }]`.
   - Resolved: about 1 Ancestral Strike per 12 sec, so Trance comes back about every
     90 sec instead of 120 (Stormsurge resets add a little more; disclose).
+- **Stats:** the five Galeborn pieces carry Strength and Stamina, with the existing physical
+  stat budget unchanged (shaman attack power never reads Agility).
 - **PvE ceiling:** Warspirit Emberscale (2pc: Ancestral Strike advances cadence 3
   steps; 4pc: Ancestral Strike hits 30 percent harder). Ours adds zero damage: a slow
   (bosses largely ignore it) and more uptime on a defensive. Stonehearth Bastion

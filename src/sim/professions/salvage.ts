@@ -21,6 +21,7 @@ import { ITEMS } from '../data';
 import { consumeSelectedInventorySlot, itemCopyPin } from '../item_copy_ref';
 import { requiredLevelFor } from '../item_level_req';
 import { isItemLocked } from '../item_lock';
+import { recordTrackedChange } from '../item_tracking';
 import { removePreferFungible } from '../items';
 import { forceDismount } from '../mounts';
 import { riftSalvageYield } from '../rift/progression';
@@ -59,9 +60,13 @@ export { SALVAGE_MATERIAL_BY_QUALITY } from './salvage_materials';
 export function isSalvageable(def: ItemDef | undefined): boolean {
   return (
     !!def &&
+    !def.noSalvage &&
     (def.kind === 'weapon' || def.kind === 'armor' || def.kind === 'held_offhand') &&
     !!def.quality &&
-    def.quality !== 'poor'
+    def.quality !== 'poor' &&
+    // Lent gear (the muster pike, src/sim/muster_pike.ts) is not the player's to break
+    // down: the rack re-issues it free, so breaking it down would mint materials forever.
+    !def.lentGear
   );
 }
 
@@ -175,6 +180,20 @@ export function resolveSalvage(
     ctx.onInventoryChangedForQuests?.(owner);
   }
   const riftInstance = consumedInstance?.rift ? consumedInstance : null;
+  // The copy ends here: a tracked (epic or legendary) copy writes its final
+  // ledger row naming the material it became. Emits only, draws no rng, so
+  // the salvageYield draw below keeps its place.
+  if (meta) {
+    recordTrackedChange(
+      ctx,
+      meta,
+      itemId,
+      consumedInstance,
+      'consume',
+      'salvage',
+      riftInstance ? RIFT_ESSENCE_ITEM_ID : materialItemId,
+    );
+  }
   if (riftInstance) {
     const count = riftSalvageYield(riftInstance);
     // silent + callerLogs, exactly like the material branch below: this arm

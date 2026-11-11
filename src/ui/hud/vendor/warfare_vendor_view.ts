@@ -1,3 +1,4 @@
+import { type BuddyVendorOffer, TUG_HONOR_OFFER } from '../../../sim/content/buddy_offers';
 // Pure, host-agnostic view model for the WARFARE quartermaster's shop window.
 //
 // The pure-core half of the pure-core + thin-consumer split (reference
@@ -35,8 +36,9 @@ export interface WarfareShopSetSpec {
   spec: string;
 }
 
-/** The two groups the shop lists, top tier first. */
-export type WarfareShopGroup = 'season2' | 'entry';
+/** The groups the shop lists, top tier first, then the cosmetic companions,
+ *  which belong to no Warfare season. */
+export type WarfareShopGroup = 'season2' | 'entry' | 'companions';
 
 /** The five WARFARE armor families, in the order the shop lists them. Any set
  *  the stock carries that is NOT named here still gets a section, appended in
@@ -52,11 +54,16 @@ export const WARFARE_SHOP_SET_ORDER: readonly string[] = [
   'warfare_cinderweave', // cloth, caster
 ];
 
-/** Section keys for the two non-set sections. Set sections key on their set id,
+/** Section keys for the non-set sections. Set sections key on their set id,
  *  so every key in one view is unique and safe to build a focus key from. */
 export const WARFARE_SHOP_JEWELRY_KEY = 'jewelry';
 export const WARFARE_SHOP_WEAPONS_KEY = 'weapons';
+export const WARFARE_SHOP_GOODS_KEY = 'goods';
 export const WARFARE_SHOP_SEASON2_WEAPONS_KEY = 'season2_weapons';
+/** Direct buddy unlocks (kind 'buddy'), currently Horse at both honor vendors. Its own section rather than the jewelry
+ *  fallback: a companion is not gear, carries no slot and no stats, and must
+ *  never read as a piece a set-completion count is waiting on. */
+export const WARFARE_SHOP_COMPANIONS_KEY = 'companions';
 export const WARFARE_SHOP_SEASON2_JEWELRY_KEY = 'season2_jewelry';
 
 /** The NpcDef shape this window gates on. A FLAG, never a hard-coded npc id:
@@ -77,9 +84,8 @@ export function isWarfareVendorNpc(def: WarfareVendorNpcFlags | undefined): bool
 
 export interface WarfareShopOffer {
   itemId: string;
-  item: ItemDef;
-  /** Price in Honor for one purchase (Honor is never stack-multiplied); 0 on a
-   *  gold row. */
+  item: ItemDef | Readonly<BuddyVendorOffer>;
+  /** Price in Honor for one purchase (Honor is never stack-multiplied). */
   honor: number;
   /** Price in copper for one purchase: the Season 1 rows sell for gold
    *  (WARFARE_SEASON1_PRICE_COPPER); 0 on an honor row. */
@@ -87,8 +93,7 @@ export interface WarfareShopOffer {
   /** Advisory only: the purchase resolves server-side against the server's own
    *  stock and balance, and this window decides nothing. */
   affordable: boolean;
-  /** True when the viewer already wears this piece or carries it in a bag, so
-   *  the tile can mark it and a mis-tap re-buy is at least visible first. */
+  /** Gear is worn or carried; buddies are permanently collected or pending reveal. */
   owned: boolean;
 }
 
@@ -132,7 +137,7 @@ export interface WarfareShopSetSection {
 }
 
 export interface WarfareShopPlainSection {
-  kind: 'jewelry' | 'weapons';
+  kind: 'jewelry' | 'weapons' | 'companions' | 'goods';
   group: WarfareShopGroup;
   key: string;
   offers: WarfareShopOffer[];
@@ -150,6 +155,7 @@ export interface WarfareShopView {
 }
 
 export interface WarfareShopViewer {
+  warfareVendor?: boolean;
   honor: number;
   /** The viewer's gold, in copper: what a Season 1 row's affordability reads. */
   copper: number;
@@ -158,6 +164,8 @@ export interface WarfareShopViewer {
   ownedItemIds: ReadonlySet<string>;
   /** Item ids the viewer currently wears. */
   equippedItemIds: ReadonlySet<string>;
+  /** Collected or pending buddies cannot be bought again. */
+  acquiredBuddyKeys: ReadonlySet<string>;
   /** Distinct-slot member count per set id (itemSetMemberCounts). A set with no
    *  row here falls back to the distinct slots this shop actually sells, so the
    *  denominator is never zero and never invented. */
@@ -172,7 +180,10 @@ export interface WarfareShopViewer {
  *  whole seam: the derivation stays drivable from a Sim-shaped and a
  *  ClientWorld-mirror-shaped stub alike, which is the exact place those two
  *  could quietly diverge. */
-export type WarfareShopWorld = Pick<IWorld, 'honor' | 'copper' | 'inventory' | 'equipment' | 'cfg'>;
+export type WarfareShopWorld = Pick<
+  IWorld,
+  'honor' | 'copper' | 'inventory' | 'equipment' | 'cfg' | 'ownedBuddies' | 'pendingBuddies'
+>;
 
 /**
  * Derive the shop viewer from the world seam: the honor balance, the item ids
@@ -193,17 +204,19 @@ export function warfareShopViewer(
   world: WarfareShopWorld,
 ): Pick<
   WarfareShopViewer,
-  'honor' | 'copper' | 'ownedItemIds' | 'equippedItemIds' | 'viewerClass'
+  'honor' | 'copper' | 'ownedItemIds' | 'equippedItemIds' | 'acquiredBuddyKeys' | 'viewerClass'
 > {
   const equippedItemIds = new Set(
     Object.values(world.equipment).filter((id): id is string => !!id),
   );
   const ownedItemIds = new Set([...equippedItemIds, ...world.inventory.map((slot) => slot.itemId)]);
+  const acquiredBuddyKeys = new Set([...world.ownedBuddies(), ...world.pendingBuddies()]);
   return {
     honor: world.honor,
     copper: world.copper,
     ownedItemIds,
     equippedItemIds,
+    acquiredBuddyKeys,
     viewerClass: world.cfg.playerClass,
   };
 }
@@ -254,6 +267,19 @@ export function buildWarfareVendorView(
   const jewelry: WarfareShopOffer[] = [];
   const weapons: WarfareShopOffer[] = [];
   const seasonWeapons: WarfareShopOffer[] = [];
+  const goods: WarfareShopOffer[] = [];
+  const companions: WarfareShopOffer[] = viewer.warfareVendor
+    ? [
+        {
+          itemId: TUG_HONOR_OFFER.id,
+          item: TUG_HONOR_OFFER,
+          honor: TUG_HONOR_OFFER.priceHonor,
+          copper: 0,
+          affordable: viewer.honor >= TUG_HONOR_OFFER.priceHonor,
+          owned: viewer.acquiredBuddyKeys.has(TUG_HONOR_OFFER.buddy),
+        },
+      ]
+    : [];
   const seasonJewelry: WarfareShopOffer[] = [];
   for (const itemId of stock) {
     const item = items[itemId];
@@ -274,6 +300,10 @@ export function buildWarfareVendorView(
       else bySet.set(item.set, [offer]);
     } else if (item.kind === 'weapon') {
       weapons.push(offer);
+    } else if (!item.slot) {
+      // Nothing to wear (the World PvP Skull Bag): its own Goods section, so
+      // it never reads as jewelry.
+      goods.push(offer);
     } else {
       // Neck and rings: shared across role profiles, so they carry no set tag
       // and the only coherent grouping left is "jewelry".
@@ -362,6 +392,19 @@ export function buildWarfareVendorView(
       group: 'entry',
       key: WARFARE_SHOP_WEAPONS_KEY,
       offers: weapons,
+    });
+  }
+  if (goods.length > 0) {
+    sections.push({ kind: 'goods', group: 'entry', key: WARFARE_SHOP_GOODS_KEY, offers: goods });
+  }
+  // Last: the cosmetic row never pushes a gear section down the window. Its
+  // own group, so a companion never reads as part of the Season 1 tier.
+  if (companions.length > 0) {
+    sections.push({
+      kind: 'companions',
+      group: 'companions',
+      key: WARFARE_SHOP_COMPANIONS_KEY,
+      offers: companions,
     });
   }
   const sellsForGold = sections.some((section) => section.offers.some((o) => o.copper > 0));

@@ -3,6 +3,11 @@ import {
   type BackgroundDbPermit,
   createBackgroundDbGate,
 } from './background_db_gate';
+import {
+  DELETED_CHARACTER_HOLDINGS_RETURNING,
+  type DeletedCharacterHoldingsRow,
+  recordDeletedCharacterCopies,
+} from './character_delete_item_ledger';
 import { CHARACTER_SAVE_STATEMENT_TIMEOUT_MS } from './character_save_transaction';
 import {
   backendCancelViaPool,
@@ -25,6 +30,19 @@ export const CHARACTER_DELETE_TRANSACTION_TIMEOUT_MS = 65_000;
 export const DELETE_RESTORE_STATEMENT_TIMEOUT_MS = 15_000;
 
 export type OpenStoragePurchaseStatus = 'pending' | 'unresolved';
+
+/** A movable card or an in-flight bond still requires this character's custody. */
+export class CharacterReferralRewardPending extends Error {
+  readonly code = 'CHARACTER_REFERRAL_REWARD_PENDING' as const;
+
+  constructor(
+    readonly characterId: number,
+    readonly reason: 'transferable' | 'bond',
+  ) {
+    super(`character ${characterId} has a ${reason} referral reward guard`);
+    this.name = 'CharacterReferralRewardPending';
+  }
+}
 
 /** Stable domain refusal for a character whose paid storage rail is still open. */
 export class CharacterStoragePurchaseOpen extends Error {
@@ -257,6 +275,22 @@ export async function deleteOwnedCharacterRow(
       return false;
     }
 
+    // Both referral writers serialize on the same account-parent lock before
+    // assigning custody. This fresh statement therefore observes a committed
+    // guard or excludes its insertion until deletion finishes. Each EXISTS
+    // stops at the first row through its character_id index; no card JSON scan.
+    const referral = await transaction.query(
+      `SELECT EXISTS(SELECT 1 FROM referral_transfer_characters WHERE character_id = $1) AS transferable,
+              EXISTS(SELECT 1 FROM referral_bond_delivery_characters WHERE character_id = $1) AS bond`,
+      [characterId],
+    );
+    if (referral.rows[0]?.transferable) {
+      throw new CharacterReferralRewardPending(characterId, 'transferable');
+    }
+    if (referral.rows[0]?.bond) {
+      throw new CharacterReferralRewardPending(characterId, 'bond');
+    }
+
     // READ COMMITTED takes a fresh snapshot after the character lock wait. A
     // purchase start takes the same character lock before INSERT, so either its
     // open row is visible here or it cannot start until this delete finishes.
@@ -282,15 +316,22 @@ export async function deleteOwnedCharacterRow(
     // character-save allowance) and restore the tighter bound afterward so
     // COMMIT keeps the transaction's own ceiling.
     await transaction.query(`SET LOCAL statement_timeout = ${CHARACTER_SAVE_STATEMENT_TIMEOUT_MS}`);
-    const deleted = await transaction.query(
-      'DELETE FROM characters WHERE id = $1 AND account_id = $2 AND realm = $3',
+    // RETURNING the item containers of the stored state: the delete is hard,
+    // so every tracked (epic or legendary) copy in them ends here and writes
+    // its final ledger row below (character_delete_item_ledger.ts).
+    const deleted = await transaction.query<DeletedCharacterHoldingsRow>(
+      `DELETE FROM characters WHERE id = $1 AND account_id = $2 AND realm = $3
+        RETURNING ${DELETED_CHARACTER_HOLDINGS_RETURNING}`,
       [characterId, accountId, realm],
     );
-    // PLACE-276: this character's pending PlaceSchema claims (items it never saved) are released.
-    if ((deleted.rowCount ?? 0) > 0) await releasePendingClaimsOf(transaction, characterId);
     // Deliberately skipped when the DELETE throws: the catch below rolls the
     // whole transaction back, which clears every SET LOCAL with it.
     await transaction.query(`SET LOCAL statement_timeout = ${DELETE_RESTORE_STATEMENT_TIMEOUT_MS}`);
+    // PLACE-276: release pending claims under the ordinary bound, in the same transaction.
+    if ((deleted.rowCount ?? 0) > 0) await releasePendingClaimsOf(transaction, characterId);
+    // Same transaction, so the consume rows commit iff the delete does. No
+    // statement at all when the character held no tracked copy.
+    await recordDeletedCharacterCopies(transaction, realm, accountId, deleted.rows?.[0]);
     await transaction.commit();
     return (deleted.rowCount ?? 0) > 0;
   } catch (error) {

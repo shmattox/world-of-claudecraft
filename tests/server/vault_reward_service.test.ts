@@ -238,6 +238,62 @@ describe('vault reward orchestration', () => {
     expect(mailSystemParcel).toHaveBeenCalledOnce();
   });
 
+  it('mails a gear line with its permanent quality as the custody parcel instance', async () => {
+    const f = fixture();
+    const mailSystemParcel = vi.fn(() => true);
+    Object.assign(f.host.sim, { mailSystemParcel, hasCustodyParcel: () => false });
+    const client = { query: vi.fn(async () => ({ rowCount: 1, rows: [] })), release: vi.fn() };
+    const mailPool = {
+      connect: vi.fn(async () => client),
+      query: vi.fn(),
+    } as unknown as Pick<Pool, 'query' | 'connect'>;
+    const service = new VaultRewardService(
+      f.host,
+      {
+        ...mailDbStubs,
+        commitVaultOutcome: vi.fn(),
+        loadVaultOutcome: vi.fn(),
+        dueVaultRewardClaims: vi.fn(async () => []),
+      },
+      mailPool,
+    );
+    const lootQuality = { version: 1 as const, tier: 3 as const, weights: [5, 4, 3, 2, 1] };
+    const claim = {
+      attemptId: '7:quality',
+      characterId: 7,
+      recipientName: 'Owner',
+      items: [
+        { itemId: 'slagbreaker_helmet', count: 1, lootQuality },
+        // A malformed stored descriptor (tier 9) mails the plain copy.
+        { itemId: 'slagbreaker_helmet', count: 1, lootQuality: { ...lootQuality, tier: 9 } },
+        { itemId: 'rusty_hatchet', count: 1 },
+      ],
+      copper: 5,
+      mailDueAt: new Date().toISOString(),
+    };
+    await (service as unknown as { mailOne(input: typeof claim): Promise<void> }).mailOne(
+      claim as never,
+    );
+    const expected = [
+      { itemId: 'slagbreaker_helmet', count: 1, instance: { lootQuality } },
+      { itemId: 'slagbreaker_helmet', count: 1 },
+      { itemId: 'rusty_hatchet', count: 1 },
+    ];
+    expect(mailSystemParcel).toHaveBeenCalledOnce();
+    const items = (mailSystemParcel.mock.calls[0] as unknown[])[2] as Record<string, unknown>[];
+    expect(items).toEqual(expected);
+    expect('instance' in items[1]).toBe(false);
+    expect('lootQuality' in items[0]).toBe(false);
+    // The durable custody row carries the same instance payload.
+    const insert = (client.query.mock.calls as unknown as [string, unknown[]][]).find(([text]) =>
+      text.includes('INSERT INTO mail_custody_parcels'),
+    );
+    expect(insert).toBeDefined();
+    expect(JSON.parse(insert![1][5] as string)).toEqual(expected);
+    // The row's descriptor is a copy, never the claim's own object.
+    expect((items[0].instance as { lootQuality: unknown }).lootQuality).not.toBe(lootQuality);
+  });
+
   it('bounds eager mailbox wake DB waiters during a collection burst', async () => {
     const f = fixture();
     const permitRuns: Array<() => void> = [];

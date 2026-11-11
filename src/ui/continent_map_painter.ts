@@ -37,6 +37,8 @@ import {
   type ContinentZoneRegion,
 } from './continent_map_view';
 import { zoneDisplayName } from './entity_i18n';
+import type { FerryPortMapMarker } from './ferry_port_map_core';
+import { drawFerryPortMapMarker } from './ferry_port_map_painter';
 import { drawHillMapMarker } from './hill_map_marker_painter';
 import { t } from './i18n';
 
@@ -73,6 +75,7 @@ const HERE_RING_LINE_WIDTH = 2;
 // thinner outline, so self stays the emphasized marker at a glance.
 const PARTY_DOT_RADIUS = 3;
 const PARTY_DOT_LINE_WIDTH = 1.5;
+const FERRY_PORT_MARKER_SIZE = 18;
 
 // The --color-map-* design tokens the painter resolves once per redraw. The
 // label/outline/player group is shared with the per-zone map painter; the ocean
@@ -105,6 +108,8 @@ export interface ContinentPaintOptions {
 export interface ContinentPaintResult {
   /** The painted zone regions, for Hud's hover/click hit-test (continentZoneAt). */
   regions: ContinentZoneRegion[];
+  /** Ferry markers used by the map window's port hover hit-test. */
+  ports: FerryPortMapMarker[];
 }
 
 /**
@@ -252,7 +257,7 @@ export class ContinentMapPainter {
     });
     const colors = this.resolveColors();
     this.draw(ctx, model, opts.canvasSize, colors);
-    return { regions: model.regions };
+    return { regions: model.regions, ports: model.ports };
   }
 
   private draw(
@@ -301,6 +306,10 @@ export class ContinentMapPainter {
     if (hovered) {
       ctx.font = LABEL_HOVER_FONT;
       this.label(ctx, hovered, colors);
+    }
+
+    for (const port of model.ports) {
+      drawFerryPortMapMarker(ctx, port, FERRY_PORT_MARKER_SIZE, colors.player, colors.outline);
     }
 
     // Party members (issue 2652): one class-colored dot per member (the dead

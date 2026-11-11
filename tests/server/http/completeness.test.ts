@@ -108,6 +108,7 @@ const EXCLUDED_PATHS = new Set<string>(ORPHAN_DEVIATION?.routes ?? []);
 // stays-delegate-served requirement does not apply; the loop below asserts the
 // router-owned-only shape instead (the same assertion pair as the orphan).
 const REGISTRY_ONLY_PATHS = new Set<string>([
+  '/api/placeschema/media/:name',
   '/api/deeds/rarity',
   '/api/guilds/roster',
   '/api/world-quests/leaderboard',
@@ -371,6 +372,7 @@ describe('registry completeness: migrated baseline (public reads + auth + charac
     // The Realm Builder of the Month roll (server/realm_builder.ts):
     // registry-only like the deeds family, per the same new-route rule.
     { method: 'GET', path: '/api/realm-builder' },
+    { method: 'GET', path: '/api/placeschema/media/:name' },
     // The Steam link trio (server/steam/routes.ts): registry-only like the
     // deeds pair, env-gated dark until STEAM_ENABLED=1.
     { method: 'POST', path: '/api/steam/link' },
@@ -392,6 +394,7 @@ describe('registry completeness: migrated baseline (public reads + auth + charac
     // ladder twin: registry-only, so every arm is asserted here. price/:rail is a
     // public enum param (publicRead), not an account-owned resource.
     { method: 'POST', path: '/api/claudium/stripe/webhook' },
+    { method: 'POST', path: '/api/claudium/membership/stripe/webhook' },
     { method: 'GET', path: '/api/claudium/balance' },
     { method: 'GET', path: '/api/claudium/price/:rail' },
     { method: 'GET', path: '/api/claudium/skus' },
@@ -400,6 +403,13 @@ describe('registry completeness: migrated baseline (public reads + auth + charac
     { method: 'GET', path: '/api/claudium/native/balance/sol/:owner' },
     { method: 'GET', path: '/api/claudium/native/balance/usdc/:owner' },
     { method: 'GET', path: '/api/claudium/store' },
+    { method: 'GET', path: '/api/claudium/membership-token' },
+    { method: 'POST', path: '/api/claudium/membership-token/checkout' },
+    { method: 'POST', path: '/api/claudium/membership-token/claim' },
+    { method: 'GET', path: '/api/claudium/subscription' },
+    { method: 'POST', path: '/api/claudium/subscription/checkout' },
+    { method: 'POST', path: '/api/claudium/subscription/portal' },
+    { method: 'POST', path: '/api/claudium/subscription/annual/claim' },
     { method: 'GET', path: '/api/claudium/history' },
     // The $WOC Exchange family (server/woc_market_routes.ts): registry-only
     // like the Claudium family, config-gated dark until WOC_MARKET_ENABLED=1.

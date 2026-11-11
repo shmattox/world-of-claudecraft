@@ -182,9 +182,9 @@ describe('the live position push on the authoritative server', () => {
     tracked.presenceMode = 'none';
     expect(push()).toBe(false);
     tracked.presenceMode = 'friends';
-    tracked.friendIds = new Set();
+    tracked.friendAccountIds = new Set();
     expect(push(), 'not on the tracked player’s own friends list').toBe(false);
-    tracked.friendIds = new Set([watcher.characterId]);
+    tracked.friendAccountIds = new Set([watcher.accountId]);
     expect(push()).toBe(true);
   });
 });
@@ -227,17 +227,20 @@ describe('the social service: roster rows, login notices and the refresh', () =>
       friendIds: new Set<number>(),
     };
     let live = true;
+    let friends = [{ id: 2, name: 'Bet' }];
     const db = {
       whoFriended: async () => {
         if (opts.leaveDuringReads) live = false;
         return [2];
       },
       blockedIds: async () => [],
-      listFriends: async () => [{ id: 2, name: 'Bet' }],
+      listFriends: async () => friends,
       listBlocks: async () => [],
       listIgnores: async () => [],
       findCharacterByName: async () => ({ id: 2, name: 'Bet' }),
-      removeFriend: async () => {},
+      removeFriend: async () => {
+        friends = [];
+      },
       addFriend: async () => {},
       guildMembership: async () => ({
         guildId: 5,
@@ -271,6 +274,7 @@ describe('the social service: roster rows, login notices and the refresh', () =>
       pledgeOf: async () => null,
     } as unknown as SocialDb;
     const tx = {
+      byCharacterId: (id: number) => ({ characterId: id, name: String(id) }),
       isOnline: (id: number) => (id === 1 ? live : id === 2 || id === 3),
       blockListLoaded: () => true,
       isBlocking: () => false,
@@ -353,7 +357,7 @@ describe('the social service: roster rows, login notices and the refresh', () =>
     subject.friendIds = new Set([2]);
     await svc.friendRemove({ characterId: 1, name: 'Hider' }, 'Bet');
     expect([...(subject.friendIds ?? [])]).toEqual([]);
-    expect(pushed).toEqual([1, 2]);
+    expect(pushed.sort()).toEqual([1, 2]);
   });
 
   it('delivers the confirmation as a log event, not an error', () => {

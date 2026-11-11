@@ -45,10 +45,7 @@ describe('Hud action-bar facade', () => {
     );
     expect(configurableSlots).toContain('this.saveSlotMap();');
 
-    const actionBarBuild = source.slice(
-      buildStart,
-      source.indexOf('private buildCastBar()', buildStart),
-    );
+    const actionBarBuild = sliceFunctionBody(source, buildStart);
     // Only the attack slot (slot 0) still calls the two handlers directly; every
     // configurable slot routes through bindShiftClear instead (checked above).
     expect(actionBarBuild.match(/handleShiftClearContextMenu\(/g)).toHaveLength(1);
@@ -117,17 +114,14 @@ describe('Hud action-bar facade', () => {
     // gestures keep the lock-only gate.
     const source = readFileSync(new URL('../src/ui/hud.ts', import.meta.url), 'utf8');
     const buildStart = source.indexOf('private buildActionBar(): void');
-    const actionBarBuild = source.slice(
-      buildStart,
-      source.indexOf('private buildCastBar()', buildStart),
-    );
+    const actionBarBuild = sliceFunctionBody(source, buildStart);
     expect(actionBarBuild.match(/addEventListener\('dragstart'/g)).toHaveLength(2);
     expect(
       actionBarBuild.match(/if \(!isSlotMoveDragAllowed\(this\.actionBarsLocked\(\), e\)\) \{/g),
     ).toHaveLength(2);
     expect(actionBarBuild).not.toContain("isActionBarEditAllowed(this.actionBarsLocked(), 'drag')");
     // The occupied-slot tooltip teaches the gesture through the shared hint core.
-    expect(actionBarBuild).toContain('const editHints = slotEditHintLines();');
+    expect(actionBarBuild).toContain('const clearHint = slotEditHintLines();');
   });
 
   it('checks drag eligibility before every drop and the touch bar editor place', () => {
