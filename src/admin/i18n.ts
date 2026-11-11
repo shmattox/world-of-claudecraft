@@ -197,6 +197,7 @@ export const ADMIN_ERROR_KEYS: Record<string, string> = {
   'admin accounts cannot be suspended or banned': 'error.cannotModerateAdmin',
   'open report not found': 'error.reportNotFound',
   'open bug report not found': 'error.bugReportNotFound',
+  'invalid item guid': 'error.invalidItemGuid',
   'account not found': 'error.accountNotFound',
   'account is not suspended': 'error.accountNotSuspended',
   'moderation action failed': 'error.moderationFailed',
@@ -210,6 +211,8 @@ export const ADMIN_ERROR_KEYS: Record<string, string> = {
   'windowminutes must be an integer from 1 to 1440': 'error.generalChatRateLimitWindowMinutes',
   'suspension expiry must be in the future': 'error.moderationExpiryFuture',
   'character not found': 'error.characterNotFound',
+  'character already has that': 'error.characterAlreadyHasThat',
+  'buddy grant failed': 'error.buddyGrantFailed',
   'guild not found': 'error.guildNotFound',
   'guild name is already taken': 'error.guildNameTaken',
   'guild name must change': 'error.guildNameUnchanged',
@@ -304,6 +307,12 @@ export const ADMIN_ERROR_KEYS: Record<string, string> = {
   'cheater_mark.invalid_duration': 'error.cheaterMarkDurationInvalid',
   'cheater_mark.not_marked': 'error.cheaterMarkNotMarked',
   'cheater_mark.admin_target': 'error.cheaterMarkAdminTarget',
+  // The world quest block routes emit stable codes the same way
+  // (server/world_quest_block_api.ts).
+  'world_quest_block.reason_required': 'error.moderationReasonRequired',
+  'world_quest_block.already_blocked': 'error.worldQuestBlockAlreadyBlocked',
+  'world_quest_block.not_blocked': 'error.worldQuestBlockNotBlocked',
+  'world_quest_block.admin_target': 'error.worldQuestBlockAdminTarget',
   // The admin-panel kick emits stable codes the same way (server/admin_kick_api.ts).
   'kick.reason_required': 'error.moderationReasonRequired',
   'kick.target_offline': 'error.kickTargetOffline',
@@ -323,6 +332,8 @@ export const ADMIN_ERROR_KEYS: Record<string, string> = {
   'that status change is not allowed': 'error.flagInvalidTransition',
   'this account already has an open flag of that kind': 'error.flagActiveExists',
   'a note is required': 'error.flagNoteRequired',
+  // The GM item restore's optional lost-copy link (restoreItemBodyError).
+  'derived-from must be an item id': 'error.restoreDerivedFromInvalid',
 };
 export function localizeAdminError(message: string): string {
   const normalized = message.trim().toLowerCase();

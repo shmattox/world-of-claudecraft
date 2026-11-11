@@ -3,6 +3,7 @@
 // would permit a replayed attempt id to pay twice after a restored character
 // backup. Healthy claims leave the due-mail index when paid or mailed.
 
+import { cloneLootQuality, type LootQualityDescriptor } from '../src/sim/loot_quality/types';
 import type { CustodyParcelRow } from './mail_custody_overlay';
 import { REALM } from './realm';
 
@@ -59,6 +60,8 @@ CREATE INDEX IF NOT EXISTS vault_reward_claims_guest_cycle
 export interface VaultRewardItem {
   itemId: string;
   count: number;
+  /** Permanent quality of a one-copy gear line, frozen with the parcel. */
+  lootQuality?: LootQualityDescriptor;
 }
 
 export interface VaultRewardClaimInput {
@@ -207,12 +210,15 @@ function normalizeOutcome(input: VaultOutcomeInput): Omit<VaultOutcome, 'complet
     ) {
       throw new Error('invalid guest cycle');
     }
-    const items = claim.items.map(({ itemId, count }) => {
+    const items = claim.items.map(({ itemId, count, lootQuality }): VaultRewardItem => {
       if (!/^[a-z0-9_:-]{1,128}$/.test(itemId)) throw new Error('invalid reward item id');
       if (!Number.isSafeInteger(count) || count <= 0 || count > 9999) {
         throw new Error('invalid reward item count');
       }
-      return { itemId, count };
+      if (lootQuality === undefined) return { itemId, count };
+      const quality = cloneLootQuality(lootQuality);
+      if (!quality || count !== 1) throw new Error('invalid reward item quality');
+      return { itemId, count, lootQuality: quality };
     });
     return {
       characterId: claim.characterId,

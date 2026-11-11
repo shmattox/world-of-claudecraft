@@ -85,6 +85,8 @@ export const API_ERROR_KEYS = {
   'character.delete_confirm': 'apiError.character.delete_confirm',
   'character.storage_purchase_open': 'apiError.character.storage_purchase_open',
   'character.delete_busy': 'apiError.character.delete_busy',
+  'character.referral_transfer_pending': 'apiError.character.referral_transfer_pending',
+  'character.referral_bond_pending': 'apiError.character.referral_bond_pending',
   'character.already_in_world': 'apiError.character.already_in_world',
   'character.taken_over': 'apiError.character.taken_over',
   'character.rename_required': 'apiError.character.rename_required',
@@ -167,6 +169,11 @@ export const API_ERROR_KEYS = {
   'kick.reason_required': 'apiError.kick.reason_required',
   'kick.admin_target': 'apiError.kick.admin_target',
   'kick.target_offline': 'apiError.kick.target_offline',
+  // world_quest_block: the operator world quest block (server/world_quest_block_api.ts).
+  'world_quest_block.admin_target': 'apiError.world_quest_block.admin_target',
+  'world_quest_block.reason_required': 'apiError.world_quest_block.reason_required',
+  'world_quest_block.already_blocked': 'apiError.world_quest_block.already_blocked',
+  'world_quest_block.not_blocked': 'apiError.world_quest_block.not_blocked',
 
   // woc_market: the config-gated $WOC Exchange family (server/woc_market_routes.ts).
   'woc_market.invalid_input': 'apiError.woc_market.invalid_input',
@@ -350,6 +357,7 @@ export function userFacingApiError(err: unknown): string {
   if (suspended) return t('errors.api.accountSuspended', { date: suspended[1] });
 
   const normalized = text.toLowerCase();
+  if (normalized === 'the realm is temporarily unavailable.') return t('serverUnavailable.heading');
   if (normalized.startsWith('too many attempts')) return t('errors.api.tooManyAttempts');
   // The Discord rate-limit bucket (server/discord.ts) answers a bare { error: 'rate
   // limited' } 429; resolve it to the same "slow down" message rather than leaking the
@@ -366,6 +374,8 @@ export function userFacingApiError(err: unknown): string {
   if (normalized === 'character name is not allowed')
     return t('errors.api.characterNameNotAllowed');
   if (normalized === 'invalid class') return t('errors.api.invalidClass');
+  if (normalized === 'membership required for this character')
+    return t('character.membershipRequired');
   if (normalized === 'character limit reached') return t('errors.api.characterLimit');
   if (normalized === 'that name is taken') return t('errors.api.nameTaken');
   if (
@@ -386,6 +396,8 @@ export function userFacingApiError(err: unknown): string {
     return t('errors.api.vaultMailRecovering');
   if (normalized === 'too many characters on this account are already in the world')
     return t('errors.api.accountSessionLimit');
+  if (normalized === 'another character on this account is still in the world after a fight')
+    return t('errors.api.worldFightHold');
   if (normalized === 'character taken over') return t('errors.api.takenOver');
   if (normalized === 'this character must be renamed before entering the world.')
     return t('errors.api.renameBeforeEntering');

@@ -10,7 +10,7 @@ import type {
 } from '../sim/market_query';
 import type { MarketSaleRecord } from '../sim/market_sale_log';
 import type { MaterialComposition } from '../sim/material_sources';
-import type { InvSlot, ItemInstancePayload } from '../sim/types';
+import type { InvSlot, ItemInstancePayload, ItemProvenance } from '../sim/types';
 
 // ---------------------------------------------------------------------------
 // The World Market (the Merchant's auction house). Listings are global and
@@ -30,6 +30,13 @@ export interface MarketListingView {
    *  allowlist (signer/enchant/rolled; never boundTo/bindOnTrade/charges): the
    *  tooltip's enchant line and maker's mark. Absent on plain listings. */
   instance?: ItemInstancePayload;
+  /** The listed tracked copy's history (docs/design/item-tracking.md), as
+   *  the public projection (publicProvenanceView: names, dates, source, zone;
+   *  no character id, no parent guid, never the copy's guid), for the row's
+   *  Item history door. A sibling of `instance`, never inside it, so the
+   *  display trim and every payload equality stay untouched. Absent on an
+   *  untracked or plain listing. */
+  history?: ItemProvenance;
   /** Recipe marker carried by a crafted listing. The client does not display the
    *  id, but Market Sweep needs the bit so it never offers a bulk action the
    *  server planner rejects. */
@@ -65,12 +72,11 @@ export interface MarketInfo {
   pageCount: number; // total browse pages of other sellers' listings (>= 1)
   collectionCopper: number; // proceeds waiting to be collected
   collectionItems: InvSlot[]; // returned/expired items waiting to be collected
-  /** The itemized ledger behind `collectionCopper`: one row per sale still awaiting
-   *  pickup, oldest first. Empty when nothing has sold since the last collect. */
+  /** The seller's sale history (the History tab): one row per sale, oldest first,
+   *  kept after the gold is collected and bounded by the ledger cap. */
   collectionSales: MarketSaleRecord[];
-  /** Older sales the ledger cap dropped. Their gold IS in `collectionCopper`, so the
-   *  tab says how many rows it is not listing rather than showing a short list that
-   *  does not add up. */
+  /** Older sales the ledger cap dropped, so the tab says how many rows it is not
+   *  listing rather than silently showing a short list. */
   collectionSalesOmitted: number;
   cutPct: number; // the Merchant's cut on a sale, as a percentage
   maxListings: number; // per-seller active-listing cap

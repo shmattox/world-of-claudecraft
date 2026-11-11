@@ -20,7 +20,8 @@
 
 import { ITEMS } from '../sim/data';
 import { isTransferLockedInstance } from '../sim/item_instance_transfer';
-import type { ItemDef, ItemInstancePayload } from '../sim/types';
+import { isLoadableItemProvenance, publicProvenanceView } from '../sim/item_provenance';
+import type { ItemDef, ItemInstancePayload, ItemProvenance } from '../sim/types';
 import type { MarketInfo, MarketListingView } from '../world_api';
 import {
   MARKET_ARMOR_TYPE_FILTERS,
@@ -156,9 +157,8 @@ export type MarketHistoryBody =
       /** Itemized sales, oldest first. */
       sales: MarketSaleRow[];
       /** Sales not listed in `sales`: dropped by the sim's ledger cap, or skipped
-       *  here because the item id no longer resolves. Their gold is still counted
-       *  in the Collect tab's proceeds, so this tab reports the count instead of
-       *  quietly under-listing. */
+       *  here because the item id no longer resolves. This tab reports the count
+       *  instead of quietly under-listing. */
       salesOmitted: number;
     };
 
@@ -286,15 +286,10 @@ export function buildMarketSell(
 
 /** Build the Collect tab body from a snapshot. */
 export function buildMarketCollect(info: MarketInfo): MarketCollectBody {
-  // A sale whose proceeds floored to 0 copper still needs a live "Collect All" to
-  // clear it: the ledger the History tab itemizes rides the SAME collection object
-  // this tab's button flushes, so the empty check reads it too even though the
-  // rows themselves are shown on the History tab instead of here.
-  if (
-    info.collectionCopper <= 0 &&
-    info.collectionItems.length === 0 &&
-    info.collectionSales.length === 0
-  ) {
+  // Only gold and returned goods pend here. The sale ledger rides the same
+  // collection object but is History: Collect never clears it, so it never makes
+  // this tab non-empty (a 0-copper sale has nothing to claim).
+  if (info.collectionCopper <= 0 && info.collectionItems.length === 0) {
     return { state: 'empty' };
   }
   const rows: MarketCollectRow[] = [];
@@ -420,11 +415,9 @@ export function marketFilterMenus(itemType: MarketItemTypeFilter): MarketFilterM
  */
 export function marketCollectBadgeCount(info: MarketInfo | null): number {
   if (!info) return 0;
-  // The purse counts ONCE however many sales fill it: the ledger itemizes the same
-  // gold the purse already stands for, so counting rows too would double it. The
-  // ledger only widens WHEN the purse counts, for the 0-copper sale that leaves a
-  // row and no coin (a 1-copper listing against the Merchant's cut).
-  const purse = info.collectionCopper > 0 || info.collectionSales.length > 0 ? 1 : 0;
+  // The purse counts ONCE however many sales fill it. Sale ledger rows never
+  // count: they are History, kept after the gold is collected.
+  const purse = info.collectionCopper > 0 ? 1 : 0;
   return purse + info.collectionItems.length;
 }
 
@@ -440,4 +433,19 @@ export interface MarketCollectIndicatorView {
  */
 export function marketCollectIndicatorView(pending: boolean): MarketCollectIndicatorView {
   return { visible: pending === true };
+}
+
+/**
+ * The record a browse row's Item history door shows for a listed tracked copy
+ * (MarketListingView.history), or null when the row offers none. The sim
+ * already ships the public projection; the row re-validates it against the
+ * persisted shape (isLoadableItemProvenance) and projects it again, so a
+ * version-skewed or malformed row never puts `undefined` into a history
+ * line and never carries a character id into the dialog.
+ */
+export function marketListingItemHistory(
+  listing: Pick<MarketListingView, 'history'>,
+): ItemProvenance | null {
+  const history: unknown = listing.history;
+  return isLoadableItemProvenance(history) ? publicProvenanceView(history) : null;
 }

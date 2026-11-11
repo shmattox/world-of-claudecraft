@@ -1,9 +1,11 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { addVaultRewardToCharacterState } from '../../server/vault_reward_state';
+import { prepareVaultRewardTracking } from '../../server/vault_reward_tracking';
 import type { CharacterState } from '../../src/sim/character_state';
-import { HEROIC_MARK_ITEM_ID } from '../../src/sim/content/dungeon_difficulty';
+import { HEROIC_MARK_CURRENCY_ID } from '../../src/sim/content/dungeon_difficulty';
 import { HOARD_BASE_ITEM_IDS, hoardLootVariantId } from '../../src/sim/content/hoard_loot';
 import { TREASURE_MAP_ITEM_IDS } from '../../src/sim/content/treasure_maps';
+import type { LootQualityDescriptor } from '../../src/sim/loot_quality';
 import { grantHoardReward } from '../../src/sim/rift/hoard_reward_grant';
 import { Sim } from '../../src/sim/sim';
 
@@ -44,6 +46,42 @@ describe('direct vault reward character snapshot', () => {
     expect(state.copper).toBe(52);
     expect(state.worldQuests?.vaultAttempt?.id).toBe('7:1');
     expect(state.worldQuests?.clueCasketsOpened).toBe(1);
+  });
+
+  it('keeps the permanent quality of a gear line on the saved copy', () => {
+    const state = saved();
+    const lootQuality: LootQualityDescriptor = { version: 1, tier: 2, weights: [9, 8, 7, 6, 5] };
+    addVaultRewardToCharacterState(state, {
+      characterId: 7,
+      recipientName: 'Owner',
+      items: [{ itemId: 'slagbreaker_helmet', count: 1, lootQuality: { ...lootQuality } }],
+      copper: 0,
+      mailDueAt: '2026-09-23T00:00:00.000Z',
+    });
+    expect(state.inventory.find((s) => s.itemId === 'slagbreaker_helmet')?.instance).toEqual({
+      lootQuality,
+    });
+  });
+
+  it('grants the plain copy for a malformed stored descriptor', () => {
+    const state = saved();
+    addVaultRewardToCharacterState(state, {
+      characterId: 7,
+      recipientName: 'Owner',
+      items: [
+        {
+          itemId: 'slagbreaker_helmet',
+          count: 1,
+          lootQuality: { version: 1, tier: 9, weights: [1, 1, 1, 1, 1] } as never,
+        },
+      ],
+      copper: 0,
+      mailDueAt: '2026-09-23T00:00:00.000Z',
+    });
+    const slot = state.inventory.find((s) => s.itemId === 'slagbreaker_helmet');
+    expect(slot).toBeDefined();
+    expect(slot?.count).toBe(1);
+    expect(slot?.instance).toBeUndefined();
   });
 
   it('does not count a capped guest as paid', () => {
@@ -108,12 +146,58 @@ describe('direct vault reward character snapshot', () => {
     expect(state.reliquary?.recent).toContain(baseId);
   });
 
+  it('projects stored quality and scalar marks identically into durable and live claims without rerolling', () => {
+    const sim = new Sim({ seed: 43, playerClass: 'warrior', noPlayer: true });
+    const pid = sim.addPlayer('warrior', 'VaultTester', { characterId: 7, bot: true });
+    const meta = sim.players.get(pid);
+    if (!meta) throw new Error('missing player');
+    meta.autoEquip = false;
+    const before = sim.serializeCharacter(pid);
+    if (!before) throw new Error('missing player snapshot');
+    const lootQuality: LootQualityDescriptor = { version: 1, tier: 3, weights: [5, 4, 3, 2, 1] };
+    const claim = {
+      characterId: 7,
+      recipientName: 'VaultTester',
+      items: [
+        { itemId: 'slagbreaker_helmet', count: 1, lootQuality },
+        { itemId: HEROIC_MARK_CURRENCY_ID, count: 2 },
+      ],
+      copper: 42,
+      mailDueAt: '2026-09-23T00:00:00.000Z',
+    };
+    const prepared = prepareVaultRewardTracking(sim.ctx, pid, claim)!;
+    const projected = addVaultRewardToCharacterState(
+      structuredClone(before),
+      claim,
+      prepared.items,
+    );
+    const next = vi.spyOn(sim.rng, 'next');
+    try {
+      expect(
+        grantHoardReward(sim.ctx, pid, 'rare', { ...claim, capped: false }, true, prepared.items),
+      ).toBe(true);
+      expect(next).not.toHaveBeenCalled();
+    } finally {
+      next.mockRestore();
+    }
+    const live = sim.serializeCharacter(pid);
+    expect(projected.inventory).toEqual(live?.inventory);
+    expect(projected.heroicMarks).toBe(live?.heroicMarks);
+    expect(projected.copper).toBe(live?.copper);
+    expect(projected.deedStats).toEqual(live?.deedStats);
+    expect(projected.reliquary).toEqual(live?.reliquary);
+    expect(projected.inventory.some((slot) => slot.itemId === HEROIC_MARK_CURRENCY_ID)).toBe(false);
+    expect(
+      projected.inventory.find((slot) => slot.itemId === 'slagbreaker_helmet')?.instance,
+    ).toMatchObject({ lootQuality, guid: expect.any(String), provenance: { byId: 7 } });
+  });
+
   it.each([
     ['material', 'thorium_ore'],
     ['plain hoard piece', HOARD_BASE_ITEM_IDS[0]],
     ['tarnished hoard piece', hoardLootVariantId(HOARD_BASE_ITEM_IDS[0], 'rare')],
     ['sovereign hoard piece', hoardLootVariantId(HOARD_BASE_ITEM_IDS[0], 'legendary')],
-    ['heroic mark', HEROIC_MARK_ITEM_ID],
+    ['heroic mark', HEROIC_MARK_CURRENCY_ID],
     ['mount reins', 'reins_lanternback_troll'],
     ['next map', TREASURE_MAP_ITEM_IDS.epic],
   ])('matches the live collection ledger for %s', (_label, itemId) => {
@@ -140,5 +224,9 @@ describe('direct vault reward character snapshot', () => {
     const live = sim.serializeCharacter(pid);
     expect(projected.deedStats).toEqual(live?.deedStats);
     expect(projected.reliquary).toEqual(live?.reliquary);
+    // Heroic Marks are a currency on both arms: the offline projection credits
+    // the saved balance exactly as the live hub does, and neither bags a stack.
+    expect(projected.heroicMarks).toEqual(live?.heroicMarks);
+    expect(projected.inventory.some((slot) => slot.itemId === HEROIC_MARK_CURRENCY_ID)).toBe(false);
   });
 });

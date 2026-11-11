@@ -300,10 +300,16 @@ async function createListing(rig: Rig) {
   // The step-up proof (B6/R1), minted devsig through the real issue path so
   // this suite keeps exercising the escrow queue, not the challenge ladder.
   const params = listingParams();
+  // The listing claims the copy the seller SEES (the bags UI posts the slot's
+  // payload): every epic one-per-slot copy is minted with a guid and a
+  // provenance record now, so a null claim would be a stale_copy refusal
+  // before the escrow queue this suite pins is ever reached.
+  const index = rig.itemIndex();
+  const expectInstance = requirePlayerMeta(rig).inventory[index]?.instance ?? null;
   const issue = await rig.service.issueStepUpChallenge(SELLER, {
     operation: 'create_listing',
     itemId: EPIC_ITEM,
-    expectInstance: null,
+    expectInstance,
     format: params.format,
     startCents: params.startCents,
     reserveCents: params.reserveCents,
@@ -315,7 +321,7 @@ async function createListing(rig: Rig) {
   return rig.service.createListing({
     account: SELLER,
     characterId: SELLER_CHAR,
-    itemRef: { index: rig.itemIndex(), itemId: EPIC_ITEM },
+    itemRef: { index, itemId: EPIC_ITEM, expectInstance },
     params,
     stepUp: {
       nonce: issue.challenge.nonce,
@@ -439,16 +445,15 @@ describe('the escrow critical section rides the per-character save queue (H5)', 
 
   it('the escrow blob carries the session save fixups, not the raw live state', async () => {
     const rig = makeRig();
-    // A spectating seller: the ordinary save persists the SAVED position and
-    // the stowed pet, never the spectator body. The escrow write must apply
-    // the same fixups or a listing while spectating corrupts the blob.
+    // A jail-visiting seller: the ordinary save persists the SAVED position
+    // and the stowed pet, never the visitor body. The escrow write must apply
+    // the same fixups or a listing during the visit corrupts the blob.
     const stowedPet = { name: 'Stowed', kind: 'wolf' } as unknown as NonNullable<
-      ClientSession['spectating']
+      ClientSession['jailVisit']
     >['stowedPet'];
-    rig.session.spectating = {
-      characterId: 999,
-      name: 'Watched',
+    rig.session.jailVisit = {
       savedPos: { x: 111, y: 0, z: 222 },
+      savedFacing: 0,
       priorGm: false,
       stowedPet,
     };
@@ -493,12 +498,11 @@ describe('the escrow critical section rides the per-character save queue (H5)', 
   it('grant and snapshot blobs carry the fixups too', () => {
     const rig = makeRig();
     const stowedPet = { name: 'Stowed', kind: 'wolf' } as unknown as NonNullable<
-      ClientSession['spectating']
+      ClientSession['jailVisit']
     >['stowedPet'];
-    rig.session.spectating = {
-      characterId: 999,
-      name: 'Watched',
+    rig.session.jailVisit = {
       savedPos: { x: 31, y: 0, z: 64 },
+      savedFacing: 0,
       priorGm: false,
       stowedPet,
     };

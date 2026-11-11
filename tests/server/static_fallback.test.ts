@@ -7,7 +7,7 @@
 //
 // The wiring half drives the real routeHttpRequest. server/main.ts reads its shells
 // from dist/, which a test checkout may not have built, so the mock below stands in
-// for exactly the three shell files (existence + body) and passes every other fs
+// for exactly the three shell files (existence, size and body) and passes every other fs
 // call through, the same pass-through shape tests/server/static_fd_leak.test.ts uses.
 
 import * as http from 'node:http';
@@ -27,6 +27,16 @@ vi.mock('node:fs', async (importOriginal) => {
     ...actual,
     existsSync: (p: Parameters<typeof actual.existsSync>[0]) =>
       SHELL.test(String(p)) || actual.existsSync(p),
+    statSync: (...args: Parameters<typeof actual.statSync>) => {
+      const match = String(args[0]).match(SHELL);
+      if (match) {
+        // Direct shell routes send Content-Length; it must match the fake stream.
+        return Object.assign(actual.statSync(new URL(import.meta.url)), {
+          size: Buffer.byteLength(`SHELL:${match[1]}`),
+        });
+      }
+      return actual.statSync(...args);
+    },
     createReadStream: (...args: Parameters<typeof actual.createReadStream>) => {
       const match = String(args[0]).match(SHELL);
       if (match) return Readable.from([`SHELL:${match[1]}`]) as never;
@@ -127,6 +137,7 @@ describe('serveStatic SPA fallback (routeHttpRequest)', () => {
           headers: { Host: opts.host ?? 'worldofclaudecraft.com', Connection: 'close' },
         },
         (res) => {
+          res.on('error', reject);
           let body = '';
           res.setEncoding('utf8');
           res.on('data', (c) => {

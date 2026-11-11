@@ -34,18 +34,37 @@ export { PRESENCE_MODES, type PresenceMode };
 /** The minimal view of the character whose presence is being shown. */
 export interface PresenceSubject {
   characterId: number;
+  accountId?: number;
+  friendAccountIds?: ReadonlySet<number>;
   /** Absent reads as 'everyone' (the default, and a session still loading). */
   presenceMode?: PresenceMode;
   /** The subject's own friends list, for the 'friends' mode. */
   friendIds?: ReadonlySet<number>;
 }
 
+/** Keep logout permissions after the shared live-account cache is cleared. */
+export function copyPresenceSubject(subject: PresenceSubject): PresenceSubject {
+  return {
+    ...subject,
+    friendIds: new Set(subject.friendIds),
+    friendAccountIds: new Set(subject.friendAccountIds),
+  };
+}
+
 /** True when `subject` hides their online presence from `viewerCharId`. */
-export function presenceHiddenFrom(subject: PresenceSubject, viewerCharId: number): boolean {
+export function presenceHiddenFrom(
+  subject: PresenceSubject,
+  viewerCharId: number,
+  viewerAccountId?: number,
+): boolean {
   if (subject.characterId === viewerCharId) return false;
   const mode = subject.presenceMode ?? 'everyone';
   if (mode === 'everyone') return false;
   if (mode === 'none') return true;
+  if (subject.accountId !== undefined)
+    return (
+      viewerAccountId === undefined || !(subject.friendAccountIds?.has(viewerAccountId) ?? false)
+    );
   return !(subject.friendIds?.has(viewerCharId) ?? false);
 }
 

@@ -45,6 +45,10 @@ describe('the Social window Friends footer', () => {
       restoreFocus: noop,
       showPrompt: noop,
       startWhisper: noop,
+      openSelfMenu: noop,
+      openUnitMenu: noop,
+      openNameMenu: noop,
+      isMobileLayout: () => false,
     };
     new SocialWindow(deps).toggle();
     return root;

@@ -28,6 +28,7 @@ import {
   hillStreakCallout,
   spawnHillNow,
 } from '../src/sim/pvp';
+import { noteWorldPvpStreakKill } from '../src/sim/pvp/world_pvp_bounty';
 import { Sim } from '../src/sim/sim';
 import type { Entity, WorldContent } from '../src/sim/types';
 import { DT } from '../src/sim/types';
@@ -130,6 +131,46 @@ describe('the bounty tables (League of Legends, scaled to 10 Honor)', () => {
 });
 
 describe('hill kills in the Sim', () => {
+  it.each([
+    [false, false],
+    [true, false],
+    [false, true],
+    [true, true],
+  ])(
+    'a victim world bounty doubles the hill bounty with killer=%s victim=%s',
+    (killerBounty, victimBounty) => {
+      const {
+        sim,
+        pids: [a, b, c],
+      } = hillFight(['Aleph', 'Bet', 'Gimel']);
+      for (let i = 0; i < 3; i++) kill(sim, b, c);
+      expect(ent(sim, b).hillBounty).toBe(20);
+      for (const [pid, enabled] of [
+        [a, killerBounty],
+        [b, victimBounty],
+      ] as const) {
+        if (enabled)
+          for (let i = 0; i < 5; i++)
+            noteWorldPvpStreakKill(sim.ctx, ent(sim, pid), sim.meta(pid)!.worldPvp!);
+      }
+      expect(ent(sim, a).bounty === true).toBe(killerBounty);
+      expect(ent(sim, b).bounty === true).toBe(victimBounty);
+      expect(kill(sim, a, b)).toBe(victimBounty ? 40 : 20);
+      expect(ent(sim, b).bounty).toBeFalsy();
+      expect(ent(sim, b).hillBounty).toBeUndefined();
+    },
+  );
+
+  it('keeps the ordinary 10/5/2 repeat curve off the hill without a world bounty', () => {
+    const {
+      sim,
+      pids: [a, b],
+    } = hillFight(['Aleph', 'Bet']);
+    const hill = sim.hillState.active!;
+    place(sim, a, hill.x + hill.radius + 20, hill.z);
+    place(sim, b, hill.x + hill.radius + 23, hill.z);
+    expect([kill(sim, a, b), kill(sim, a, b), kill(sim, a, b)]).toEqual([10, 5, 2]);
+  });
   it('pays the victim bounty, builds a streak, badges it, and a shut down pays it out', () => {
     const {
       sim,
@@ -169,12 +210,12 @@ describe('hill kills in the Sim', () => {
     // Bet's own death streak lowers the price; the sixth kill of the pair pays nothing.
     expect(paid).toEqual([10, 10, 9, 7, 6, 0]);
 
-    // The control: the same pair off the hill (both outside the circle) decays 10, 5, 2.
+    // Five hill kills also earn a world bounty: off-hill payouts use its 15/10/5 curve.
     const hill = sim.hillState.active as { x: number; z: number; radius: number };
     place(sim, a, hill.x + hill.radius + 20, hill.z);
     place(sim, b, hill.x + hill.radius + 23, hill.z);
     sim.worldPvpBooks.killsByPair.clear();
-    expect([kill(sim, a, b), kill(sim, a, b), kill(sim, a, b)]).toEqual([10, 5, 2]);
+    expect([kill(sim, a, b), kill(sim, a, b), kill(sim, a, b)]).toEqual([15, 10, 5]);
   });
 
   it('shows the latest call to everyone in the zone for a few seconds only', () => {
@@ -207,6 +248,11 @@ describe('hill kills in the Sim', () => {
     const v = ent(sim, b);
     sim.ctx.dealDamage(ent(sim, helper), v, 5, false, 'physical', 'Slam', 'hit');
     sim.ctx.dealDamage(ent(sim, a), v, v.hp + 1_000, false, 'physical', 'Strike', 'hit');
+    expect(sim.meta(a)?.copper).toBe(goldBefore[0]);
+    expect(v.loot?.copper).toBe(10_000 - victim.copper);
+    expect(v.loot?.copper).toBeGreaterThan(0);
+    place(sim, a, v.pos.x, v.pos.z);
+    expect(sim.lootCorpse(b, a)).toBe(true);
     const gold = [
       (sim.meta(a)?.copper ?? 0) - goldBefore[0],
       (sim.meta(helper)?.copper ?? 0) - goldBefore[1],
@@ -225,8 +271,8 @@ describe('hill kills in the Sim', () => {
       .filter((ev) => ev.type === 'log' && ev.pid === a)
       .map((ev) => (ev as { text: string }).text);
     expect(
-      lines.some((l) => l.startsWith('You defeat Bet and take')),
-      'the killer took the purse',
+      lines.some((l) => l === "Loot Bet's body to claim your spoils."),
+      'the killer was directed to collect the purse',
     ).toBe(true);
     expect(
       lines.some((l) => l.includes('split')),
@@ -382,6 +428,7 @@ describe('the bounty on the wire and in the HUD', () => {
       maxResource: 0,
       level: 20,
       hillBounty: 27,
+      auras: [],
     } as unknown as Entity;
     const d = fillTargetFrameDescriptor(
       {} as UnitFrameDescriptor,

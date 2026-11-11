@@ -5,7 +5,7 @@
 import { formatNumber, type TranslationKey, t } from './i18n';
 
 /** The one catalog key for the tag. A literal so tsc verifies it exists. */
-export const HILL_BOUNTY_TAG_KEY: TranslationKey = 'hudChrome.nameplate.bountyTag';
+export const HILL_BOUNTY_TAG_KEY: TranslationKey = 'hudChrome.nameplate.hillBountyTag';
 
 /** The narrow entity readout the tag needs. */
 export interface HillBountyTagSubject {

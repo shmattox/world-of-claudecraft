@@ -7,7 +7,7 @@ import { effectiveSpellHit } from '../src/sim/combat/spell_resist';
 import { ABILITIES } from '../src/sim/content/classes';
 import { DEV_KIT_ROLES } from '../src/sim/content/dev_kit_roles';
 import { ITEM_SETS } from '../src/sim/content/item_sets';
-import { HONOR_QUARTERMASTER_STOCK } from '../src/sim/content/pvp_honor';
+import { FURY_STOCK, HONOR_QUARTERMASTER_STOCK } from '../src/sim/content/pvp_honor';
 import {
   SEASON2_ARMOR_COMBAT_RATING,
   SEASON2_ARMOR_FRACTION,
@@ -48,6 +48,7 @@ import { expectedLineBudget, itemLevel, primaryStatSum } from '../src/sim/item_l
 import { countsWarfareRating } from '../src/sim/pvp/power';
 import { Sim } from '../src/sim/sim';
 import {
+  ALL_CLASSES,
   armorReduction,
   type Entity,
   type EquipSlot,
@@ -57,6 +58,7 @@ import {
   type PlayerClass,
   spellHitChance,
 } from '../src/sim/types';
+import { WEEKLY_POOL_IDS, weeklyLootPool } from '../src/sim/weekly_rewards';
 
 const ARMOR_TYPE: Record<string, string> = {
   warrior: 'mail',
@@ -151,6 +153,66 @@ describe('the Season 2 stock', () => {
     for (const id of SEASON2_JEWELRY_IDS) {
       const it = ITEMS[id];
       expect(it.priceHonor, id).toBe(SEASON2_JEWELRY_PRICES[it.slot as 'neck' | 'ring']);
+    }
+  });
+});
+
+// Owner ruling 2026-10-07: the PvP row of the Weekly Vault pays Warfare Season 2
+// and nothing else, filtered to the character's class. Season 2 stays on sale
+// at both quartermasters (pinned above); the entry tier is honor-only.
+describe('the Weekly Vault PvP row rolls only Season 2, for your class', () => {
+  const season2 = new Set(SEASON2_STOCK);
+
+  it.each(ALL_CLASSES)(
+    'a %s rolls its own three sets, wieldable weapons and appropriate jewelry',
+    (cls) => {
+      const pvp = weeklyLootPool('pvp', cls);
+      // Nothing outside Season 2, so no entry-tier piece and no other gear.
+      expect(pvp.filter((id) => !season2.has(id))).toEqual([]);
+      expect(pvp.some((id) => FURY_STOCK.includes(id))).toBe(false);
+      // Every piece of the class's own three spec sets, and no other class's.
+      const own = SEASON2_SETS.filter((set) => set.cls === cls).flatMap((set) => set.itemIds);
+      expect(own).toHaveLength(15);
+      const foreign = SEASON2_SETS.filter((set) => set.cls !== cls).flatMap((set) => set.itemIds);
+      for (const id of own) expect(pvp, `${cls} rolls ${id}`).toContain(id);
+      for (const id of foreign) expect(pvp, `${cls} refused ${id}`).not.toContain(id);
+      // The weapons in the row are exactly the season weapons this class can equip.
+      const weapons = pvp.filter((id) => SEASON2_WEAPON_IDS.includes(id));
+      expect(weapons).toEqual(
+        SEASON2_WEAPON_IDS.filter((id) => canEquipItem(cls, ITEMS[id])).sort(),
+      );
+      const roles = ['warrior', 'rogue', 'hunter'].includes(cls)
+        ? ['might', 'precision']
+        : cls === 'warlock'
+          ? ['focus']
+          : ['mage', 'priest'].includes(cls)
+            ? ['focus', 'mending']
+            : ['might', 'precision', 'focus', 'mending'];
+      const jewelry = roles.flatMap((role) => [
+        `vanguard_band_of_${role}`,
+        `vanguard_pendant_of_${role}`,
+      ]);
+      expect(pvp.filter((id) => SEASON2_JEWELRY_IDS.includes(id))).toEqual(jewelry.sort());
+      expect(pvp).toHaveLength(own.length + weapons.length + jewelry.length);
+    },
+  );
+
+  it('every season weapon reaches at least one class through the row', () => {
+    for (const id of SEASON2_WEAPON_IDS) {
+      expect(
+        ALL_CLASSES.some((cls) => weeklyLootPool('pvp', cls).includes(id)),
+        id,
+      ).toBe(true);
+    }
+  });
+
+  it.each(ALL_CLASSES)('no other vault row offers Season 2 to a %s', (cls) => {
+    for (const pool of WEEKLY_POOL_IDS) {
+      if (pool === 'pvp') continue;
+      expect(
+        weeklyLootPool(pool, cls).filter((id) => season2.has(id)),
+        pool,
+      ).toEqual([]);
     }
   });
 });
@@ -949,5 +1011,13 @@ describe('the Reliquary page: class-personal stock outside completion', () => {
     expect(page.excludeFromCompletion).toBe('personal');
     const listed = new Set(page.relics.map((r) => (r as { itemId?: string }).itemId));
     for (const id of SEASON2_STOCK) expect(listed.has(id), id).toBe(true);
+    // Two doors, both named: the two honor quartermasters and the vault's PvP row.
+    for (const relic of page.relics) {
+      expect(relic.source, JSON.stringify(relic)).toEqual([
+        { sourceKind: 'vendor', sourceId: 'fury' },
+        { sourceKind: 'vendor', sourceId: 'warmarshal_draven_kole' },
+        { sourceKind: 'activity', sourceId: 'weekly_vault_pvp' },
+      ]);
+    }
   });
 });

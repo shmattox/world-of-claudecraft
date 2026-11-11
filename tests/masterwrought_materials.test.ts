@@ -218,7 +218,7 @@ describe('the death hub resolves the claimed instance ONCE (Phase 18 scan dedupe
     // Both calls carried the hub's resolution BY IDENTITY: one scan, one slot.
     expect(seen).toEqual([inst, inst]);
     // And the pass-through changed nothing observable: marks and cores paid.
-    expect(sim.countItem('heroic_mark', leader)).toBeGreaterThan(0);
+    expect(sim.meta(leader)!.heroicMarks).toBeGreaterThan(0);
     expect(sim.countItem(WYRMFALL_CORE_ITEM_ID, leader)).toBeGreaterThanOrEqual(WYRMFALL_BOSS_MIN);
   });
 
@@ -235,7 +235,7 @@ describe('the death hub resolves the claimed instance ONCE (Phase 18 scan dedupe
       spy.restore();
     }
     expect(spy.finds()).toBe(0);
-    expect(sim.countItem('heroic_mark', leader)).toBeGreaterThan(0);
+    expect(sim.meta(leader)!.heroicMarks).toBeGreaterThan(0);
     const cores = sim.countItem(WYRMFALL_CORE_ITEM_ID, leader);
     expect(cores).toBeGreaterThanOrEqual(WYRMFALL_BOSS_MIN);
     // Handed null (the hub scanned and found no claim): a no-op, still no scan.
@@ -250,7 +250,7 @@ describe('the death hub resolves the claimed instance ONCE (Phase 18 scan dedupe
     }
     expect(spy.finds()).toBe(0);
     expect(fresh.sim.countItem(WYRMFALL_CORE_ITEM_ID, fresh.leader)).toBe(0);
-    expect(fresh.sim.countItem('heroic_mark', fresh.leader)).toBe(0);
+    expect(fresh.sim.meta(fresh.leader)!.heroicMarks).toBe(0);
     // Omitted (a foreign caller, the pre-widening shape): the callee resolves
     // the claim itself, one scan each, and pays exactly as before.
     spy = spyFinds(fresh.sim);
@@ -260,7 +260,7 @@ describe('the death hub resolves the claimed instance ONCE (Phase 18 scan dedupe
       spy.restore();
     }
     expect(spy.finds()).toBe(1);
-    expect(fresh.sim.countItem('heroic_mark', fresh.leader)).toBeGreaterThan(0);
+    expect(fresh.sim.meta(fresh.leader)!.heroicMarks).toBeGreaterThan(0);
   });
 });
 
@@ -1039,9 +1039,12 @@ describe('sundered essence: the extraction', () => {
     const { meta, pid } = playerOf(sim);
     meta.inventory = [];
     sim.addItem('linen_scrap', 3, pid); // index 0: the slot that goes away
-    sim.addItem(RAID_EPIC, 1, pid); // index 1: the plain copy the player picked
+    sim.addItem(RAID_EPIC, 1, pid); // index 1: the ordinary copy the player picked
     sim.addItemInstance(RAID_EPIC, { signer: meta.name }, pid, 1); // index 2
-    expect(meta.inventory[1].instance).toBeUndefined();
+    // The ordinary copy is tracked (a guid, no signer); the two copies differ.
+    expect(meta.inventory[1].instance?.guid).toBeDefined();
+    expect(meta.inventory[1].instance?.signer).toBeUndefined();
+    const pickedGuid = meta.inventory[1].instance?.guid;
 
     sim.extractEssence(RAID_EPIC, pid, 1);
     sim.removeItem('linen_scrap', 3, pid); // the splice shifts the signed copy under index 1
@@ -1057,6 +1060,7 @@ describe('sundered essence: the extraction', () => {
     expect(meta.inventory.filter((s) => s.itemId === RAID_EPIC && s.instance?.signer)).toHaveLength(
       1,
     );
+    expect(meta.inventory.some((s) => s.instance?.guid === pickedGuid)).toBe(true);
     expect(sim.countItem(SUNDERED_ESSENCE_ITEM_ID, pid)).toBe(0);
   });
 
